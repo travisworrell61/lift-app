@@ -359,6 +359,7 @@ document.addEventListener('click',function(ev){
     saveLogs(all);
     refreshBlock(block,name);
     liftPushState();
+    liftSyncLogs();
     panel.innerHTML='<div class="saved-flash">✓ Saved</div>';
     setTimeout(function(){panel.hidden=true; panel.dataset.mode='';},750);
     return;
@@ -389,6 +390,12 @@ function liftPushState(){
       title: d.title, sub: d.sub, week: curWk,
       exercises: list, currentIndex: currentExerciseIdx(list), total: list.length
     }));
+  }catch(e){}
+}
+function liftSyncLogs(){
+  try{
+    if(!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.liftSync)) return;
+    window.webkit.messageHandlers.liftSync.postMessage(JSON.stringify(loadLogs()));
   }catch(e){}
 }
 

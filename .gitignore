@@ -6,3 +6,6 @@ build/
 DerivedData/
 *.xcuserstate
 xcuserdata/
+
+# Secrets — never commit (public repo)
+ios/Secrets.swift

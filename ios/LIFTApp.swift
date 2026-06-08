@@ -27,7 +27,8 @@ struct WebView: UIViewRepresentable {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .default()          // keeps your logs/history between launches
         let controller = WKUserContentController()
-        controller.add(context.coordinator, name: "lift")   // JS → native bridge
+        controller.add(context.coordinator, name: "lift")       // JS → native: widget state
+        controller.add(context.coordinator, name: "liftSync")   // JS → native: full log blob → cloud
         config.userContentController = controller
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.scrollView.contentInsetAdjustmentBehavior = .never
@@ -40,17 +41,36 @@ struct WebView: UIViewRepresentable {
 
     func updateUIView(_ webView: WKWebView, context: Context) {}
 
-    // Receives the workout state from the web app and hands it to the widget.
+    // Receives messages from the web app: widget state ("lift") and log-sync ("liftSync").
     final class Coordinator: NSObject, WKScriptMessageHandler {
         func userContentController(_ controller: WKUserContentController,
                                    didReceive message: WKScriptMessage) {
-            guard message.name == "lift",
-                  let json = message.body as? String,
+            guard let json = message.body as? String,
                   let data = json.data(using: .utf8) else { return }
-            guard var snapshot = try? JSONDecoder().decode(WorkoutSnapshot.self, from: data) else { return }
-            snapshot.updated = Date()
-            LiftStore.save(snapshot)
-            WidgetCenter.shared.reloadAllTimelines()
+
+            switch message.name {
+            case "lift":
+                guard var snapshot = try? JSONDecoder().decode(WorkoutSnapshot.self, from: data) else { return }
+                snapshot.updated = Date()
+                LiftStore.save(snapshot)
+                WidgetCenter.shared.reloadAllTimelines()
+            case "liftSync":
+                uploadLogs(data)        // data = raw JSON blob of all logs
+            default:
+                break
+            }
+        }
+
+        // Push the full log blob to the Vercel sync endpoint so the Claude.ai chat can read progress.
+        // Secrets live in Secrets.swift (gitignored) — never in the public web repo.
+        private func uploadLogs(_ body: Data) {
+            guard let url = URL(string: Secrets.syncURL) else { return }
+            var req = URLRequest(url: url)
+            req.httpMethod = "POST"
+            req.setValue("application/json", forHTTPHeaderField: "content-type")
+            req.setValue(Secrets.writeSecret, forHTTPHeaderField: "x-write-secret")
+            req.httpBody = body
+            URLSession.shared.dataTask(with: req).resume()
         }
     }
 }

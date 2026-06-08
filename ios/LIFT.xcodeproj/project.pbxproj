@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0C509621D42F0A87CD02F1B2 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0B79F6E81450FDDE34DE97 /* Secrets.swift */; };
 		24F3AB1FE307798776DC9F5A /* LIFTWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F9165596189FFA2913A5CB8 /* LIFTWidgetBundle.swift */; };
 		58E949FBF4FF120ADA2016C8 /* LiftStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7B1F8CF508DABBF7528E885 /* LiftStore.swift */; };
 		7EC76B51FCC81F7A687DC5A3 /* LIFTWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916CC6507580F4D6FC5EDC29 /* LIFTWidget.swift */; };
@@ -46,6 +47,7 @@
 		4F9165596189FFA2913A5CB8 /* LIFTWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFTWidgetBundle.swift; sourceTree = "<group>"; };
 		6A8A209A2BA96935F136CFF2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		916CC6507580F4D6FC5EDC29 /* LIFTWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFTWidget.swift; sourceTree = "<group>"; };
+		9B0B79F6E81450FDDE34DE97 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		B83D0BF6071EA3DC5A720198 /* LIFT.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LIFT.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7B1F8CF508DABBF7528E885 /* LiftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftStore.swift; sourceTree = "<group>"; };
 		F423B2BD86F7C1446C44070F /* LIFTWidgetExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = LIFTWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -57,6 +59,7 @@
 			children = (
 				1C237A70351CB24294F9D856 /* Assets.xcassets */,
 				18B1C140878B7347D136DAAA /* LIFTApp.swift */,
+				9B0B79F6E81450FDDE34DE97 /* Secrets.swift */,
 				E1772386482B441ABC6BB578 /* LIFTWidget */,
 				EA5395EBC8C95ACC2EFD0768 /* Shared */,
 				299E46FE35F7E5043DEA46D9 /* Products */,
@@ -187,6 +190,7 @@
 			files = (
 				B2DE6C279A1EA261A6D8B591 /* LIFTApp.swift in Sources */,
 				C248E57C8E90A0D21D0B0E1F /* LiftStore.swift in Sources */,
+				0C509621D42F0A87CD02F1B2 /* Secrets.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
