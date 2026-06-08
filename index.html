@@ -16,8 +16,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0b0d12; --bg2:#141823; --panel:#171c28; --panel2:#1d2433;
-    --ink:#eef2f8; --muted:#9aa6ba; --line:#2a3142; --steel:#aebed6;
+    --bg:#0e1117; --bg2:#11151c; --panel:#161b23; --panel2:#1b212b;
+    --ink:#e8edf4; --muted:#8893a3; --line:#242c38; --steel:#aeb9c9;
+    --accent:#7dd3fc; --accent-ink:#06131c;   /* Slate theme accent */
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{overflow-x:hidden;}
@@ -231,6 +232,31 @@
   /* re-render: skip the entrance animation after first paint */
   body.ready .head,body.ready .warm,body.ready .group,body.ready .fin,
   body.ready .prog,body.ready .today{animation:none;}
+
+  /* ───────── Slate theme — cohesive cool accent, minimal chrome ───────── */
+  body{background:linear-gradient(180deg,#0e1117,#11151c);background-attachment:fixed;}
+  .head::before{opacity:.25;}
+  .brand .dotmark{background:linear-gradient(135deg,var(--accent),#a5b4fc);}
+  .kicker{color:var(--accent);letter-spacing:.34em;}
+  .day-btn.on{background:var(--ink);color:#11151c;border-color:var(--ink);}
+  .wk-btn.on{background:var(--accent);color:var(--accent-ink);border-color:transparent;}
+  .tag.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+  .tag.main{background:transparent;color:var(--steel);border-color:var(--line);}
+  .prog{border-left-color:var(--accent);
+    background:color-mix(in srgb,var(--accent) 8%,var(--panel));}
+  .log-btn{background:var(--ink);color:#11151c;border-color:transparent;}
+  .exblock.done .log-btn{background:transparent;color:var(--accent);
+    border-color:color-mix(in srgb,var(--accent) 45%,var(--line));}
+  .exblock.done .accent{background:var(--accent);}
+  .exblock.done .card{border-color:color-mix(in srgb,var(--accent) 26%,var(--line));}
+  .ss .exblock.done .card{border-color:color-mix(in srgb,var(--accent) 30%,var(--c));}
+  .last.done,.last.done b{color:var(--accent);}
+  .today-bar span{background:var(--accent);}
+  .today-lab b{color:var(--accent);}
+  .in-w{border-color:color-mix(in srgb,var(--accent) 30%,var(--line));}
+  .in-w:focus{border-color:var(--accent);}
+  .panel-actions .btn-save{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700;}
+  .saved-flash{color:var(--accent);}
 </style>
 </head>
 <body>
@@ -253,17 +279,17 @@
     </div>
 
     <div class="legend">
-      <span><span class="dot" style="background:#9fb0c9"></span>Solo</span>
-      <span><span class="dot" style="background:#2dd4bf"></span>Superset</span>
-      <span><span class="dot" style="background:#fb9a3c"></span>Superset</span>
-      <span><span class="dot" style="background:#fb7199"></span>Superset</span>
-      <span><span class="dot" style="background:#a3e635"></span>Superset</span>
+      <span><span class="dot" style="background:#aeb9c9"></span>Solo</span>
+      <span><span class="dot" style="background:#7dd3fc"></span>Superset</span>
+      <span><span class="dot" style="background:#a5b4fc"></span>Superset</span>
+      <span><span class="dot" style="background:#93c5fd"></span>Superset</span>
+      <span><span class="dot" style="background:#67e8f9"></span>Superset</span>
     </div>
   </div>
 
 <script src="program.js"></script>
 <script>
-const SS_COLORS = ['#2dd4bf','#fb9a3c','#fb7199','#a3e635'];
+const SS_COLORS = ['#7dd3fc','#a5b4fc','#93c5fd','#67e8f9'];   // Slate — cohesive cool palette
 
 let curDay='fri', curWk='A';
 const ORDER=['mon','tue','wed','fri'];
