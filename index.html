@@ -358,11 +358,39 @@ document.addEventListener('click',function(ev){
     all[name].push({date:ts, day:curDay, wk:curWk, sets:sets});
     saveLogs(all);
     refreshBlock(block,name);
+    liftPushState();
     panel.innerHTML='<div class="saved-flash">✓ Saved</div>';
     setTimeout(function(){panel.hidden=true; panel.dataset.mode='';},750);
     return;
   }
 });
+
+/* ---------- native widget bridge (no-op in a normal browser) ---------- */
+function flattenExercises(d,wk){
+  var list=[];
+  (d[wk]||[]).forEach(function(b){ b.e.forEach(function(ex){ list.push({name:ex[0], reps:ex[1]}); }); });
+  return list;
+}
+function currentExerciseIdx(list){
+  var ts=todayStr();
+  for(var i=0;i<list.length;i++){
+    var h=logsFor(list[i].name);
+    if(!(h.length && h[h.length-1].date===ts)) return i;   // first one not logged today
+  }
+  return list.length;                                        // all done
+}
+function liftPushState(){
+  try{
+    if(!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.lift)) return;
+    var d=PROGRAM[curDay]; if(!d) return;
+    var list=flattenExercises(d,curWk);
+    window.webkit.messageHandlers.lift.postMessage(JSON.stringify({
+      day: d.title.slice(0,3).toUpperCase(),
+      title: d.title, sub: d.sub, week: curWk,
+      exercises: list, currentIndex: currentExerciseIdx(list), total: list.length
+    }));
+  }catch(e){}
+}
 
 function cardHTML(ex,color){
   const accent = color?`style="background:${color}"`:'';
@@ -430,6 +458,7 @@ function render(){
   <div class="prog" style="--pc:${d.prog.c}">📌 ${d.prog.t}</div>`;
 
   document.getElementById('content').innerHTML=html;
+  liftPushState();
 }
 render();
 </script>

@@ -7,14 +7,48 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		24F3AB1FE307798776DC9F5A /* LIFTWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F9165596189FFA2913A5CB8 /* LIFTWidgetBundle.swift */; };
+		58E949FBF4FF120ADA2016C8 /* LiftStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7B1F8CF508DABBF7528E885 /* LiftStore.swift */; };
+		7EC76B51FCC81F7A687DC5A3 /* LIFTWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916CC6507580F4D6FC5EDC29 /* LIFTWidget.swift */; };
 		8A3D1453D65638AEB2B82F04 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1C237A70351CB24294F9D856 /* Assets.xcassets */; };
 		B2DE6C279A1EA261A6D8B591 /* LIFTApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18B1C140878B7347D136DAAA /* LIFTApp.swift */; };
+		C248E57C8E90A0D21D0B0E1F /* LiftStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7B1F8CF508DABBF7528E885 /* LiftStore.swift */; };
+		DA19469A8382DDF505040CDE /* LIFTWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F423B2BD86F7C1446C44070F /* LIFTWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		069B75BFBDF59EC5FB17DD74 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1D66917BEE9037C546321F66 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 30A3545C692E0DFA94D76782;
+			remoteInfo = LIFTWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B777188FA05F663E9D4E1B98 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				DA19469A8382DDF505040CDE /* LIFTWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		18B1C140878B7347D136DAAA /* LIFTApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFTApp.swift; sourceTree = "<group>"; };
 		1C237A70351CB24294F9D856 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4F9165596189FFA2913A5CB8 /* LIFTWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFTWidgetBundle.swift; sourceTree = "<group>"; };
+		6A8A209A2BA96935F136CFF2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		916CC6507580F4D6FC5EDC29 /* LIFTWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LIFTWidget.swift; sourceTree = "<group>"; };
 		B83D0BF6071EA3DC5A720198 /* LIFT.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LIFT.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D7B1F8CF508DABBF7528E885 /* LiftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftStore.swift; sourceTree = "<group>"; };
+		F423B2BD86F7C1446C44070F /* LIFTWidgetExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = LIFTWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -23,6 +57,8 @@
 			children = (
 				1C237A70351CB24294F9D856 /* Assets.xcassets */,
 				18B1C140878B7347D136DAAA /* LIFTApp.swift */,
+				E1772386482B441ABC6BB578 /* LIFTWidget */,
+				EA5395EBC8C95ACC2EFD0768 /* Shared */,
 				299E46FE35F7E5043DEA46D9 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -31,8 +67,27 @@
 			isa = PBXGroup;
 			children = (
 				B83D0BF6071EA3DC5A720198 /* LIFT.app */,
+				F423B2BD86F7C1446C44070F /* LIFTWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E1772386482B441ABC6BB578 /* LIFTWidget */ = {
+			isa = PBXGroup;
+			children = (
+				6A8A209A2BA96935F136CFF2 /* Info.plist */,
+				916CC6507580F4D6FC5EDC29 /* LIFTWidget.swift */,
+				4F9165596189FFA2913A5CB8 /* LIFTWidgetBundle.swift */,
+			);
+			path = LIFTWidget;
+			sourceTree = "<group>";
+		};
+		EA5395EBC8C95ACC2EFD0768 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				D7B1F8CF508DABBF7528E885 /* LiftStore.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -44,10 +99,12 @@
 			buildPhases = (
 				213696B5809882CF26691FED /* Sources */,
 				D9F2903EFAF22462FD500F39 /* Resources */,
+				B777188FA05F663E9D4E1B98 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				36E5FE529723506B8EF2CC30 /* PBXTargetDependency */,
 			);
 			name = LIFT;
 			packageProductDependencies = (
@@ -55,6 +112,23 @@
 			productName = LIFT;
 			productReference = B83D0BF6071EA3DC5A720198 /* LIFT.app */;
 			productType = "com.apple.product-type.application";
+		};
+		30A3545C692E0DFA94D76782 /* LIFTWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5802A7E9DD13AA95B373E09F /* Build configuration list for PBXNativeTarget "LIFTWidgetExtension" */;
+			buildPhases = (
+				2EAFDE36DBF246FCDF65D5A3 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LIFTWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = LIFTWidgetExtension;
+			productReference = F423B2BD86F7C1446C44070F /* LIFTWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -65,6 +139,14 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					05C60729794D878D7F9DF802 = {
+						DevelopmentTeam = S8LYXGQ847;
+						ProvisioningStyle = Automatic;
+					};
+					30A3545C692E0DFA94D76782 = {
+						DevelopmentTeam = S8LYXGQ847;
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = 581261C15DD673BED4DA2122 /* Build configuration list for PBXProject "LIFT" */;
@@ -82,6 +164,7 @@
 			projectRoot = "";
 			targets = (
 				05C60729794D878D7F9DF802 /* LIFT */,
+				30A3545C692E0DFA94D76782 /* LIFTWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -103,18 +186,37 @@
 			buildActionMask = 2147483647;
 			files = (
 				B2DE6C279A1EA261A6D8B591 /* LIFTApp.swift in Sources */,
+				C248E57C8E90A0D21D0B0E1F /* LiftStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2EAFDE36DBF246FCDF65D5A3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7EC76B51FCC81F7A687DC5A3 /* LIFTWidget.swift in Sources */,
+				24F3AB1FE307798776DC9F5A /* LIFTWidgetBundle.swift in Sources */,
+				58E949FBF4FF120ADA2016C8 /* LiftStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		36E5FE529723506B8EF2CC30 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 30A3545C692E0DFA94D76782 /* LIFTWidgetExtension */;
+			targetProxy = 069B75BFBDF59EC5FB17DD74 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		23F5F39A30BBD4FC3604ED95 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = LIFT.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = LIFT;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -124,10 +226,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.travisworrell61.lift;
 				SDKROOT = iphoneos;
-				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -165,8 +265,11 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = S8LYXGQ847;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -184,6 +287,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -228,8 +332,11 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = S8LYXGQ847;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -241,6 +348,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -251,12 +359,30 @@
 			};
 			name = Release;
 		};
+		A2202E9507D1EBDFA364821D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LIFTWidget.entitlements;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LIFTWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LIFT;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.travisworrell61.lift.widget;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
 		AA4C02B635E7983E767BEF5A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = LIFT.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = LIFT;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -266,10 +392,26 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.travisworrell61.lift;
 				SDKROOT = iphoneos;
-				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		D1E67A95B3E131043546F386 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LIFTWidget.entitlements;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LIFTWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LIFT;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.travisworrell61.lift.widget;
+				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
@@ -282,6 +424,15 @@
 			buildConfigurations = (
 				23F5F39A30BBD4FC3604ED95 /* Debug */,
 				AA4C02B635E7983E767BEF5A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5802A7E9DD13AA95B373E09F /* Build configuration list for PBXNativeTarget "LIFTWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A2202E9507D1EBDFA364821D /* Debug */,
+				D1E67A95B3E131043546F386 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
