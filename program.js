@@ -1,0 +1,83 @@
+/* ─────────────────────────────────────────────────────────────
+   LIFT — WORKOUT PROGRAM DATA
+   This is the single source of truth for the training program.
+   Edit this file to change exercises / sets / reps / notes,
+   then commit & push — the app auto-updates. Structure: see CLAUDE.md
+   ───────────────────────────────────────────────────────────── */
+
+const PROGRAM = {
+  mon:{ n:1, title:'Monday', sub:'Chest · Side Delts · Triceps', type:'pri',
+    warm:'Elliptical + shoulder prehab — band pull-aparts, external rotations, face pulls, light lateral set',
+    fin:{core:'~5 min ab work', cardio:'30 min steady · ~120 bpm'},
+    prog:{c:'#fb7199', t:'<b>PRIORITY day.</b> Side delts climb toward ~18–20 sets, upper chest climbs. Double-progress the incline press; the +1 set lands on lateral raises over the block.'},
+    A:[
+      {t:'ss',w:'Pre-exhaust · upper chest',e:[['Incline DB Fly','3×12–15','Pre-exhaust — slow, hard squeeze, FEEL it · DB keeps you off the cables early'],['Incline DB Press · low 15–30°','4×10–15','DB so you each use your own weight — no machine to switch to · moderate, slow eccentric, touch high']]},
+      {t:'ss',w:'Mid chest',e:[['Flat DB / Machine Press','3×10–12','To form failure'],['Close-grip Push-up','AMRAP','Straight after — no rest']]},
+      {t:'ss',w:'Side delts · priority',e:[['Seated DB Lateral Raise','4×12–15','Elbows lead · stop at shoulder height'],['Standing DB Lateral · burnout','3×12–15','Both DB — superset, no station switch']]},
+      {t:'ss',w:'Triceps',e:[['Cable Pushdown','3×12–15',''],['Overhead Extension','3×12–15','Straight after']]}
+    ],
+    B:[
+      {t:'ss',w:'Pre-exhaust · upper chest',e:[['Incline DB Fly','3×12–15','Pre-exhaust — feel it'],['Incline DB Press · low · neutral grip','4×10–15','DB, own weights, no station switch · shoulder-friendly grip']]},
+      {t:'solo',w:'Mid chest',e:[['Pec Deck','3×12–15','Last set: drop (from Wk2)']]},
+      {t:'ss',w:'Side delts · priority',e:[['DB Lateral Raise · full + partials','4×12–15','Your combo (partials Wk2)'],['DB Lean-away Lateral','3×12–15','Both DB — no station switch']]},
+      {t:'ss',w:'Triceps',e:[['Straight-bar Pressdown','3×12','Last set: drop (Wk2)'],['Tricep Kickback','3×12','Straight after']]}
+    ]
+  },
+  tue:{ n:2, title:'Tuesday', sub:'Legs · Quads · Glutes · Calves', type:'pri',
+    warm:'Knee prep — light high-rep leg ext, bodyweight squats, banded terminal-knee-extensions / tibialis raises',
+    fin:{core:'Ab wheel · ~5 min', cardio:'30 min steady · ~120 bpm'},
+    prog:{c:'#fb7199', t:'<b>PRIORITY day (quads — your sweep).</b> Double-progress the belt/pendulum squat; the +1 set lands on leg extension. Belt/pendulum chosen for the knees.'},
+    A:[
+      {t:'solo',w:'Primary quad · full rest',e:[['Belt / Pendulum Squat','4×8–10','Knee-friendly · controlled, pain-free depth (leg press / Smith as fallback)']]},
+      {t:'solo',w:'Unilateral',e:[['Bulgarian Split Squat','3×10/leg','Slight forward torso lean = glute bias, spares the knee · KB drop Wk2']]},
+      {t:'ss',w:'Antagonist · TANDEM (one machine each, swap)',e:[['Leg Extension','3×12–15','Controlled · partials Wk2'],['Hamstring Curl','4×10–12','Pair the first 3; 4th solo']]},
+      {t:'ss',w:'Calves',e:[['Calf Press · heavy','4×10–12',''],['Second Calf Angle','2–3×15–20','Different angle (seated/standing)']]}
+    ],
+    B:[
+      {t:'solo',w:'Hamstring pre-fatigue',e:[['Hamstring Curl','4×10–12','']]},
+      {t:'solo',w:'Heavy hinge · full rest',e:[['RDL / Straight-leg Deadlift','4×8–10','Drops Wk2']]},
+      {t:'solo',w:'Unilateral',e:[['Weighted Walking Lunge','3×~10/leg','Longer stride / vertical shin = glute, spares the knee']]},
+      {t:'ss',w:'Glute + quad',e:[['Weighted Hip Thrust','4×10–12','Squeeze + pause at top'],['Leg Extension','3×12–15','']]},
+      {t:'ss',w:'Calves',e:[['Calf Press','4×10–12',''],['Second Calf Angle','2–3×15–20','']]}
+    ]
+  },
+  wed:{ n:3, title:'Wednesday', sub:'Back · Rear Delts · Biceps', type:'main',
+    warm:'Elliptical + band pull-aparts + a few light lat-pulldown activation sets',
+    fin:{core:'~5 min ab work', cardio:'30 min steady · ~120 bpm'},
+    prog:{c:'#fb9a3c', t:'<b>Maintenance day.</b> Back, rear delts & biceps are strong/covered — load-only progression (top the range → add weight next A-week). <b>No added sets here;</b> the volume goes to your priorities.'},
+    A:[
+      {t:'solo',w:'Width · full rest',e:[['Wide Lat Pulldown','4×10–12','rest ~90s']]},
+      {t:'solo',w:'Thickness',e:[['Hammer Row — Low','4×10','2 machines = you both row at once · drop Wk2']]},
+      {t:'ss',w:'Cable crossover · dual',e:[['Single-arm Cable Pulldown','3×10–12/arm','Handle on each head — never swapped'],['Single-arm Cable Rear Fly','3×15–20/arm','Each takes a head; rotate for the other side']]},
+      {t:'ss',w:'Cable-row machine · own station',e:[['Close-grip Cable Row','3×10–12','Drop Wk2'],['Single-arm KB Row','3×10–12','Drag the KB to the row machine']]},
+      {t:'ss',w:'Bicep corner',e:[['Preacher Curl','3×10–12','Slow stretch at the bottom'],['Incline / Hammer DB Curl','2–3×10–12','Lighter — pre-fatigued']]}
+    ],
+    B:[
+      {t:'ss',w:'Pull-up burnout (change grip)',e:[['Wide-grip Pull-up','Burnout','Assisted as needed'],['Neutral-grip Pull-up','Burnout','Straight after · assisted drop']]},
+      {t:'solo',w:'Thickness',e:[['Machine Hammer Row / T-bar','4×10','']]},
+      {t:'solo',w:'Thickness',e:[['Supinated Bent-over / Chest-supported Row','4×10','']]},
+      {t:'solo',w:'Lat finisher',e:[['Straight-arm Cable Pulldown','3×12–15','']]},
+      {t:'ss',w:'Rear delt · cable crossover',e:[['Face Pull','4×15–20','Crossover'],['Rear-delt Fly','4×15–20','Single-arm if sharing the crossover']]},
+      {t:'ss',w:'Biceps',e:[['Hanging Preacher Curl (back-ext machine)','3×10',''],['Double Hammer / Supinated Curl','2×10–12','']]}
+    ]
+  },
+  fri:{ n:4, title:'Friday', sub:'Shoulders · Upper Chest · Legs', type:'pri',
+    warm:'Shoulder prehab to start (band work, face pulls, light lateral); quick knee prep before the leg block',
+    fin:{core:'Leg raises · ~5 min', cardio:'30 min steady · ~120 bpm'},
+    prog:{c:'#fb7199', t:'<b>PRIORITY day — your biggest growth session.</b> Side delts & upper chest climb; quads/glutes climb. Pressing kept shoulder-friendly (neutral grip / machine).'},
+    A:[
+      {t:'solo',w:'Delts · lead fresh',e:[['Neutral-grip DB / Machine Shoulder Press','3–4×10–12','Palms-in + comfortable ROM = shoulder-friendly']]},
+      {t:'solo',w:'Upper chest · weak point',e:[['Incline Machine Press (low) / Cable Fly','3×12–15','Feel-focused · moderate load, squeeze']]},
+      {t:'ss',w:'Side + rear delts',e:[['Lateral Raise','4 sets','Full range, then half-weight top partials (your combo)'],['Rear-delt Fly','3×15–20','Cable or reverse pec deck']]},
+      {t:'solo',w:'Traps',e:[['Shrugs · Hammer press machine','3×12–15','Loaded · hold the squeeze']]},
+      {t:'ss',w:'Quad finisher · knee-friendly',e:[['Pendulum Squat / Leg Press','4×10–12','Narrow stance, mid-height feet · controlled'],['Leg Extension','3×12–15','Sweep/teardrop · partials last set']]}
+    ],
+    B:[
+      {t:'solo',w:'Upper chest · fresh',e:[['Incline Machine Press / Cable Fly','3×12–15','Feel-focused · moderate, squeeze']]},
+      {t:'ss',w:'Giant set · same rack · delts/traps',e:[['Straight-bar Front Raise','3×10',''],['Wide-grip Upright Row → mid-chest','4×10–12','Low pull = shoulder-safe (or cable lateral if a shoulder barks)'],['Barbell / DB Shrug','3×10–12','']]},
+      {t:'ss',w:'Side + rear delts',e:[['Lateral Raise','4×12–15',''],['Rear-delt Fly','4×12–15','Rear doubles as upper back']]},
+      {t:'solo',w:'Glute + quad compound',e:[['Pendulum / Belt Squat','4×8–10','Knee-friendly · pick the comfiest that day']]},
+      {t:'solo',w:'Glutes',e:[['Hip Thrust','3×10–12','Squeeze + pause at top']]}
+    ]
+  }
+};
