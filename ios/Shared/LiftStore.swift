@@ -16,6 +16,7 @@ struct WorkoutSnapshot: Codable {
     var exercises: [WorkoutExercise]
     var currentIndex: Int    // first exercise not yet logged today
     var total: Int
+    var accent: String?      // day color hex, e.g. "#38bdf8" (optional for back-compat)
     var updated: Date?
 }
 

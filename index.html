@@ -238,7 +238,8 @@
   .head::before{opacity:.25;}
   .brand .dotmark{background:linear-gradient(135deg,var(--accent),#a5b4fc);}
   .kicker{color:var(--accent);letter-spacing:.34em;}
-  .day-btn.on{background:var(--ink);color:#11151c;border-color:var(--ink);}
+  .day-btn{color:color-mix(in srgb,var(--dc,var(--muted)) 80%,#c9d2de);}
+  .day-btn.on{background:var(--dc,var(--accent));color:#0b0f16;border-color:transparent;}
   .wk-btn.on{background:var(--accent);color:var(--accent-ink);border-color:transparent;}
   .tag.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
   .tag.main{background:transparent;color:var(--steel);border-color:var(--line);}
@@ -257,6 +258,49 @@
   .in-w:focus{border-color:var(--accent);}
   .panel-actions .btn-save{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700;}
   .saved-flash{color:var(--accent);}
+
+  /* ───────── core / ab timer ───────── */
+  .core-timer-btn{margin-top:9px;display:inline-flex;align-items:center;gap:5px;
+    font-family:'Oswald',sans-serif;font-weight:700;font-size:.68rem;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--accent-ink);background:var(--accent);border:none;
+    border-radius:9px;padding:9px 13px;cursor:pointer;}
+  .abt{position:fixed;inset:0;z-index:200;background:rgba(8,10,14,.975);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    display:flex;align-items:center;justify-content:center;
+    padding:max(20px,env(safe-area-inset-top)) 22px max(24px,env(safe-area-inset-bottom));}
+  .abt[hidden]{display:none;}
+  .abt.rest{background:rgba(10,9,7,.975);}
+  .abt-inner{width:100%;max-width:460px;text-align:center;}
+  .abt-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .abt-stage{font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:.22em;
+    text-transform:uppercase;font-size:.82rem;color:var(--accent);}
+  .abt.rest .abt-stage{color:#ffb24d;}
+  .abt-close{width:42px;height:42px;border:1px solid var(--line);border-radius:11px;
+    background:transparent;color:var(--muted);font-size:1.1rem;cursor:pointer;}
+  .abt-name{font-family:'Anton',sans-serif;text-transform:uppercase;font-size:2.5rem;
+    line-height:1.02;margin:6px 0 2px;}
+  .abt-time{font-family:'Anton',sans-serif;font-size:6rem;line-height:1;color:var(--accent);
+    font-variant-numeric:tabular-nums;}
+  .abt.rest .abt-time{color:#ffb24d;}
+  .abt-next{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.1em;
+    color:var(--muted);font-size:.86rem;margin-top:6px;min-height:1em;}
+  .abt-dots{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:20px 0 24px;}
+  .abt-dot{width:11px;height:11px;border-radius:50%;background:var(--line);transition:.2s;}
+  .abt-dot.done{background:color-mix(in srgb,var(--accent) 55%,var(--line));}
+  .abt-dot.cur{background:var(--accent);transform:scale(1.35);}
+  .abt-controls{display:flex;gap:12px;justify-content:center;align-items:center;}
+  .abt-btn{min-width:62px;height:58px;border-radius:14px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);font-size:1.3rem;cursor:pointer;}
+  .abt-play{flex:1;max-width:210px;background:var(--accent);color:var(--accent-ink);
+    border-color:var(--accent);font-family:'Oswald',sans-serif;font-weight:700;
+    letter-spacing:.08em;text-transform:uppercase;font-size:1rem;}
+  .abt-list{margin-top:22px;display:flex;flex-direction:column;gap:4px;max-height:26vh;
+    overflow-y:auto;text-align:left;}
+  .abt-li{font-family:'Oswald',sans-serif;font-size:.8rem;color:var(--muted);
+    display:flex;justify-content:space-between;padding:5px 9px;border-radius:8px;}
+  .abt-li.cur{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--ink);}
+  .abt-li.done{opacity:.45;}
+  .abt-li span:last-child{font-variant-numeric:tabular-nums;}
 </style>
 </head>
 <body>
@@ -280,23 +324,52 @@
 
     <div class="legend">
       <span><span class="dot" style="background:#aeb9c9"></span>Solo</span>
-      <span><span class="dot" style="background:#7dd3fc"></span>Superset</span>
-      <span><span class="dot" style="background:#a5b4fc"></span>Superset</span>
-      <span><span class="dot" style="background:#93c5fd"></span>Superset</span>
-      <span><span class="dot" style="background:#67e8f9"></span>Superset</span>
+      <span><span class="dot" style="background:#34d399"></span>Superset</span>
+      <span><span class="dot" style="background:#f472b6"></span>Superset</span>
+      <span><span class="dot" style="background:#a78bfa"></span>Superset</span>
+      <span><span class="dot" style="background:#fbbf24"></span>Superset</span>
+    </div>
+  </div>
+
+  <!-- ───────── Core / ab interval timer (replaces the browser trip) ───────── -->
+  <div class="abt" id="abtimer" hidden>
+    <div class="abt-inner">
+      <div class="abt-top">
+        <div class="abt-stage" id="abtStage">Core Timer</div>
+        <button class="abt-close" id="abtClose" aria-label="close">✕</button>
+      </div>
+      <div class="abt-name" id="abtName">Ready?</div>
+      <div class="abt-time" id="abtTime">0:30</div>
+      <div class="abt-next" id="abtNext">&nbsp;</div>
+      <div class="abt-dots" id="abtDots"></div>
+      <div class="abt-controls">
+        <button class="abt-btn" id="abtPrev" aria-label="previous">⏮</button>
+        <button class="abt-btn abt-play" id="abtPlay">Start</button>
+        <button class="abt-btn" id="abtSkip" aria-label="skip">⏭</button>
+      </div>
+      <div class="abt-list" id="abtList"></div>
     </div>
   </div>
 
 <script src="program.js"></script>
 <script>
-const SS_COLORS = ['#7dd3fc','#a5b4fc','#93c5fd','#67e8f9'];   // Slate — cohesive cool palette
+// Each superset gets its own color so its exercises read as a linked group.
+const SS_COLORS = ['#34d399','#f472b6','#a78bfa','#fbbf24'];   // emerald · pink · violet · amber
+
+// Each training day has its own accent color (drives the header, nav, progress, done-state).
+const DAY_ACCENT = { mon:'#fb7185', tue:'#fbbf24', wed:'#a78bfa', fri:'#38bdf8' };  // rose · amber · violet · sky
+function applyDayAccent(day){
+  var c=DAY_ACCENT[day]||'#7dd3fc';
+  document.documentElement.style.setProperty('--accent', c);
+  document.documentElement.style.setProperty('--accent-ink', '#0b0f16');
+}
 
 let curDay='fri', curWk='A';
 const ORDER=['mon','tue','wed','fri'];
 
 function buildNav(){
   const days=document.getElementById('days');
-  days.innerHTML=ORDER.map(d=>`<button class="day-btn ${d===curDay?'on':''}" data-d="${d}">${PROGRAM[d].title.slice(0,3)}</button>`).join('');
+  days.innerHTML=ORDER.map(d=>`<button class="day-btn ${d===curDay?'on':''}" data-d="${d}" style="--dc:${DAY_ACCENT[d]||'#7dd3fc'}">${PROGRAM[d].title.slice(0,3)}</button>`).join('');
   days.querySelectorAll('button').forEach(b=>b.onclick=()=>{curDay=b.dataset.d;render();});
   const wk=document.getElementById('wk');
   wk.innerHTML=['A','B'].map(w=>`<button class="wk-btn ${w===curWk?'on':''}" data-w="${w}">${w}-Week</button>`).join('');
@@ -482,6 +555,7 @@ function liftPushState(){
     window.webkit.messageHandlers.lift.postMessage(JSON.stringify({
       day: d.title.slice(0,3).toUpperCase(),
       title: d.title, sub: d.sub, week: curWk,
+      accent: DAY_ACCENT[curDay]||'#7dd3fc',
       exercises: list, currentIndex: currentExerciseIdx(list), total: list.length
     }));
   }catch(e){}
@@ -524,6 +598,7 @@ var _firstRender=true;
 function render(){
   if(typeof PROGRAM==='undefined'||!PROGRAM[curDay]){var c=document.getElementById('content');if(c)c.innerHTML='<div style="padding:24px;color:#fb7199;font-family:sans-serif">⚠ Could not load the program. Pull to refresh, or reopen the app.</div>';return;}
   if(!_firstRender) document.body.classList.add('ready');   // skip entrance animation on re-render
+  applyDayAccent(curDay);                                    // tint everything to the day's color
   buildNav();
   const d=PROGRAM[curDay];
   const blocks=d[curWk];
@@ -567,7 +642,8 @@ function render(){
   });
 
   html+=`<div class="fin">
-    <div><div class="lab">Core</div><div class="val">${d.fin.core}</div></div>
+    <div><div class="lab">Core</div><div class="val">${d.fin.core}</div>
+      <button class="core-timer-btn" data-core-timer>▶ Core Timer</button></div>
     <div><div class="lab">Cardio</div><div class="val">${d.fin.cardio}</div></div>
   </div>
   <div class="prog" style="--pc:${d.prog.c}">📌 ${d.prog.t}</div>`;
@@ -598,6 +674,120 @@ async function loadProgram(){
     if(prog && typeof prog==='object' && Object.keys(prog).length){ PROGRAM=prog; setCachedProgram(prog); render(); }
   }catch(e){}
 }
+
+/* ───────── Core / ab interval timer ─────────
+   A self-contained interval timer so core work runs in-app instead of the
+   browser. Edit AB_CIRCUIT / WORK / REST to taste. */
+var AB_CIRCUIT = [
+  'Hollow Body Hold','Bicycle Crunch','Reverse Crunch','Flutter Kicks',
+  'Plank','Russian Twist','Leg Raises','Mountain Climbers'
+];
+var AB_WORK = 30, AB_REST = 10, AB_LEADIN = 5;   // seconds
+
+var Ab = (function(){
+  var el = function(id){ return document.getElementById(id); };
+  var phases=[], pi=0, remaining=0, running=false, started=false, timer=null, endAt=0, lastSec=-1, wake=null, actx=null;
+
+  function buildPhases(){
+    phases=[{kind:'ready',label:'Get Ready',sec:AB_LEADIN,next:AB_CIRCUIT[0]}];
+    AB_CIRCUIT.forEach(function(name,i){
+      phases.push({kind:'work',label:name,sec:AB_WORK});
+      if(i<AB_CIRCUIT.length-1) phases.push({kind:'rest',label:'Rest',sec:AB_REST,next:AB_CIRCUIT[i+1]});
+    });
+    phases.push({kind:'done',label:'Done 🔥',sec:0});
+  }
+  function beep(freq,dur,vol){
+    try{
+      if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+      var o=actx.createOscillator(), g=actx.createGain();
+      o.type='sine'; o.frequency.value=freq||880; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(0.0001,actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(vol||0.25,actx.currentTime+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+(dur||0.16));
+      o.start(); o.stop(actx.currentTime+(dur||0.16));
+    }catch(e){}
+  }
+  function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+  function fmt(s){ if(s>=60){var m=Math.floor(s/60);return m+':'+String(s%60).padStart(2,'0');} return String(s); }
+  function workIndex(idx){ // 1-based exercise number for a work phase, else null
+    var n=0; for(var i=0;i<=idx;i++){ if(phases[i].kind==='work') n++; } return n;
+  }
+  function draw(){
+    var p=phases[pi]; if(!p) return;
+    var rest = (p.kind==='rest'||p.kind==='ready');
+    el('abtimer').classList.toggle('rest', rest);
+    el('abtStage').textContent = p.kind==='work' ? ('Exercise '+workIndex(pi)+' / '+AB_CIRCUIT.length)
+                              : p.kind==='done' ? 'Complete' : (p.kind==='ready'?'Get Ready':'Rest');
+    el('abtName').textContent = p.label;
+    el('abtTime').textContent = p.kind==='done' ? '✓' : fmt(remaining);
+    el('abtNext').innerHTML = p.next ? ('Next: '+p.next) : '&nbsp;';
+    // dots = one per exercise
+    el('abtDots').innerHTML = AB_CIRCUIT.map(function(_,i){
+      var cur=workIndex(pi); var cls = (p.kind==='work'&&i===cur-1)?'cur':(i<cur-1||(p.kind==='done'))?'done':((p.kind==='rest'&&i<cur)?'done':'');
+      return '<span class="abt-dot '+cls+'"></span>';
+    }).join('');
+    el('abtList').innerHTML = AB_CIRCUIT.map(function(name,i){
+      var cur=workIndex(pi); var cls=(p.kind==='work'&&i===cur-1)?'cur':(i<cur-1?'done':'');
+      return '<div class="abt-li '+cls+'"><span>'+(i+1)+'. '+name+'</span><span>'+AB_WORK+'s</span></div>';
+    }).join('');
+    el('abtPlay').textContent = running ? 'Pause' : (p.kind==='done' ? 'Restart' : (started ? 'Resume' : 'Start'));
+  }
+  function tick(){
+    var now=Date.now();
+    var r=Math.max(0, Math.round((endAt-now)/1000));
+    if(r!==lastSec){
+      lastSec=r;
+      var p=phases[pi];
+      if(r<=3 && r>0 && (p.kind==='work'||p.kind==='ready')) beep(880,0.12,0.22);
+      remaining=r; draw();
+    }
+    if(now>=endAt) next(true);
+  }
+  function startTick(){ clearInterval(timer); timer=setInterval(tick,150); }
+  function play(){
+    if(phases[pi] && phases[pi].kind==='done'){ openFresh(); }
+    running=true; started=true; endAt=Date.now()+remaining*1000; lastSec=-1;
+    reqWake(); if(actx&&actx.state==='suspended'){try{actx.resume();}catch(e){}}
+    startTick(); draw();
+  }
+  function pause(){ running=false; clearInterval(timer); relWake(); draw(); }
+  function next(auto){
+    var prev=phases[pi];
+    if(pi>=phases.length-1){ // finished
+      running=false; clearInterval(timer); relWake();
+      pi=phases.length-1; remaining=0; draw();
+      if(auto){ beep(660,0.5,0.3); buzz([120,60,120,60,240]); }
+      return;
+    }
+    pi++; remaining=phases[pi].sec; lastSec=-1;
+    if(auto){
+      if(phases[pi].kind==='work'){ beep(1046,0.18,0.3); buzz(180); }   // exercise start
+      else if(phases[pi].kind==='done'){ beep(660,0.5,0.3); buzz([120,60,120,60,240]); }
+      else { beep(523,0.16,0.22); buzz(80); }                            // rest
+    }
+    if(running){ endAt=Date.now()+remaining*1000; }
+    draw();
+  }
+  function prev(){ if(pi>0){ pi--; remaining=phases[pi].sec; lastSec=-1; if(running) endAt=Date.now()+remaining*1000; draw(); } }
+  function reqWake(){ try{ if('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function(w){wake=w;}).catch(function(){}); }catch(e){} }
+  function relWake(){ try{ wake&&wake.release&&wake.release(); }catch(e){} wake=null; }
+  function openFresh(){ buildPhases(); pi=0; remaining=phases[0].sec; running=false; started=false; lastSec=-1; }
+  function open(){ openFresh(); el('abtimer').hidden=false; draw(); }
+  function close(){ running=false; clearInterval(timer); relWake(); el('abtimer').hidden=true; }
+
+  // wiring (overlay buttons are static)
+  document.addEventListener('click',function(ev){
+    var t=ev.target; if(t&&t.closest&&t.closest('[data-core-timer]')){ open(); }
+  });
+  el('abtPlay').addEventListener('click',function(){ running?pause():play(); });
+  el('abtSkip').addEventListener('click',function(){ next(false); });
+  el('abtPrev').addEventListener('click',function(){ prev(); });
+  el('abtClose').addEventListener('click',function(){ close(); });
+  // re-acquire wake lock if the user tabs back while running
+  document.addEventListener('visibilitychange',function(){ if(running && document.visibilityState==='visible') reqWake(); });
+
+  return { open:open, close:close };
+})();
 
 render();
 loadProgram();

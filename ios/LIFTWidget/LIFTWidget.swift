@@ -20,11 +20,24 @@ struct LiftProvider: TimelineProvider {
     }
 }
 
-private let liftAccent = Color(red: 251/255, green: 113/255, blue: 153/255)
+private let liftAccentFallback = Color(red: 0.49, green: 0.83, blue: 0.99)   // sky
+
+extension Color {
+    init?(hex: String?) {
+        guard var h = hex else { return nil }
+        h = h.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        guard h.count == 6, let v = Int(h, radix: 16) else { return nil }
+        self = Color(red: Double((v >> 16) & 0xFF)/255,
+                     green: Double((v >> 8) & 0xFF)/255,
+                     blue: Double(v & 0xFF)/255)
+    }
+}
 
 struct LIFTWidgetEntryView: View {
     @Environment(\.widgetFamily) var family
     var entry: LiftEntry
+
+    private var liftAccent: Color { Color(hex: entry.snapshot?.accent) ?? liftAccentFallback }
 
     private var current: WorkoutExercise? {
         guard let s = entry.snapshot, s.currentIndex >= 0, s.currentIndex < s.exercises.count else { return nil }
@@ -51,7 +64,7 @@ struct LIFTWidgetEntryView: View {
         case .systemMedium:
             listView(max: 4, compact: true)
         case .systemLarge:
-            listView(max: 9, compact: false)
+            listView(max: 7, compact: false)
         default:
             small
         }
@@ -107,18 +120,21 @@ struct LIFTWidgetEntryView: View {
 
     @ViewBuilder private func listView(max: Int, compact: Bool) -> some View {
         if let s = entry.snapshot, !s.exercises.isEmpty {
-            VStack(alignment: .leading, spacing: compact ? 5 : 7) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(s.title).font(compact ? .headline : .title3).bold()
+            VStack(alignment: .leading, spacing: compact ? 5 : 8) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    RoundedRectangle(cornerRadius: 2).fill(liftAccent)
+                        .frame(width: compact ? 4 : 5, height: compact ? 16 : 22)
+                    Text(s.title).font(compact ? .headline : .largeTitle).bold().lineLimit(1)
                     Spacer(minLength: 0)
                     Text("\(min(s.currentIndex, s.total))/\(s.total)")
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(compact ? .caption : .title3).bold()
+                        .foregroundStyle(liftAccent)
                 }
                 if !compact {
-                    Text(s.sub).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    Text(s.sub).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
                 }
                 let range = window(s, max: max)
-                VStack(alignment: .leading, spacing: compact ? 4 : 6) {
+                VStack(alignment: .leading, spacing: compact ? 4 : 9) {
                     ForEach(range, id: \.self) { i in
                         row(s.exercises[i], index: i, current: s.currentIndex,
                             prevGrp: i > 0 ? s.exercises[i - 1].grp : nil, compact: compact)
@@ -153,13 +169,13 @@ struct LIFTWidgetEntryView: View {
                         .foregroundStyle(liftAccent).tracking(0.5)
                 }
                 Text(ex.name)
-                    .font(compact ? .caption : .subheadline)
+                    .font(compact ? .caption : .headline)
                     .fontWeight(isCurrent ? .bold : .regular)
+                    .foregroundStyle(isCurrent ? liftAccent : (isDone ? .secondary : .primary))
                     .strikethrough(isDone, color: .secondary)
-                    .foregroundStyle(isDone ? .secondary : .primary)
                     .lineLimit(1)
                 if !compact {
-                    Text(ex.reps).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                    Text(ex.reps).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
             }
             Spacer(minLength: 0)
