@@ -5,7 +5,7 @@ import WebKit
 // 🔗 STEP 1: paste YOUR hosted link here (from GitHub Pages /
 //    Cloudflare / Netlify). Keep the quotes and the trailing slash.
 // ─────────────────────────────────────────────────────────────
-let APP_URL = URL(string: "https://YOUR-USERNAME.github.io/REPO/")!
+let APP_URL = URL(string: "https://travisworrell61.github.io/lift-app/")!
 
 @main
 struct LIFTApp: App {
