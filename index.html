@@ -369,7 +369,10 @@ document.addEventListener('click',function(ev){
 /* ---------- native widget bridge (no-op in a normal browser) ---------- */
 function flattenExercises(d,wk){
   var list=[];
-  (d[wk]||[]).forEach(function(b){ b.e.forEach(function(ex){ list.push({name:ex[0], reps:ex[1]}); }); });
+  (d[wk]||[]).forEach(function(b,gi){
+    var isSS = b.t==='ss';
+    b.e.forEach(function(ex){ list.push({name:ex[0], reps:ex[1], ss:isSS, grp:gi}); });
+  });
   return list;
 }
 function currentExerciseIdx(list){

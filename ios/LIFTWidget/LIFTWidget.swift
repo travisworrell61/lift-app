@@ -20,6 +20,8 @@ struct LiftProvider: TimelineProvider {
     }
 }
 
+private let liftAccent = Color(red: 251/255, green: 113/255, blue: 153/255)
+
 struct LIFTWidgetEntryView: View {
     @Environment(\.widgetFamily) var family
     var entry: LiftEntry
@@ -46,10 +48,16 @@ struct LIFTWidgetEntryView: View {
             Text(inlineText)
         case .accessoryRectangular:
             rectangular
+        case .systemMedium:
+            listView(max: 4, compact: true)
+        case .systemLarge:
+            listView(max: 9, compact: false)
         default:
             small
         }
     }
+
+    // MARK: - Lock Screen
 
     @ViewBuilder private var rectangular: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -66,6 +74,8 @@ struct LIFTWidgetEntryView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+
+    // MARK: - Home Screen small
 
     @ViewBuilder private var small: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -84,6 +94,89 @@ struct LIFTWidgetEntryView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
+
+    // MARK: - Home Screen medium / large (the "see what's coming" list)
+
+    // Pick a window of exercises that always keeps the current one visible.
+    private func window(_ s: WorkoutSnapshot, max: Int) -> Range<Int> {
+        let count = s.exercises.count
+        if count <= max { return 0..<count }
+        let start = Swift.min(Swift.max(0, s.currentIndex), count - max)
+        return start..<(start + max)
+    }
+
+    @ViewBuilder private func listView(max: Int, compact: Bool) -> some View {
+        if let s = entry.snapshot, !s.exercises.isEmpty {
+            VStack(alignment: .leading, spacing: compact ? 5 : 7) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(s.title).font(compact ? .headline : .title3).bold()
+                    Spacer(minLength: 0)
+                    Text("\(min(s.currentIndex, s.total))/\(s.total)")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                if !compact {
+                    Text(s.sub).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
+                let range = window(s, max: max)
+                VStack(alignment: .leading, spacing: compact ? 4 : 6) {
+                    ForEach(range, id: \.self) { i in
+                        row(s.exercises[i], index: i, current: s.currentIndex,
+                            prevGrp: i > 0 ? s.exercises[i - 1].grp : nil, compact: compact)
+                    }
+                }
+                if !compact { Spacer(minLength: 0) }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        } else {
+            VStack(spacing: 6) {
+                Text("LIFT").font(.headline)
+                Text("Open the app and pick a day").font(.caption).foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private func row(_ ex: WorkoutExercise, index: Int, current: Int, prevGrp: Int?, compact: Bool) -> some View {
+        let isCurrent = index == current
+        let isDone = index < current
+        let inSS = ex.ss ?? false
+        let startsSS = inSS && ex.grp != prevGrp   // first row of a superset group
+        HStack(spacing: 8) {
+            RoundedRectangle(cornerRadius: 1.5)
+                .fill(inSS ? liftAccent : Color.secondary.opacity(0.25))
+                .frame(width: 3)
+                .frame(maxHeight: .infinity)
+            VStack(alignment: .leading, spacing: 1) {
+                if startsSS {
+                    Text("SUPERSET").font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(liftAccent).tracking(0.5)
+                }
+                Text(ex.name)
+                    .font(compact ? .caption : .subheadline)
+                    .fontWeight(isCurrent ? .bold : .regular)
+                    .strikethrough(isDone, color: .secondary)
+                    .foregroundStyle(isDone ? .secondary : .primary)
+                    .lineLimit(1)
+                if !compact {
+                    Text(ex.reps).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                }
+            }
+            Spacer(minLength: 0)
+            if isDone {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.caption).foregroundStyle(.secondary)
+            } else if isCurrent {
+                Text("NOW").font(.system(size: 9, weight: .heavy))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 5).padding(.vertical, 2)
+                    .background(Capsule().fill(liftAccent))
+            } else if compact {
+                Text(ex.reps).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
 }
 
 struct LIFTWidget: Widget {
@@ -94,7 +187,8 @@ struct LIFTWidget: Widget {
                 .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("LIFT — Today")
-        .description("Your current exercise, advancing as you log.")
-        .supportedFamilies([.accessoryInline, .accessoryRectangular, .systemSmall])
+        .description("Your workout, advancing as you log. Use a large size to see what's coming.")
+        .supportedFamilies([.accessoryInline, .accessoryRectangular,
+                            .systemSmall, .systemMedium, .systemLarge])
     }
 }

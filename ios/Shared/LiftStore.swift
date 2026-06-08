@@ -4,6 +4,8 @@ import Foundation
 struct WorkoutExercise: Codable {
     var name: String
     var reps: String
+    var ss: Bool?    // part of a superset (optional for back-compat with older snapshots)
+    var grp: Int?    // block index — consecutive same-grp ss exercises form one superset
 }
 
 struct WorkoutSnapshot: Codable {
