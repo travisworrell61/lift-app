@@ -62,7 +62,7 @@ var PROGRAM = {   // var (not const) so the live program.json can override this 
       {t:'ss',w:'Biceps',e:[['Hanging Preacher Curl (back-ext machine)','3×10',''],['Double Hammer / Supinated Curl','2×10–12','']]}
     ]
   },
-  fri:{ n:4, title:'Friday', sub:'Shoulders · Upper Chest · Legs', type:'pri',
+  fri:{ n:4, title:'Friday TEST', sub:'Shoulders · Upper Chest · Legs', type:'pri',
     warm:'Shoulder prehab to start (band work, face pulls, light lateral); quick knee prep before the leg block',
     fin:{core:'Leg raises · ~5 min', cardio:'30 min steady · ~120 bpm'},
     prog:{c:'#fb7199', t:'<b>PRIORITY day — your biggest growth session.</b> Side delts & upper chest climb; quads/glutes climb. Pressing kept shoulder-friendly (neutral grip / machine).'},
