@@ -439,15 +439,42 @@ function setRowHTML(i,w){
     '<button class="rm" aria-label="remove set">×</button>'+
   '</div>';
 }
-var WEIGHT_START = 50;   // first-time exercises start here (most lifts are >20 lb), so fewer taps
+var WEIGHT_START = 50;   // fallback start weight when the name gives no hint
+// Guess a sensible FIRST-TIME starting weight from the exercise name, so the
+// box opens near the real load (fewer taps). After the first log, the real
+// weight prefills instead. Returns null for bodyweight moves (no load).
+function startWeightFor(name){
+  var s=String(name).toLowerCase();
+  if(/push-?up|pull-?up|chin-?up/.test(s)) return null;             // bodyweight → leave empty
+  var T=[
+    [/leg press|hack squat|pendulum|belt squat|calf press|hip thrust/, 150],
+    [/bulgarian|split squat|walking lunge|\blunge\b/, 40],
+    [/squat|deadlift|\brdl\b|straight-leg|romanian/, 135],
+    [/leg extension|hamstring curl|leg curl|ham curl/, 90],
+    [/\bcalf\b/, 90],
+    [/pushdown|pressdown|tricep|overhead extension|skull|kickback/, 40],   // triceps before generic "press"
+    [/lat pulldown|pulldown|hammer row|chest-supported|machine row|seated row|cable row|bent-?over row|\bt-bar\b/, 100],
+    [/shrug/, 80],
+    [/single-arm|1-arm|\bkb\b|kettlebell/, 40],
+    [/pec deck|machine press|incline machine|cable fly|chest press/, 90],
+    [/press/, 50],                                                  // db / other presses
+    [/upright row|front raise/, 25],
+    [/lateral|rear-?delt|reverse fly|face pull/, 20],
+    [/preacher|curl/, 30],
+    [/\bfly\b|raise|extension/, 20]
+  ];
+  for(var i=0;i<T.length;i++){ if(T[i][0].test(s)) return T[i][1]; }
+  return WEIGHT_START;
+}
 function buildPanel(name,reps){
   var h=logsFor(name);
   var pf=(h.length)?h[h.length-1].sets:null;          // prefill from last session
   var n=defaultSetCount(name,reps);
+  var guess=startWeightFor(name);                     // null for bodyweight
   var rows='';
   for(var i=0;i<n;i++){
     var s=(pf&&pf[i])?pf[i]:{};
-    var wv=(s.w!=null)?s.w:(pf?'':WEIGHT_START);       // brand-new exercise → start at 50; added/extra rows stay empty
+    var wv=(s.w!=null)?s.w:(pf?'':(guess==null?'':guess));   // new exercise → name-based guess; bodyweight/added rows stay empty
     rows+=setRowHTML(i,wv);
   }
   var hint=pf
@@ -500,8 +527,11 @@ document.addEventListener('click',function(ev){
   if(stp){
     var row=stp.closest('.setrow'), inp=row.querySelector('.in-w');
     var raw=String(inp.value).trim(), cur;
-    if(raw==='' || isNaN(parseFloat(raw))){ cur=WEIGHT_START; }   // first tap on an empty box snaps to 50
-    else { cur=parseFloat(raw)+parseFloat(stp.dataset.step); }
+    if(raw==='' || isNaN(parseFloat(raw))){            // first tap on an empty box → snap to the name-based guess
+      var blk=row.closest('.exblock');
+      var base=blk?startWeightFor(dec(blk.dataset.ex)):null;
+      cur=(base==null)?WEIGHT_START:base;
+    } else { cur=parseFloat(raw)+parseFloat(stp.dataset.step); }
     if(cur<0) cur=0;
     inp.value=String(Math.round(cur*100)/100);     // avoid float dust like 94.99999
     return;
