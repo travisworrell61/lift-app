@@ -303,6 +303,33 @@
   .abt-li.cur{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--ink);}
   .abt-li.done{opacity:.45;}
   .abt-li span:last-child{font-variant-numeric:tabular-nums;}
+
+  /* ───────── Update Program admin ───────── */
+  .adm{position:fixed;inset:0;z-index:210;background:rgba(8,10,14,.985);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;
+    padding:max(20px,env(safe-area-inset-top)) 18px max(24px,env(safe-area-inset-bottom));}
+  .adm[hidden]{display:none;}
+  .adm-inner{width:100%;max-width:460px;}
+  .adm-top{display:flex;justify-content:space-between;align-items:center;margin:6px 0 16px;}
+  .adm-title{font-family:'Anton',sans-serif;text-transform:uppercase;font-size:1.7rem;}
+  .adm-lab{display:block;font-family:'Oswald',sans-serif;font-weight:600;font-size:.66rem;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 2px 6px;}
+  .adm-in,.adm-ta{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;
+    color:var(--ink);font-size:1rem;padding:12px;font-family:'Barlow',sans-serif;
+    -webkit-appearance:none;appearance:none;}
+  .adm-in:focus,.adm-ta:focus{outline:none;border-color:var(--accent);}
+  .adm-ta{min-height:230px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;
+    line-height:1.4;resize:vertical;white-space:pre;overflow-wrap:normal;overflow-x:auto;}
+  .adm-status{min-height:1.3em;font-family:'Oswald',sans-serif;font-size:.8rem;margin:11px 2px;color:var(--muted);}
+  .adm-status.ok{color:#7ef0b0;}
+  .adm-status.err{color:#fb7185;}
+  .adm-actions{display:flex;gap:10px;}
+  .adm-btn{flex:1;min-height:48px;border-radius:11px;cursor:pointer;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);font-family:'Oswald',sans-serif;font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;}
+  .adm-pub{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);flex:1.4;}
+  .adm-hint{font-size:.74rem;color:var(--muted);line-height:1.4;margin-top:14px;}
 </style>
 </head>
 <body>
@@ -353,6 +380,26 @@
         <button class="abt-btn" id="abtSkip" aria-label="skip">⏭</button>
       </div>
       <div class="abt-list" id="abtList"></div>
+    </div>
+  </div>
+
+  <!-- ───────── Update Program (long-press the LIFT logo) ───────── -->
+  <div class="adm" id="admin" hidden>
+    <div class="adm-inner">
+      <div class="adm-top">
+        <div class="adm-title">Update Program</div>
+        <button class="abt-close" id="admClose" aria-label="close">✕</button>
+      </div>
+      <label class="adm-lab">Publish token</label>
+      <input class="adm-in" id="admToken" type="password" autocomplete="off" placeholder="paste once — saved on this device">
+      <label class="adm-lab">New routine (paste the JSON from the chat)</label>
+      <textarea class="adm-ta" id="admJson" spellcheck="false" autocapitalize="off" placeholder="{ &quot;mon&quot;: { … }, &quot;tue&quot;: { … }, … }"></textarea>
+      <div class="adm-status" id="admStatus">&nbsp;</div>
+      <div class="adm-actions">
+        <button class="adm-btn" id="admValidate">Check</button>
+        <button class="adm-btn adm-pub" id="admPublish">Publish</button>
+      </div>
+      <div class="adm-hint">Publishing replaces the live routine on all your devices within a few seconds. Your current routine stays as a fallback if anything's wrong.</div>
     </div>
   </div>
 
@@ -698,20 +745,26 @@ function render(){
    fallback. To change routines, edit program.json in GitHub's web editor —
    the app picks it up on next open (raw GitHub has a short CDN cache, so a
    change can take a few minutes to appear). */
-const PROGRAM_URL = "https://raw.githubusercontent.com/travisworrell61/lift-app/main/program.json";
+const PROGRAM_API = "https://lift-sync-api.vercel.app/api/program";                         // live source (in-app publish)
+const PROGRAM_URL = "https://raw.githubusercontent.com/travisworrell61/lift-app/main/program.json"; // GitHub fallback
 function cachedProgram(){ try{ var r=localStorage.getItem('lift-program-cache'); return r?JSON.parse(r):null; }catch(e){ return null; } }
 function setCachedProgram(p){ try{ localStorage.setItem('lift-program-cache', JSON.stringify(p)); }catch(e){} }
+function normalizeProgram(data){
+  var p=(data && data.program)?data.program:data;        // accept a raw object or { program: {...} }
+  return (p && typeof p==='object' && !Array.isArray(p) && Object.keys(p).length) ? p : null;
+}
+async function fetchProgram(url){
+  var res=await fetch(url+(url.indexOf('?')<0?'?':'&')+'t='+Date.now(), {cache:'no-store'});
+  if(!res.ok) throw new Error('http '+res.status);
+  return normalizeProgram(await res.json());
+}
 async function loadProgram(){
   var c=cachedProgram();
   if(c && typeof c==='object' && Object.keys(c).length){ PROGRAM=c; render(); }   // instant: last known good
-  if(!PROGRAM_URL) return;
-  try{
-    var res=await fetch(PROGRAM_URL+'?t='+Date.now(), {cache:'no-store'});
-    if(!res.ok) return;
-    var data=await res.json();
-    var prog=(data && data.program)?data.program:data;     // accept a raw object or { program: {...} }
-    if(prog && typeof prog==='object' && Object.keys(prog).length){ PROGRAM=prog; setCachedProgram(prog); render(); }
-  }catch(e){}
+  var prog=null;
+  try{ prog=await fetchProgram(PROGRAM_API); }catch(e){}     // 1) Vercel (in-app publish)
+  if(!prog){ try{ prog=await fetchProgram(PROGRAM_URL); }catch(e){} }   // 2) GitHub
+  if(prog){ PROGRAM=prog; setCachedProgram(prog); render(); }           // 3) else bundled program.js stays
 }
 
 /* ───────── Core / ab interval timer ─────────
@@ -864,6 +917,67 @@ var Ab = (function(){
   // re-acquire wake lock if the user tabs back while running
   document.addEventListener('visibilitychange',function(){ if(running && document.visibilityState==='visible') reqWake(); });
 
+  return { open:open, close:close };
+})();
+
+/* ───────── Update Program (publish to Vercel; long-press the LIFT logo) ───────── */
+var Admin = (function(){
+  var g=function(id){ return document.getElementById(id); };
+  var TOKEN_KEY='lift-pub-token';
+  function setStatus(msg,cls){ var s=g('admStatus'); s.textContent=msg||' '; s.className='adm-status'+(cls?' '+cls:''); }
+  function parseInput(){
+    var raw=g('admJson').value.trim();
+    if(!raw) return {ok:false,msg:'Paste the routine JSON first.'};
+    var data; try{ data=JSON.parse(raw); }catch(e){ return {ok:false,msg:'Not valid JSON — '+e.message}; }
+    var prog=normalizeProgram(data);
+    if(!prog) return {ok:false,msg:'Parsed, but that is not a program object.'};
+    var days=Object.keys(prog), good=0;
+    days.forEach(function(d){ var x=prog[d]; if(x && Array.isArray(x.A) && Array.isArray(x.B)) good++; });
+    if(!good) return {ok:false,msg:'No days with A/B blocks found — check the structure.'};
+    return {ok:true,prog:prog,days:days,good:good};
+  }
+  function validate(){
+    var v=parseInput();
+    if(!v.ok){ setStatus('✕ '+v.msg,'err'); return null; }
+    setStatus('✓ Looks good — '+v.good+' day(s): '+v.days.join(', '),'ok');
+    return v;
+  }
+  function publish(){
+    var v=validate(); if(!v) return;
+    var token=g('admToken').value.trim();
+    if(!token){ setStatus('✕ Enter your publish token.','err'); return; }
+    setStatus('Publishing…','');
+    fetch(PROGRAM_API,{method:'POST',headers:{'content-type':'application/json','x-program-secret':token},body:JSON.stringify(v.prog)})
+      .then(function(r){ return r.json().then(function(j){return {s:r.status,j:j};},function(){return {s:r.status,j:null};}); })
+      .then(function(o){
+        if(o.s===200){
+          try{ localStorage.setItem(TOKEN_KEY, token); }catch(e){}
+          setCachedProgram(v.prog); PROGRAM=v.prog; render();
+          setStatus('✓ Published — live on all your devices.','ok');
+        } else if(o.s===401){ setStatus('✕ Wrong publish token.','err'); }
+        else { setStatus('✕ '+((o.j&&o.j.error)||('error '+o.s)),'err'); }
+      })
+      .catch(function(){ setStatus('✕ Network error — try again.','err'); });
+  }
+  function open(){ try{ g('admToken').value=localStorage.getItem(TOKEN_KEY)||''; }catch(e){} setStatus(' '); g('admin').hidden=false; }
+  function close(){ g('admin').hidden=true; }
+
+  g('admClose').addEventListener('click',close);
+  g('admValidate').addEventListener('click',validate);
+  g('admPublish').addEventListener('click',publish);
+
+  // hidden entry: long-press the LIFT logo
+  var brand=document.querySelector('.brand'), lp=null;
+  function lpStart(){ lp=setTimeout(open,650); }
+  function lpEnd(){ if(lp){ clearTimeout(lp); lp=null; } }
+  if(brand){
+    brand.style.userSelect='none'; brand.style.webkitUserSelect='none';
+    brand.addEventListener('pointerdown',lpStart);
+    brand.addEventListener('pointerup',lpEnd);
+    brand.addEventListener('pointerleave',lpEnd);
+    brand.addEventListener('pointercancel',lpEnd);
+    brand.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+  }
   return { open:open, close:close };
 })();
 

@@ -12,10 +12,12 @@ It is intentionally a **static, dependency-free site** (no build step, no framew
 Training decisions are made by the user **in conversation with Claude in the Claude.ai chat** (voice notes, Q&A, periodization reasoning). They are **not** made here. Your job in Claude Code is to **apply locked-in changes and ship them**:
 
 1. The user brings an already-decided change — e.g. *"swap Tuesday's hack squat for pendulum squat, 3 sets"*, *"bump side-delt volume on Friday."*
-2. You edit **`program.json`** to match — that's the **live source of truth** for the routine (the app fetches it at runtime). For most changes this is the *only* file you touch.
-3. **No rebuild is needed for it to take effect.** Commit `program.json` (GitHub web editor or `git push`); the app picks it up on next open. Raw GitHub has a short CDN cache, so allow a few minutes.
+2. You produce the updated routine JSON (shape = the `program.json` object).
+3. **It goes live with no rebuild.** The primary way the user ships it now is the **in-app "Update Program" screen** (long-press the LIFT logo → paste JSON → Publish), which POSTs to the Vercel `/api/program` endpoint and is live on all their devices within seconds. You can also commit `program.json` to GitHub as before — it's the fallback source.
 
-> `program.js` is now only the **offline / cold-start fallback** (used on first launch before the network responds, or offline with no cache). It is NOT the live source — editing it alone won't change a running install. Keep it loosely in sync for the cold-start case, but make routine changes in `program.json`.
+**Live routine source order (see `loadProgram()` in index.html):** Vercel `/api/program` (in-app publish) → GitHub raw `program.json` → bundled `program.js`. The app caches the last-good copy.
+
+> Keep `program.json` (GitHub) and `program.js` (bundled fallback) roughly in sync as the cold-start/offline copies, but the live edit path is now in-app publish → Vercel. The publish endpoint is secret-gated (`x-program-secret` = `PROGRAM_SECRET`, Vercel env only); the user enters that token once in the Update Program screen (stored on-device). Never commit it.
 
 Occasionally you'll also tweak the UI in `index.html`, adjust the PWA files, regenerate icons, or edit the Swift wrapper — but the day-to-day is editing `program.json`.
 
