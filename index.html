@@ -439,6 +439,7 @@ function setRowHTML(i,w){
     '<button class="rm" aria-label="remove set">×</button>'+
   '</div>';
 }
+var WEIGHT_START = 50;   // first-time exercises start here (most lifts are >20 lb), so fewer taps
 function buildPanel(name,reps){
   var h=logsFor(name);
   var pf=(h.length)?h[h.length-1].sets:null;          // prefill from last session
@@ -446,7 +447,8 @@ function buildPanel(name,reps){
   var rows='';
   for(var i=0;i<n;i++){
     var s=(pf&&pf[i])?pf[i]:{};
-    rows+=setRowHTML(i,(s.w!=null)?s.w:'');
+    var wv=(s.w!=null)?s.w:(pf?'':WEIGHT_START);       // brand-new exercise → start at 50; added/extra rows stay empty
+    rows+=setRowHTML(i,wv);
   }
   var hint=pf
     ? '<div class="panel-hint">Prefilled from last time — tap ＋/− (or type) to set each weight, then Save.</div>'
@@ -497,8 +499,10 @@ document.addEventListener('click',function(ev){
   var stp=t.closest('.stp');
   if(stp){
     var row=stp.closest('.setrow'), inp=row.querySelector('.in-w');
-    var cur=parseFloat(inp.value); if(isNaN(cur)) cur=0;
-    cur+=parseFloat(stp.dataset.step); if(cur<0) cur=0;
+    var raw=String(inp.value).trim(), cur;
+    if(raw==='' || isNaN(parseFloat(raw))){ cur=WEIGHT_START; }   // first tap on an empty box snaps to 50
+    else { cur=parseFloat(raw)+parseFloat(stp.dataset.step); }
+    if(cur<0) cur=0;
     inp.value=String(Math.round(cur*100)/100);     // avoid float dust like 94.99999
     return;
   }
