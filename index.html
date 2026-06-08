@@ -179,37 +179,26 @@
   .exblock.done .log-btn{background:transparent;color:#7ef0b0;border-color:color-mix(in srgb,#4ade80 45%,var(--line));}
   .log-panel{margin:7px 2px 0;border:1px solid var(--line);border-radius:12px;
     background:var(--panel2);padding:11px;}
-  .panel-hint{font-size:.74rem;color:var(--muted);margin:0 2px 9px;line-height:1.35;}
-  .setrow{display:block;background:var(--bg);border:1px solid var(--line);border-radius:11px;
-    padding:9px 10px 10px;margin-bottom:9px;}
-  .setrow-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-  .setrow-head .si{font-family:'Oswald',sans-serif;font-weight:700;font-size:.66rem;letter-spacing:.14em;
-    text-transform:uppercase;color:var(--steel);}
-  .setrow .rm{width:28px;height:28px;flex:none;border:1px solid var(--line);border-radius:8px;
-    background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;}
-  .ctl{display:flex;align-items:center;gap:7px;}
-  .ctl + .ctl{margin-top:8px;}
-  .ctl-lab{font-family:'Oswald',sans-serif;font-weight:600;font-size:.6rem;letter-spacing:.12em;
-    text-transform:uppercase;color:var(--muted);width:46px;flex:none;}
-  .stp{width:42px;height:44px;flex:none;border:1px solid var(--line);border-radius:10px;
+  .panel-hint{font-size:.74rem;color:var(--muted);margin:0 2px 10px;line-height:1.35;}
+  /* weight-only set rows — one compact line each */
+  .setrow{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);
+    border-radius:11px;padding:8px 9px;margin-bottom:8px;}
+  .setrow .si{font-family:'Oswald',sans-serif;font-weight:700;font-size:.64rem;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--steel);flex:none;width:46px;}
+  .stp{width:44px;height:44px;flex:none;border:1px solid var(--line);border-radius:10px;
     background:var(--panel);color:var(--ink);font-size:1.5rem;line-height:1;cursor:pointer;
     font-family:'Barlow',sans-serif;display:flex;align-items:center;justify-content:center;}
   .stp:active{background:var(--panel2);}
-  .in-w,.in-r{width:60px;height:44px;flex:none;text-align:center;background:var(--bg2);
-    border:1px solid var(--line);border-radius:9px;color:var(--ink);font-size:1.1rem;font-weight:700;
-    padding:0 4px;font-family:'Barlow',sans-serif;-webkit-appearance:none;appearance:none;}
-  .in-w:focus,.in-r:focus{outline:none;border-color:#2dd4bf;}
-  .in-w::placeholder,.in-r::placeholder{color:var(--muted);opacity:.5;font-weight:400;}
-  .unit{font-family:'Oswald',sans-serif;font-size:.64rem;color:var(--muted);text-transform:uppercase;
-    letter-spacing:.06em;margin-left:-2px;flex:none;}
-  .chips{display:flex;align-items:center;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;
-    scrollbar-width:none;padding-bottom:2px;}
-  .chips::-webkit-scrollbar{display:none;}
-  .chip{flex:none;min-width:36px;height:36px;border:1px solid var(--line);border-radius:9px;
-    background:transparent;color:var(--muted);font-family:'Barlow',sans-serif;font-weight:600;
-    font-size:.95rem;cursor:pointer;padding:0 7px;}
-  .chip.on{background:#2dd4bf;color:#06231f;border-color:#2dd4bf;font-weight:700;}
-  .in-r{border-color:color-mix(in srgb,#2dd4bf 38%,var(--line));}   /* mark the value box distinct from chips */
+  .in-w{width:72px;height:44px;flex:none;text-align:center;background:var(--bg2);
+    border:1px solid color-mix(in srgb,#2dd4bf 34%,var(--line));border-radius:9px;color:var(--ink);
+    font-size:1.18rem;font-weight:700;padding:0 4px;font-family:'Barlow',sans-serif;
+    -webkit-appearance:none;appearance:none;}
+  .in-w:focus{outline:none;border-color:#2dd4bf;}
+  .in-w::placeholder{color:var(--muted);opacity:.5;font-weight:400;}
+  .unit{font-family:'Oswald',sans-serif;font-size:.66rem;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.06em;flex:none;}
+  .setrow .rm{width:30px;height:30px;flex:none;margin-left:auto;border:1px solid var(--line);
+    border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;}
   .panel-actions{display:flex;gap:8px;margin-top:2px;}
   .panel-actions button{flex:1;min-height:42px;border-radius:10px;cursor:pointer;
     font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
@@ -318,24 +307,13 @@ function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMont
 function fmtDate(s){var p=s.split('-');return parseInt(p[1])+'/'+parseInt(p[2]);}
 function logsFor(name){var all=loadLogs();return all[name]||[];}
 function isLoggedToday(name){var h=logsFor(name);return !!(h.length && h[h.length-1].date===todayStr());}
-// Build the rep-picker chips from an exercise's reps string. Reads the part
-// after "×" (the rep range), pads ±, and falls back to a generic ladder.
-function repTargets(reps){
-  reps=String(reps);
-  var parts=reps.split(/[×x]/);
-  var noX=parts.length===1;
-  var right=parts[parts.length-1];
-  if(noX && /set|amrap|burnout|max|failure/i.test(right)) return [6,8,10,12,15,20,25];
-  var nums=(right.match(/\d+/g)||[]).map(Number);
-  if(!nums.length) return [6,8,10,12,15,20,25];
-  var lo=nums[0], hi=nums[nums.length-1];
-  if(hi<lo) hi=lo;
-  if(hi-lo>12) hi=lo+12;                         // guard against an absurd range
-  var out=[]; for(var v=lo;v<=hi;v++) out.push(v);
-  out.push(hi+1,hi+2); if(lo>1) out.unshift(lo-1);
-  return out;
+// Weight-only summary. Shows the weights logged (e.g. "50, 55, 60 lb").
+// Exercises with no load (bodyweight) just read "done ✓".
+function setsSummary(sets){
+  var ws=sets.filter(function(x){return x.w!=null;}).map(function(x){return x.w;});
+  if(!ws.length) return 'done';
+  return ws.join(', ')+' lb';
 }
-function setsSummary(sets){return sets.map(function(x){return (x.w!=null?x.w:'–')+'×'+(x.r!=null?x.r:'–');}).join(', ');}
 function lastLine(name){
   var h=logsFor(name); if(!h.length) return '';
   var last=h[h.length-1];
@@ -347,44 +325,28 @@ function defaultSetCount(name,reps){
   if(h.length && h[h.length-1].sets.length) return h[h.length-1].sets.length;
   var n=setsOf(reps); return n||3;
 }
-function setRowHTML(i,w,r,targets){
-  var rv=(r!=null && r!=='')?String(r):'';
-  var chips=(targets||[]).map(function(v){
-    return '<button class="chip'+(String(v)===rv?' on':'')+'" data-rep="'+v+'">'+v+'</button>';
-  }).join('');
+function setRowHTML(i,w){
   return '<div class="setrow" data-i="'+i+'">'+
-    '<div class="setrow-head"><span class="si">SET '+(i+1)+'</span>'+
-      '<button class="rm" aria-label="remove set">×</button></div>'+
-    '<div class="ctl">'+
-      '<span class="ctl-lab">Weight</span>'+
-      '<button class="stp" data-step="-5" aria-label="minus 5">−</button>'+
-      '<input class="in-w" inputmode="decimal" placeholder="—" value="'+(w!=null?w:'')+'">'+
-      '<span class="unit">lb</span>'+
-      '<button class="stp" data-step="5" aria-label="plus 5">+</button>'+
-    '</div>'+
-    '<div class="ctl">'+
-      '<span class="ctl-lab">Reps</span>'+
-      '<input class="in-r" inputmode="numeric" placeholder="—" value="'+rv+'">'+
-      '<div class="chips">'+chips+'</div>'+
-    '</div>'+
+    '<span class="si">SET '+(i+1)+'</span>'+
+    '<button class="stp" data-step="-5" aria-label="minus 5">−</button>'+
+    '<input class="in-w" inputmode="decimal" placeholder="—" value="'+(w!=null?w:'')+'">'+
+    '<span class="unit">lb</span>'+
+    '<button class="stp" data-step="5" aria-label="plus 5">+</button>'+
+    '<button class="rm" aria-label="remove set">×</button>'+
   '</div>';
 }
 function buildPanel(name,reps){
   var h=logsFor(name);
   var pf=(h.length)?h[h.length-1].sets:null;          // prefill from last session
   var n=defaultSetCount(name,reps);
-  var targets=repTargets(reps);
-  var rDefault=targets.length?targets[Math.min(1,targets.length-1)]:'';   // sensible low-of-range
   var rows='';
   for(var i=0;i<n;i++){
     var s=(pf&&pf[i])?pf[i]:{};
-    var wv=(s.w!=null)?s.w:'';
-    var rval=(s.r!=null)?s.r:rDefault;
-    rows+=setRowHTML(i,wv,rval,targets);
+    rows+=setRowHTML(i,(s.w!=null)?s.w:'');
   }
   var hint=pf
-    ? '<div class="panel-hint">Prefilled from last time — tap ＋/− or a rep chip, then Save.</div>'
-    : '<div class="panel-hint">Tap to set weight & reps, then Save. You can also type in the boxes.</div>';
+    ? '<div class="panel-hint">Prefilled from last time — tap ＋/− (or type) to set each weight, then Save.</div>'
+    : '<div class="panel-hint">Set the weight for each set, then Save. Bodyweight moves: just tap Save to mark done.</div>';
   return hint+'<div class="setrows">'+rows+'</div>'+
     '<div class="panel-actions">'+
       '<button class="btn-add">+ Set</button>'+
@@ -436,18 +398,10 @@ document.addEventListener('click',function(ev){
     inp.value=String(Math.round(cur*100)/100);     // avoid float dust like 94.99999
     return;
   }
-  var chip=t.closest('.chip');
-  if(chip){
-    var row=chip.closest('.setrow'), inp=row.querySelector('.in-r');
-    inp.value=chip.dataset.rep;
-    row.querySelectorAll('.chip').forEach(function(c){c.classList.toggle('on',c===chip);});
-    return;
-  }
   if(t.classList.contains('btn-add')){
-    var panel=t.closest('.log-panel'), block=panel.closest('.exblock');
-    var targets=repTargets(dec(block.dataset.reps||''));
+    var panel=t.closest('.log-panel');
     var rows=panel.querySelector('.setrows');
-    rows.insertAdjacentHTML('beforeend', setRowHTML(rows.querySelectorAll('.setrow').length,null,null,targets));
+    rows.insertAdjacentHTML('beforeend', setRowHTML(rows.querySelectorAll('.setrow').length,null));
     return;
   }
   if(t.classList.contains('rm')){
@@ -457,15 +411,11 @@ document.addEventListener('click',function(ev){
   if(t.classList.contains('btn-save')){
     var panel=t.closest('.log-panel'), block=panel.closest('.exblock'), name=dec(block.dataset.ex);
     function num(s){var n=Number(s); return (s!=='' && !isNaN(n))?n:null;}
-    var parsed=[];
-    panel.querySelectorAll('.setrow').forEach(function(row){
-      parsed.push({w:num(row.querySelector('.in-w').value.trim()), r:num(row.querySelector('.in-r').value.trim())});
-    });
-    var anyWeight=parsed.some(function(p){return p.w!=null;});
+    // Weight-only: each row logs a weight. Rows are kept even when blank so that
+    // bodyweight moves (no load) still record a "done" entry when you tap Save.
     var sets=[];
-    parsed.forEach(function(p){
-      // keep weight-bearing rows; for pure bodyweight sets (no weights at all), keep reps-only rows
-      if(p.w!=null || (!anyWeight && p.r!=null)) sets.push({w:p.w, r:p.r});
+    panel.querySelectorAll('.setrow').forEach(function(row){
+      sets.push({w:num(row.querySelector('.in-w').value.trim())});
     });
     if(!sets.length){ panel.hidden=true; return; }
     var all=loadLogs(); if(!all[name]) all[name]=[];
@@ -478,14 +428,6 @@ document.addEventListener('click',function(ev){
     panel.innerHTML='<div class="saved-flash">✓ Saved</div>';
     setTimeout(function(){ render(); }, 620);   // refresh done-state, progress bar & history button
     return;
-  }
-});
-// keep rep chips in sync when the user types a rep value directly
-document.addEventListener('input',function(ev){
-  var t=ev.target;
-  if(t && t.classList && t.classList.contains('in-r')){
-    var row=t.closest('.setrow'); if(!row) return;
-    row.querySelectorAll('.chip').forEach(function(c){c.classList.toggle('on',c.dataset.rep===t.value);});
   }
 });
 
