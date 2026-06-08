@@ -272,6 +272,8 @@
   .abt.rest{background:rgba(10,9,7,.975);}
   .abt-inner{width:100%;max-width:460px;text-align:center;}
   .abt-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .abt-top-btns{display:flex;gap:8px;}
+  .abt-close.off{opacity:.5;}
   .abt-stage{font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:.22em;
     text-transform:uppercase;font-size:.82rem;color:var(--accent);}
   .abt.rest .abt-stage{color:#ffb24d;}
@@ -336,7 +338,10 @@
     <div class="abt-inner">
       <div class="abt-top">
         <div class="abt-stage" id="abtStage">Core Timer</div>
-        <button class="abt-close" id="abtClose" aria-label="close">✕</button>
+        <div class="abt-top-btns">
+          <button class="abt-close" id="abtVoice" aria-label="toggle voice">🔊</button>
+          <button class="abt-close" id="abtClose" aria-label="close">✕</button>
+        </div>
       </div>
       <div class="abt-name" id="abtName">Ready?</div>
       <div class="abt-time" id="abtTime">0:30</div>
@@ -687,6 +692,35 @@ var AB_WORK = 30, AB_REST = 10, AB_LEADIN = 5;   // seconds
 var Ab = (function(){
   var el = function(id){ return document.getElementById(id); };
   var phases=[], pi=0, remaining=0, running=false, started=false, timer=null, endAt=0, lastSec=-1, wake=null, actx=null;
+  var voiceOn=true, curAnnounced=false;
+
+  // ---- spoken cues (Web Speech API) ----
+  function say(text){
+    if(!voiceOn || !text) return;
+    try{
+      if(!('speechSynthesis' in window)) return;
+      var u=new SpeechSynthesisUtterance(text);
+      u.rate=1.0; u.pitch=1.0; u.volume=1.0; u.lang='en-US';
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  function announcePhase(p){
+    if(!p) return;
+    if(p.kind==='work') say(p.label);
+    else if(p.kind==='rest') say('Rest. Next up, '+(p.next||''));
+    else if(p.kind==='ready') say('Get ready. First up, '+(p.next||''));
+    else if(p.kind==='done') say('Workout complete. Great work.');
+  }
+  function callout(p,r){
+    if(!p) return;
+    if(p.kind==='work'){
+      if(r===20 && AB_WORK>=40) say('20 seconds');
+      else if(r===10) say('10 seconds left');
+      else if(r<=3 && r>0) beep(900,0.12,0.25);          // work ending: beeps
+    } else if((p.kind==='rest'||p.kind==='ready') && r<=3 && r>0){
+      say(String(r));                                     // spoken 3·2·1 before the exercise
+    }
+  }
 
   function buildPhases(){
     phases=[{kind:'ready',label:'Get Ready',sec:AB_LEADIN,next:AB_CIRCUIT[0]}];
@@ -737,9 +771,9 @@ var Ab = (function(){
     var r=Math.max(0, Math.round((endAt-now)/1000));
     if(r!==lastSec){
       lastSec=r;
-      var p=phases[pi];
-      if(r<=3 && r>0 && (p.kind==='work'||p.kind==='ready')) beep(880,0.12,0.22);
-      remaining=r; draw();
+      remaining=r;
+      callout(phases[pi], r);
+      draw();
     }
     if(now>=endAt) next(true);
   }
@@ -748,32 +782,35 @@ var Ab = (function(){
     if(phases[pi] && phases[pi].kind==='done'){ openFresh(); }
     running=true; started=true; endAt=Date.now()+remaining*1000; lastSec=-1;
     reqWake(); if(actx&&actx.state==='suspended'){try{actx.resume();}catch(e){}}
+    if(!curAnnounced){ announcePhase(phases[pi]); curAnnounced=true; }   // speak current phase on first start
     startTick(); draw();
   }
-  function pause(){ running=false; clearInterval(timer); relWake(); draw(); }
+  function pause(){ running=false; clearInterval(timer); relWake();
+    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){} draw(); }
   function next(auto){
-    var prev=phases[pi];
     if(pi>=phases.length-1){ // finished
       running=false; clearInterval(timer); relWake();
       pi=phases.length-1; remaining=0; draw();
-      if(auto){ beep(660,0.5,0.3); buzz([120,60,120,60,240]); }
+      if(auto){ beep(660,0.5,0.3); buzz([120,60,120,60,240]); announcePhase(phases[pi]); }
       return;
     }
-    pi++; remaining=phases[pi].sec; lastSec=-1;
-    if(auto){
-      if(phases[pi].kind==='work'){ beep(1046,0.18,0.3); buzz(180); }   // exercise start
-      else if(phases[pi].kind==='done'){ beep(660,0.5,0.3); buzz([120,60,120,60,240]); }
-      else { beep(523,0.16,0.22); buzz(80); }                            // rest
-    }
+    pi++; remaining=phases[pi].sec; lastSec=-1; curAnnounced=true;
+    if(phases[pi].kind==='work'){ beep(1046,0.18,0.3); buzz(180); }      // exercise start
+    else if(phases[pi].kind==='done'){ beep(660,0.5,0.3); buzz([120,60,120,60,240]); }
+    else { beep(523,0.16,0.22); buzz(80); }                              // rest
+    announcePhase(phases[pi]);
     if(running){ endAt=Date.now()+remaining*1000; }
     draw();
   }
-  function prev(){ if(pi>0){ pi--; remaining=phases[pi].sec; lastSec=-1; if(running) endAt=Date.now()+remaining*1000; draw(); } }
+  function prev(){ if(pi>0){ pi--; remaining=phases[pi].sec; lastSec=-1; curAnnounced=true;
+    if(running) endAt=Date.now()+remaining*1000; announcePhase(phases[pi]); draw(); } }
   function reqWake(){ try{ if('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function(w){wake=w;}).catch(function(){}); }catch(e){} }
   function relWake(){ try{ wake&&wake.release&&wake.release(); }catch(e){} wake=null; }
-  function openFresh(){ buildPhases(); pi=0; remaining=phases[0].sec; running=false; started=false; lastSec=-1; }
+  function openFresh(){ buildPhases(); pi=0; remaining=phases[0].sec; running=false; started=false; lastSec=-1; curAnnounced=false; }
   function open(){ openFresh(); el('abtimer').hidden=false; draw(); }
-  function close(){ running=false; clearInterval(timer); relWake(); el('abtimer').hidden=true; }
+  function close(){ running=false; clearInterval(timer); relWake();
+    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}
+    el('abtimer').hidden=true; }
 
   // wiring (overlay buttons are static)
   document.addEventListener('click',function(ev){
@@ -783,6 +820,13 @@ var Ab = (function(){
   el('abtSkip').addEventListener('click',function(){ next(false); });
   el('abtPrev').addEventListener('click',function(){ prev(); });
   el('abtClose').addEventListener('click',function(){ close(); });
+  el('abtVoice').addEventListener('click',function(){
+    voiceOn=!voiceOn;
+    el('abtVoice').textContent = voiceOn ? '🔊' : '🔇';
+    el('abtVoice').classList.toggle('off', !voiceOn);
+    if(!voiceOn){ try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){} }
+    else { say('Voice on'); }   // also primes speech within this tap
+  });
   // re-acquire wake lock if the user tabs back while running
   document.addEventListener('visibilitychange',function(){ if(running && document.visibilityState==='visible') reqWake(); });
 
