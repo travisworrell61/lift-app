@@ -1,2 +1,8 @@
 .DS_Store
 *.swp
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
