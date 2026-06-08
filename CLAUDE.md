@@ -2,33 +2,38 @@
 
 ## What this is
 A personal 4-day hypertrophy/physique training app for a single user. Three layers, one repo:
-- **Web app** — `index.html` (UI + render logic + logging engine) and `program.js` (the workout data).
+- **Web app** — `index.html` (UI + render logic + logging engine) and the routine data (`program.json` live, `program.js` fallback).
 - **PWA layer** — `manifest.webmanifest`, `service-worker.js`, icons. Makes it installable, offline-capable, and auto-updating.
-- **Native iOS wrapper** — `ios/LIFTApp.swift`, a thin SwiftUI `WKWebView` that loads the hosted URL. Built/installed via Xcode using the user's paid Apple Developer account.
+- **Native iOS wrapper** — `ios/LIFTApp.swift`, a thin SwiftUI `WKWebView` that loads the hosted URL, plus a WidgetKit Lock Screen widget. Built/installed via Xcode (XcodeGen `ios/project.yml`) using the user's paid Apple Developer account.
 
 It is intentionally a **static, dependency-free site** (no build step, no framework) so it stays trivially hostable on GitHub Pages and easy to edit. Keep it that way.
 
 ## The workflow — READ THIS
 Training decisions are made by the user **in conversation with Claude in the Claude.ai chat** (voice notes, Q&A, periodization reasoning). They are **not** made here. Your job in Claude Code is to **apply locked-in changes and ship them**:
 
-1. The user brings an already-decided change — e.g. *"swap Tuesday's hack squat for pendulum squat, 3 sets"*, *"bump side-delt volume on Friday"*, *"Wednesday rows drop to load-only."*
-2. You edit **`program.js`** to match (that's the single source of truth for the program).
-3. Commit and push. GitHub Pages redeploys (~1 min); the installed app pulls the new version on next open. **No app rebuild needed** for content changes (the service worker is network-first).
+1. The user brings an already-decided change — e.g. *"swap Tuesday's hack squat for pendulum squat, 3 sets"*, *"bump side-delt volume on Friday."*
+2. You edit **`program.json`** to match — that's the **live source of truth** for the routine (the app fetches it at runtime). For most changes this is the *only* file you touch.
+3. **No rebuild is needed for it to take effect.** Commit `program.json` (GitHub web editor or `git push`); the app picks it up on next open. Raw GitHub has a short CDN cache, so allow a few minutes.
 
-Occasionally you'll also tweak the UI in `index.html`, adjust the PWA files, regenerate icons, or edit the Swift wrapper — but the day-to-day is editing `program.js`.
+> `program.js` is now only the **offline / cold-start fallback** (used on first launch before the network responds, or offline with no cache). It is NOT the live source — editing it alone won't change a running install. Keep it loosely in sync for the cold-start case, but make routine changes in `program.json`.
+
+Occasionally you'll also tweak the UI in `index.html`, adjust the PWA files, regenerate icons, or edit the Swift wrapper — but the day-to-day is editing `program.json`.
 
 ## File map
-- `index.html` — UI, the day/week renderer, and the on-device logging+history engine. Loads `program.js` via `<script src>`. **Do not put workout data here.**
-- `program.js` — **the workout data.** `const PROGRAM = { ... }`. Edit this for any program change.
+- `index.html` — UI, the day/week renderer, the on-device logging+history engine, the runtime loader that fetches `program.json` (`PROGRAM_URL`), and the native bridges (`liftPushState` → widget, `liftSyncLogs` → cloud upload). Loads `program.js` via `<script src>` as the fallback. **Do not put workout data here.**
+- `program.json` — **the live workout data**, fetched at runtime from raw.githubusercontent. `{ mon, tue, wed, fri }` as JSON. **Edit this to change routines.**
+- `program.js` — bundled **offline / cold-start fallback** only (`var PROGRAM = { ... }` — `var`, so the live fetch can override it). Not the live source.
 - `manifest.webmanifest` — PWA manifest (name "LIFT", icons, dark theme).
-- `service-worker.js` — network-first SW (auto-update + offline). **If you add new files to the app, add their paths to the `CORE` array here**, or they won't be available offline.
+- `service-worker.js` — network-first SW (auto-update + offline). **If you add new same-origin files, add their paths to the `CORE` array here.** (The cross-origin `program.json` fetch is intentionally not cached by the SW.)
 - `icon-192/512/180.png`, `favicon-32.png` — web/PWA icons.
-- `ios/LIFTApp.swift` — native wrapper. `APP_URL` must be the hosted URL.
-- `ios/icon-1024.png` — app icon for the Xcode asset catalog.
+- `ios/LIFTApp.swift` — native wrapper. `APP_URL` must be the hosted URL. Hosts the `lift` (widget state) and `liftSync` (log upload) message handlers.
+- `ios/Secrets.swift` — **gitignored.** Holds the Vercel sync URL + WRITE_SECRET for native uploads. Never commit it (`ios/Secrets.example.swift` is the committed template).
+- `ios/Shared/LiftStore.swift`, `ios/LIFTWidget/*` — App Group store + Lock Screen widget.
+- `ios/project.yml` — XcodeGen project spec (run `xcodegen generate` in `ios/` after changing sources/targets).
 
-## `program.js` data shape
+## `program.json` data shape
 ```
-const PROGRAM = {
+{
   mon|tue|wed|fri: {
     n: <day number>, title: <string>, sub: <muscles string>,
     type: 'pri' | 'main',                 // priority day vs maintenance day
@@ -45,9 +50,11 @@ block = {
   e: [ [name, reps, note], ... ]          // exercises; a superset has 2+ entries
 }
 ```
+`program.json` may be a raw object (above) or wrapped as `{ "program": { ... } }` — the loader accepts both.
+
 Conventions:
 - `reps` strings look like `"4×8–10"`, `"3×12–15"`, `"3×10/leg"`, `"4 sets"`, `"Burnout"`, `"AMRAP"`. (En-dash `–`, multiplication `×`.)
-- The UI auto-detects "uneven" supersets (entries with different set counts) and shows a yellow ⚠ note telling the user how to run them. **This is expected behavior, not a bug.** `setsOf()` reads the leading integer when the string contains `×`/`x` or "sets".
+- The UI auto-detects "uneven" supersets (entries with different set counts) and shows a yellow ⚠ note. **This is expected behavior, not a bug.** `setsOf()` reads the leading integer when the string contains `×`/`x` or "sets".
 - **Logging is keyed by exercise NAME** (`e[0]`). If you rename an exercise, its logged history won't follow it. Keep names stable unless a reset is intended.
 
 ## Deploy
@@ -55,10 +62,28 @@ This repo *is* the GitHub Pages site (served from the repo root). To ship a chan
 ```
 git add -A && git commit -m "describe the change" && git push
 ```
-Pages rebuilds in ~1 minute. The PWA and the native app are network-first, so they fetch the new version on next open. Content changes never require an Xcode rebuild.
+Pages rebuilds in ~1 minute. The PWA and the native app are network-first, so they fetch the new version on next open. Routine changes (`program.json`) never require an Xcode rebuild; Swift/widget changes do.
+
+## Cloud sync — how it ACTUALLY works (read before touching sync)
+Logs sync one-way to a Vercel backend so the **Claude.ai chat can read the user's progress**. The mechanism is **native push**, not a web-side write:
+
+- **Upload path:** on each save, web calls `liftSyncLogs()` → posts the full log blob over the `liftSync` WKScriptMessageHandler → `ios/LIFTApp.swift` `uploadLogs()` does a `URLSession` `POST` to the Vercel endpoint. This only runs inside the **native app** (the bridge is a no-op in a plain browser/PWA).
+- **Why native, not web:** the GitHub repo is **public**. The write credential must never live in committed web source. It sits in gitignored `ios/Secrets.swift` + the Vercel server env only.
+- **API contract (deployed — `lift-sync-api`, a SEPARATE repo at `…/Desktop/CLAUDE PROJECTS/lift-sync-api`):**
+  - WRITE: `POST /api/logs` with header `x-write-secret: <WRITE_SECRET>`, body = the raw logs object `{ "<exercise name>": [ {date,day,wk,sets:[{w,r}]} ] }`.
+  - READ: `GET /api/logs?token=<READ_TOKEN>` → `{ updated, logs }`. The read URL (token embedded) is what the user pastes into the Claude.ai chat.
+  - Read and write use **different** credentials (read token ≠ write secret) — by design, so the chat's read link can't write.
+- **Not implemented (deliberately):** a web-side read/merge/write layer (PWA cross-device sync). It would require a write-capable token in public JS / on-device, which breaks the secret model above. If cross-device PWA sync is ever wanted, change the API + auth deliberately — don't bolt a `?token=` web write onto the current read-token API (the credentials don't match).
+- The service worker ignores cross-origin requests, so the Vercel calls always hit the network.
+
+## Lock Screen widget
+- `liftPushState()` (web) posts the current day + exercise list + `currentIndex` over the `lift` bridge to `LiftStore` (App Group `group.com.travisworrell61.lift`); the widget reads it.
+- "Current" exercise = first one not yet logged today (auto-advances as the user logs; Lock Screen widgets can't scroll).
+- Changing widget/native code requires `xcodegen generate` + an Xcode rebuild.
 
 ## Don't
 - Don't move workout data back into `index.html`.
 - Don't introduce a framework, bundler, or build step — keep it static and dependency-free.
-- Don't use `localStorage` beyond the existing logging code (which is wrapped in `try/catch` with an in-memory fallback — preserve that pattern).
+- Don't use `localStorage` beyond the existing logging + program-cache code (wrapped in `try/catch` with fallbacks — preserve that pattern).
+- Don't commit secrets. `ios/Secrets.swift` is gitignored; verify with `git check-ignore ios/Secrets.swift` and grep tracked files before committing anything sync-related.
 - Don't coach or redesign the program on your own initiative; program decisions come from the chat. Apply what the user brings.

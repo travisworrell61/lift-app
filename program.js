@@ -1,11 +1,12 @@
 /* ─────────────────────────────────────────────────────────────
-   LIFT — WORKOUT PROGRAM DATA
-   This is the single source of truth for the training program.
-   Edit this file to change exercises / sets / reps / notes,
-   then commit & push — the app auto-updates. Structure: see CLAUDE.md
+   LIFT — WORKOUT PROGRAM DATA  (offline / cold-start FALLBACK)
+   The LIVE routine is program.json, fetched at runtime (see index.html).
+   This file is what loads when offline or before the fetch returns.
+   To change the program day-to-day, edit program.json — not this file.
+   Keep this roughly in sync as the offline copy. Structure: see CLAUDE.md
    ───────────────────────────────────────────────────────────── */
 
-const PROGRAM = {
+var PROGRAM = {   // var (not const) so the live program.json can override this fallback at runtime
   mon:{ n:1, title:'Monday', sub:'Chest · Side Delts · Triceps', type:'pri',
     warm:'Elliptical + shoulder prehab — band pull-aparts, external rotations, face pulls, light lateral set',
     fin:{core:'~5 min ab work', cardio:'30 min steady · ~120 bpm'},

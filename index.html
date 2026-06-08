@@ -467,7 +467,31 @@ function render(){
   document.getElementById('content').innerHTML=html;
   liftPushState();
 }
+
+/* ---------- live routine (web-editable, no app rebuild) ----------
+   The live program is program.json in the repo, fetched at runtime from
+   GitHub's raw URL. program.js (loaded above) is the offline / cold-start
+   fallback. To change routines, edit program.json in GitHub's web editor —
+   the app picks it up on next open (raw GitHub has a short CDN cache, so a
+   change can take a few minutes to appear). */
+const PROGRAM_URL = "https://raw.githubusercontent.com/travisworrell61/lift-app/main/program.json";
+function cachedProgram(){ try{ var r=localStorage.getItem('lift-program-cache'); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function setCachedProgram(p){ try{ localStorage.setItem('lift-program-cache', JSON.stringify(p)); }catch(e){} }
+async function loadProgram(){
+  var c=cachedProgram();
+  if(c && typeof c==='object' && Object.keys(c).length){ PROGRAM=c; render(); }   // instant: last known good
+  if(!PROGRAM_URL) return;
+  try{
+    var res=await fetch(PROGRAM_URL+'?t='+Date.now(), {cache:'no-store'});
+    if(!res.ok) return;
+    var data=await res.json();
+    var prog=(data && data.program)?data.program:data;     // accept a raw object or { program: {...} }
+    if(prog && typeof prog==='object' && Object.keys(prog).length){ PROGRAM=prog; setCachedProgram(prog); render(); }
+  }catch(e){}
+}
+
 render();
+loadProgram();
 </script>
 <script>
   /* PWA: registers only when hosted on https; silently skips in preview/file:// */
