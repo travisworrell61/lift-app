@@ -396,6 +396,7 @@
       <textarea class="adm-ta" id="admJson" spellcheck="false" autocapitalize="off" placeholder="{ &quot;mon&quot;: { … }, &quot;tue&quot;: { … }, … }"></textarea>
       <div class="adm-status" id="admStatus">&nbsp;</div>
       <div class="adm-actions">
+        <button class="adm-btn" id="admClear">Clear</button>
         <button class="adm-btn" id="admValidate">Check</button>
         <button class="adm-btn adm-pub" id="admPublish">Publish</button>
       </div>
@@ -953,6 +954,7 @@ var Admin = (function(){
         if(o.s===200){
           try{ localStorage.setItem(TOKEN_KEY, token); }catch(e){}
           setCachedProgram(v.prog); PROGRAM=v.prog; render();
+          g('admJson').value='';                 // auto-clear the paste box after a successful publish
           setStatus('✓ Published — live on all your devices.','ok');
         } else if(o.s===401){ setStatus('✕ Wrong publish token.','err'); }
         else { setStatus('✕ '+((o.j&&o.j.error)||('error '+o.s)),'err'); }
@@ -963,6 +965,7 @@ var Admin = (function(){
   function close(){ g('admin').hidden=true; }
 
   g('admClose').addEventListener('click',close);
+  g('admClear').addEventListener('click',function(){ g('admJson').value=''; setStatus(' '); g('admJson').focus(); });
   g('admValidate').addEventListener('click',validate);
   g('admPublish').addEventListener('click',publish);
 
