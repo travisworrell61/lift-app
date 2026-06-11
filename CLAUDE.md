@@ -42,8 +42,7 @@ Occasionally you'll also tweak the UI in `index.html`, adjust the PWA files, reg
     warm: <warm-up string>,
     fin: { core: <string>, cardio: <string> },
     prog: { c: <hex color>, t: <HTML progression note> },
-    A: [ block, ... ],                    // A-week
-    B: [ block, ... ]                     // B-week
+    A: [ block, ... ]                     // the day's workout (see note below)
   }
 }
 block = {
@@ -53,6 +52,8 @@ block = {
 }
 ```
 `program.json` may be a raw object (above) or wrapped as `{ "program": { ... } }` — the loader accepts both.
+
+**Single weekly program (A/B toggle retired, 2026-06-08).** The app renders each day's **`A`** block as that day's workout — there is no in-app A/B week switch anymore. A `B` block, if present, is **ignored** (the loader does `d.A || d.B`). Variety comes from rotating exercises every ~4-week mesocycle via `program.json` publishes from the coaching chat, not from alternating weeks. Logging is continuous week-to-week (keyed by exercise name), which the recommended-weight prefill relies on. Keep publishing under `day.A`; don't reintroduce `B`.
 
 Conventions:
 - `reps` strings look like `"4×8–10"`, `"3×12–15"`, `"3×10/leg"`, `"4 sets"`, `"Burnout"`, `"AMRAP"`. (En-dash `–`, multiplication `×`.)
