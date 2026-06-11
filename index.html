@@ -795,19 +795,105 @@ async function loadProgram(){
   if(prog){ PROGRAM=prog; setCachedProgram(prog); render(); }           // 3) else bundled program.js stays
 }
 
-/* ───────── Core / ab interval timer ─────────
-   A self-contained interval timer so core work runs in-app instead of the
-   browser. Edit AB_CIRCUIT / WORK / REST to taste. */
-var AB_CIRCUIT = [
-  'Hollow Body Hold','Bicycle Crunch','Reverse Crunch','Flutter Kicks',
-  'Plank','Russian Twist','Leg Raises','Mountain Climbers'
-];
-var AB_WORK = 30, AB_REST = 10, AB_LEADIN = 5;   // seconds
+/* ───────── Core / ab interval timer — pool + weekly shuffle (BUILD-QUEUE T03) ─────────
+   Monday = weighted-leaning (6 weighted + 2 bodyweight); any other day = all bodyweight.
+   Each week the pools are seed-shuffled by ISO week → a fresh circuit every week.
+   8 work intervals + two 30s rests (~7 min). Paired moves run as two sided intervals;
+   rests never split a pair. Pools are plain data — easy to edit (later: publishable). */
+var AB_LEADIN = 5;   // seconds before the first move
+var AB_POOLS = {
+  weightedPool: [
+    { ex:'Single-Arm Otis-Up', sec:50, pair:true },
+    { ex:'DB Oblique Wipers', sec:45, pair:true },
+    { ex:'Statue of Liberty → Thread-the-Needle', sec:50, pair:true },
+    { ex:'Plank Reach-Outs', sec:45, note:'alternate arms' },
+    { ex:'Dumbbell Sunrise-to-Sunset', sec:45 },
+    { ex:'Russian Press', sec:45 },
+    { ex:'Weighted Russian Twist', sec:45 },
+    { ex:'Twisting Toe Taps', sec:45, note:'alternate sides' },
+    { ex:'Recliner Presses', sec:45 },
+    { ex:'Handoffs', sec:45, note:'pass DB hand to hand under legs' }
+  ],
+  bodyweightPool: [
+    { ex:'Single-Single-Double V-Up', sec:45 },
+    { ex:'Starfish Crunch', sec:45 },
+    { ex:'X-Men Crunch', sec:45 },
+    { ex:'Russian Twist (bodyweight)', sec:45 },
+    { ex:'Penguins', sec:40, note:'side to side' },
+    { ex:'Seated Ab Circles', sec:50, pair:true, pairLabels:['CW','CCW'] },
+    { ex:'Plank Tuck-to-Kickback', sec:45, note:'alternate legs' },
+    { ex:'Frog Crunches', sec:45 },
+    { ex:'McDonald\'s', sec:45, note:'trace the M' },
+    { ex:'Rainbows', sec:45, note:'arc side to side' },
+    { ex:'Dragon Thrusts', sec:45 },
+    { ex:'90-90 Crunches', sec:45 },
+    { ex:'Canoe Crunch', sec:45 },
+    { ex:'Hands Back Raises', sec:45 },
+    { ex:'Recliner Elbow-to-Knee Tucks', sec:45, note:'alternate' },
+    { ex:'"21" Crunch', sec:45 },
+    { ex:'Figure 8\'s', sec:45 },
+    { ex:'Tuck Planks (Same Side)', sec:45 },
+    { ex:'Walk the Plank', sec:45, note:'alternate' },
+    { ex:'Sprinter Tuck Planks', sec:45, note:'alternate' },
+    { ex:'Heels to the Heavens', sec:45 },
+    { ex:'Marching Planks', sec:45, note:'alternate' },
+    { ex:'Scissor "V" Ups', sec:45 },
+    { ex:'One Down Two Ups', sec:45 },
+    { ex:'Twisting Pistons', sec:45, note:'alternate' },
+    { ex:'Cross Hop Planks', sec:45 },
+    { ex:'Prayer Crunch', sec:45 },
+    { ex:'Scissors', sec:45 },
+    { ex:'Side Crunches', sec:50, pair:true },
+    { ex:'Russian "V" Tuck Twists', sec:45 }
+  ]
+};
+function ab_mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function ab_shuffle(arr,seed){var r=ab_mulberry32(seed);var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function ab_isoWeek(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);var ys=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-ys)/86400000)+1)/7);}
+// Build this week's circuit (8 work intervals + two 30s rests) deterministically from the day + ISO week.
+function ab_buildCircuit(){
+  // pools are publishable: if the live program JSON carries a `corePools` key, use it; else the bundled pools.
+  var pools = (typeof PROGRAM==='object' && PROGRAM && PROGRAM.corePools
+               && Array.isArray((PROGRAM.corePools.weightedPool)) && Array.isArray((PROGRAM.corePools.bodyweightPool)))
+             ? PROGRAM.corePools : AB_POOLS;
+  var now=new Date();
+  var seed=ab_isoWeek(now);
+  var isWeighted=(now.getDay()===1);                 // Monday = weighted-leaning; any other day = bodyweight
+  var candidates;
+  if(isWeighted){
+    var w=ab_shuffle(pools.weightedPool, seed);
+    var b=ab_shuffle(pools.bodyweightPool, seed+101);
+    candidates=ab_shuffle(w.slice(0,6).concat(b.slice(0,2)), seed+777).concat(w.slice(6), b.slice(2));
+  } else {
+    candidates=ab_shuffle(pools.bodyweightPool, seed);
+  }
+  var TARGET=8, work=[], pairStart=[];
+  for(var k=0;k<candidates.length && work.length<TARGET;k++){
+    var ex=candidates[k];
+    if(ex.pair){
+      if(work.length<=TARGET-2){                       // only if both sides fit (never truncate a pair)
+        var lbl=ex.pairLabels||['L','R'];
+        pairStart.push(work.length);
+        work.push({ex:ex.ex+' — '+lbl[0], sec:ex.sec, note:ex.note});
+        work.push({ex:ex.ex+' — '+lbl[1], sec:ex.sec, note:ex.note});
+      }
+    } else {
+      work.push({ex:ex.ex, sec:ex.sec, note:ex.note});
+    }
+  }
+  function restSlot(i){ return pairStart.indexOf(i-1)>=0 ? i+1 : i; }   // don't split a pair
+  var restAt={}; [restSlot(3),restSlot(6)].forEach(function(i){ if(i>0 && i<work.length) restAt[i]=1; });
+  var seq=[];
+  work.forEach(function(it,i){ if(restAt[i]) seq.push({rest:30}); seq.push(it); });
+  var dayName=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][now.getDay()];
+  return { seq:seq, work:work, title:dayName+' Core · Week '+seed };
+}
 
 var Ab = (function(){
   var el = function(id){ return document.getElementById(id); };
   var phases=[], pi=0, remaining=0, running=false, started=false, timer=null, endAt=0, lastSec=-1, wake=null, actx=null;
   var voiceOn=true, curAnnounced=false;
+  var circuitWork=[], circuitTitle='';   // this week's generated exercises + label
 
   // ---- spoken cues (Web Speech API) ----
   function say(text){
@@ -829,7 +915,7 @@ var Ab = (function(){
   function callout(p,r){
     if(!p) return;
     if(p.kind==='work'){
-      if(r===20 && AB_WORK>=40) say('20 seconds');
+      if(r===20 && p.sec>=40) say('20 seconds');
       else if(r===10) say('10 seconds left');
       else if(r<=3 && r>0) beep(900,0.12,0.25);          // work ending: beeps
     } else if((p.kind==='rest'||p.kind==='ready') && r<=3 && r>0){
@@ -838,11 +924,20 @@ var Ab = (function(){
   }
 
   function buildPhases(){
-    phases=[{kind:'ready',label:'Get Ready',sec:AB_LEADIN,next:AB_CIRCUIT[0]}];
-    AB_CIRCUIT.forEach(function(name,i){
-      phases.push({kind:'work',label:name,sec:AB_WORK});
-      if(i<AB_CIRCUIT.length-1) phases.push({kind:'rest',label:'Rest',sec:AB_REST,next:AB_CIRCUIT[i+1]});
-    });
+    var gen=ab_buildCircuit();
+    circuitWork=gen.work; circuitTitle=gen.title;
+    var seq=gen.seq, firstEx='';
+    for(var f=0;f<seq.length;f++){ if(!seq[f].rest){ firstEx=seq[f].ex; break; } }
+    phases=[{kind:'ready',label:circuitTitle,sec:AB_LEADIN,next:firstEx}];
+    for(var i=0;i<seq.length;i++){
+      var it=seq[i];
+      if(it.rest){
+        var nx=''; for(var j=i+1;j<seq.length;j++){ if(!seq[j].rest){ nx=seq[j].ex; break; } }
+        phases.push({kind:'rest',label:'Rest',sec:it.rest,next:nx});
+      } else {
+        phases.push({kind:'work',label:it.ex,sec:it.sec,note:it.note});
+      }
+    }
     phases.push({kind:'done',label:'Done 🔥',sec:0});
   }
   function beep(freq,dur,vol){
@@ -865,19 +960,21 @@ var Ab = (function(){
     var p=phases[pi]; if(!p) return;
     var rest = (p.kind==='rest'||p.kind==='ready');
     el('abtimer').classList.toggle('rest', rest);
-    el('abtStage').textContent = p.kind==='work' ? ('Exercise '+workIndex(pi)+' / '+AB_CIRCUIT.length)
-                              : p.kind==='done' ? 'Complete' : (p.kind==='ready'?'Get Ready':'Rest');
-    el('abtName').textContent = p.label;
+    el('abtStage').textContent = p.kind==='work' ? ('Exercise '+workIndex(pi)+' / '+circuitWork.length)
+                              : p.kind==='done' ? 'Complete' : (p.kind==='ready'?circuitTitle:'Rest');
+    el('abtName').innerHTML = (p.kind==='work' && p.note)
+      ? (p.label+'<span style="display:block;font-size:.46em;opacity:.7;font-weight:400;margin-top:4px">'+p.note+'</span>')
+      : p.label;
     el('abtTime').textContent = p.kind==='done' ? '✓' : fmt(remaining);
     el('abtNext').innerHTML = p.next ? ('Next: '+p.next) : '&nbsp;';
     // dots = one per exercise
-    el('abtDots').innerHTML = AB_CIRCUIT.map(function(_,i){
+    el('abtDots').innerHTML = circuitWork.map(function(_,i){
       var cur=workIndex(pi); var cls = (p.kind==='work'&&i===cur-1)?'cur':(i<cur-1||(p.kind==='done'))?'done':((p.kind==='rest'&&i<cur)?'done':'');
       return '<span class="abt-dot '+cls+'"></span>';
     }).join('');
-    el('abtList').innerHTML = AB_CIRCUIT.map(function(name,i){
+    el('abtList').innerHTML = circuitWork.map(function(it,i){
       var cur=workIndex(pi); var cls=(p.kind==='work'&&i===cur-1)?'cur':(i<cur-1?'done':'');
-      return '<div class="abt-li '+cls+'"><span>'+(i+1)+'. '+name+'</span><span>'+AB_WORK+'s</span></div>';
+      return '<div class="abt-li '+cls+'"><span>'+(i+1)+'. '+it.ex+'</span><span>'+it.sec+'s</span></div>';
     }).join('');
     el('abtPlay').textContent = running ? 'Pause' : (p.kind==='done' ? 'Restart' : (started ? 'Resume' : 'Start'));
   }
