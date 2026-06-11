@@ -337,7 +337,6 @@
     <div class="nav-inner">
       <div class="brand"><span class="dotmark"></span>LIFT<small>4-Day Split</small></div>
       <div class="days" id="days"></div>
-      <div class="wk" id="wk"></div>
     </div>
   </div>
 
@@ -424,9 +423,6 @@ function buildNav(){
   const days=document.getElementById('days');
   days.innerHTML=ORDER.map(d=>`<button class="day-btn ${d===curDay?'on':''}" data-d="${d}" style="--dc:${DAY_ACCENT[d]||'#7dd3fc'}">${PROGRAM[d].title.slice(0,3)}</button>`).join('');
   days.querySelectorAll('button').forEach(b=>b.onclick=()=>{curDay=b.dataset.d;render();});
-  const wk=document.getElementById('wk');
-  wk.innerHTML=['A','B'].map(w=>`<button class="wk-btn ${w===curWk?'on':''}" data-w="${w}">${w}-Week</button>`).join('');
-  wk.querySelectorAll('button').forEach(b=>b.onclick=()=>{curWk=b.dataset.w;render();});
 }
 
 function setsOf(r){r=String(r);var m=r.match(/^(\d+)/);if(!m)return null;return (/[×x]/.test(r)||/sets/i.test(r))?parseInt(m[1]):null;}
@@ -688,14 +684,14 @@ function render(){
   applyDayAccent(curDay);                                    // tint everything to the day's color
   buildNav();
   const d=PROGRAM[curDay];
-  const blocks=d[curWk];
+  const blocks=d[curWk]||d.A||d.B||[];   // single weekly program — always the A list (B ignored if present)
   let ssi=0;
   const flat=flattenExercises(d,curWk);
   const totalEx=flat.length;
   const doneEx=flat.filter(function(x){return isLoggedToday(x.name);}).length;
   const pct=totalEx?Math.round(doneEx/totalEx*100):0;
   let html=`<header class="head">
-    <div class="kicker">Day ${d.n} · ${curWk}-Week · Phase 1</div>
+    <div class="kicker">Day ${d.n} · Phase 1</div>
     <h1>${d.title}</h1>
     <div class="sub">${d.sub}</div>
     <div class="tags">
