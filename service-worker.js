@@ -4,7 +4,7 @@
    - Offline: serves the last cached version so the app still opens at the gym.
    NOTE: if you add new files to the app, add them to CORE below. */
 
-const CACHE = 'lift-v1';
+const CACHE = 'lift-v2';   // bump purges old caches on activate
 const CORE = [
   './',
   './index.html',
@@ -30,6 +30,9 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  // Same-origin only: API calls (Vercel / raw GitHub) carry unique cache-buster
+  // params — caching them would grow the cache forever and serve nothing useful.
+  if (new URL(e.request.url).origin !== self.location.origin) return;
   e.respondWith(
     fetch(e.request)
       .then((res) => {

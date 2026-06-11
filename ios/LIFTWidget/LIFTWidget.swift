@@ -46,7 +46,7 @@ struct LIFTWidgetEntryView: View {
 
     private var header: String {
         guard let s = entry.snapshot else { return "LIFT" }
-        return "\(s.day) · \(s.week)-Week"
+        return s.day   // single weekly program — the old "A-Week" suffix is retired
     }
 
     private var inlineText: String {

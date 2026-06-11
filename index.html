@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0b0d12">
+<meta name="theme-color" content="#0e1117">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -52,14 +52,6 @@
     color:var(--muted);min-height:46px;padding:0;transition:.15s;text-align:center;
   }
   .day-btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink);}
-  .wk{display:flex;gap:6px;margin-top:7px;}
-  .wk-btn{
-    flex:1;font-family:'Oswald',sans-serif;font-weight:600;font-size:.72rem;
-    letter-spacing:.18em;text-transform:uppercase;cursor:pointer;
-    border:1px solid var(--line);border-radius:8px;background:transparent;
-    color:var(--muted);min-height:38px;padding:0;transition:.15s;
-  }
-  .wk-btn.on{background:var(--ss1,#2dd4bf);color:var(--bg);border-color:transparent;}
 
   /* ---------- header ---------- */
   .head{position:relative;border:1px solid var(--line);border-radius:16px;
@@ -251,7 +243,6 @@
   .today-marker{position:absolute;top:16px;right:18px;z-index:1;font-family:'Oswald',sans-serif;
     font-weight:600;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);}
   .today-marker b{color:var(--accent);font-weight:700;}
-  .wk-btn.on{background:var(--accent);color:var(--accent-ink);border-color:transparent;}
   .tag.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
   .tag.main{background:transparent;color:var(--steel);border-color:var(--line);}
   .prog{border-left-color:var(--accent);
@@ -358,7 +349,6 @@
       <span><b>3–5s</b> eccentric</span>
       <span>To <b>form failure</b></span>
       <span><b>1 warm-up set</b> / exercise</span>
-      <span>Drops return <b>Week 2</b></span>
     </div>
 
     <div class="legend">
@@ -442,7 +432,7 @@ const mmdd=(d)=>String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).p
 function todayMarker(){ var n=new Date(); return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][n.getDay()]+' <b>'+mmdd(n)+'</b>'; }
 function buildNav(){
   const days=document.getElementById('days');
-  days.innerHTML=ORDER.map(d=>`<button class="day-btn ${d===curDay?'on':''}" data-d="${d}" style="--dc:${DAY_ACCENT[d]||'#7dd3fc'}"><span class="db-lab">${PROGRAM[d].title.slice(0,3)}</span><span class="db-date">${mmdd(dateForWeekday(DOW[d]))}</span></button>`).join('');
+  days.innerHTML=ORDER.filter(d=>PROGRAM[d]&&PROGRAM[d].title).map(d=>`<button class="day-btn ${d===curDay?'on':''}" data-d="${d}" style="--dc:${DAY_ACCENT[d]||'#7dd3fc'}"><span class="db-lab">${PROGRAM[d].title.slice(0,3)}</span><span class="db-date">${mmdd(dateForWeekday(DOW[d]))}</span></button>`).join('');
   days.querySelectorAll('button').forEach(b=>b.onclick=()=>{curDay=b.dataset.d;render();});
 }
 
@@ -494,11 +484,13 @@ function defaultSetCount(name,reps){
   if(h.length && h[h.length-1].sets.length) return h[h.length-1].sets.length;
   var n=setsOf(reps); return n||3;
 }
-function setRowHTML(i,w){
+function setRowHTML(i,w,ph){
+  // ph = suggested weight shown as GHOST placeholder text. It is not a value, so an
+  // untouched row saves as null — a suggestion can never be logged as a lift by accident.
   return '<div class="setrow" data-i="'+i+'">'+
     '<span class="si">SET '+(i+1)+'</span>'+
     '<button class="stp" data-step="-5" aria-label="minus 5">−</button>'+
-    '<input class="in-w" inputmode="decimal" placeholder="—" value="'+(w!=null?w:'')+'">'+
+    '<input class="in-w" inputmode="decimal" placeholder="'+(ph!=null?ph:'—')+'" value="'+(w!=null?w:'')+'">'+
     '<span class="unit">lb</span>'+
     '<button class="stp" data-step="5" aria-label="plus 5">+</button>'+
     '<button class="rm" aria-label="remove set">×</button>'+
@@ -539,12 +531,16 @@ function buildPanel(name,reps){
   var rows='';
   for(var i=0;i<n;i++){
     var s=(pf&&pf[i])?pf[i]:{};
-    var wv=(s.w!=null)?s.w:(pf?'':(guess==null?'':guess));   // new exercise → name-based guess; bodyweight/added rows stay empty
-    rows+=setRowHTML(i,wv);
+    // Real history prefills as a VALUE; a first-time guess shows as a ghost placeholder
+    // only (one ＋ tap makes it real) — so accidental saves never log invented weights.
+    var wv=(s.w!=null)?s.w:'';
+    rows+=setRowHTML(i,wv,(pf||guess==null)?null:guess);
   }
   var hint=pf
     ? '<div class="panel-hint">Prefilled from last time — tap ＋/− (or type) to set each weight, then Save.</div>'
-    : '<div class="panel-hint">Set the weight for each set, then Save. Bodyweight moves: just tap Save to mark done.</div>';
+    : (guess!=null
+        ? '<div class="panel-hint">Suggested start is shown in grey — tap ＋ once to use it, then adjust and Save.</div>'
+        : '<div class="panel-hint">Bodyweight move — just tap Save to mark it done.</div>');
   return hint+'<div class="setrows">'+rows+'</div>'+
     '<div class="panel-actions">'+
       '<button class="btn-add">+ Set</button>'+
@@ -670,6 +666,14 @@ function liftSyncLogs(){
     window.webkit.messageHandlers.liftSync.postMessage(JSON.stringify(loadLogs()));
   }catch(e){}
 }
+// Ask the native shell to keep the screen awake (the browser wake-lock API is
+// unreliable inside WKWebView). No-op in a plain browser / PWA.
+function liftWake(on){
+  try{
+    if(!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.liftWake)) return;
+    window.webkit.messageHandlers.liftWake.postMessage(on?'1':'0');
+  }catch(e){}
+}
 
 var SPECIAL_TAGS = {dropset:'DROP SET', partials:'PARTIALS', restpause:'REST-PAUSE', amrap:'AMRAP', failure:'TO FAILURE', tempo:'SLOW TEMPO'};
 function tagBadges(ex){
@@ -728,7 +732,6 @@ function render(){
     <div class="tags">
       <span class="tag ${d.type==='pri'?'pri':'main'}">${d.type==='pri'?'Priority day':'Maintenance day'}</span>
       <span class="tag">~55 min + cardio</span>
-      <span class="tag">Week 1 · straight sets</span>
     </div>
   </header>
   <div class="today">
@@ -755,12 +758,14 @@ function render(){
     }
   });
 
+  const fin=d.fin||{core:'—',cardio:'—'};               // defensive: never crash on a sparse day
+  const prg=d.prog||{c:'#7dd3fc',t:''};
   html+=`<div class="fin">
-    <div><div class="lab">Core</div><div class="val">${d.fin.core}</div>
+    <div><div class="lab">Core</div><div class="val">${fin.core}</div>
       <button class="core-timer-btn" data-core-timer>▶ Core Timer</button></div>
-    <div><div class="lab">Cardio</div><div class="val">${d.fin.cardio}</div></div>
+    <div><div class="lab">Cardio</div><div class="val">${fin.cardio}</div></div>
   </div>
-  <div class="prog" style="--pc:${d.prog.c}">📌 ${d.prog.t}</div>`;
+  <div class="prog" style="--pc:${prg.c}">📌 ${prg.t}</div>`;
 
   document.getElementById('content').innerHTML=html;
   _firstRender=false;
@@ -781,14 +786,40 @@ function normalizeProgram(data){
   var p=(data && data.program)?data.program:data;        // accept a raw object or { program: {...} }
   return (p && typeof p==='object' && !Array.isArray(p) && Object.keys(p).length) ? p : null;
 }
+// Structural check shared by the publish validator AND the runtime loader, so a
+// malformed program can neither be published nor adopted from the network/cache.
+// Returns null if OK, else a human-readable problem description.
+function programIssue(p){
+  if(!p || typeof p!=='object') return 'not an object';
+  for(var i=0;i<ORDER.length;i++){
+    var k=ORDER[i], d=p[k];
+    if(!d || typeof d!=='object') return 'missing day "'+k+'" — all 4 days (mon, tue, wed, fri) are required';
+    if(typeof d.title!=='string' || !d.title) return k+': missing "title"';
+    if(typeof d.sub!=='string') return k+': missing "sub"';
+    if(typeof d.warm!=='string') return k+': missing "warm"';
+    if(!d.fin || typeof d.fin.core!=='string' || typeof d.fin.cardio!=='string') return k+': missing "fin" {core, cardio}';
+    if(!d.prog || typeof d.prog.c!=='string' || typeof d.prog.t!=='string') return k+': missing "prog" {c, t}';
+    if(!Array.isArray(d.A) || !d.A.length) return k+': "A" must be a non-empty array of blocks';
+    for(var j=0;j<d.A.length;j++){
+      var b=d.A[j];
+      if(!b || !Array.isArray(b.e) || !b.e.length) return k+'.A['+j+']: block needs an "e" exercise array';
+      for(var m=0;m<b.e.length;m++){
+        var ex=b.e[m];
+        if(!Array.isArray(ex) || typeof ex[0]!=='string' || typeof ex[1]!=='string') return k+'.A['+j+'].e['+m+']: exercise must be [name, reps, note?]';
+      }
+    }
+  }
+  return null;
+}
 async function fetchProgram(url){
   var res=await fetch(url+(url.indexOf('?')<0?'?':'&')+'t='+Date.now(), {cache:'no-store'});
   if(!res.ok) throw new Error('http '+res.status);
-  return normalizeProgram(await res.json());
+  var p=normalizeProgram(await res.json());
+  return (p && !programIssue(p)) ? p : null;             // never adopt a structurally broken program
 }
 async function loadProgram(){
   var c=cachedProgram();
-  if(c && typeof c==='object' && Object.keys(c).length){ PROGRAM=c; render(); }   // instant: last known good
+  if(c && !programIssue(c)){ PROGRAM=c; render(); }      // instant: last known good (validated)
   var prog=null;
   try{ prog=await fetchProgram(PROGRAM_API); }catch(e){}     // 1) Vercel (in-app publish)
   if(!prog){ try{ prog=await fetchProgram(PROGRAM_URL); }catch(e){} }   // 2) GitHub
@@ -993,7 +1024,13 @@ var Ab = (function(){
   function play(){
     if(phases[pi] && phases[pi].kind==='done'){ openFresh(); }
     running=true; started=true; endAt=Date.now()+remaining*1000; lastSec=-1;
-    reqWake(); if(actx&&actx.state==='suspended'){try{actx.resume();}catch(e){}}
+    reqWake();
+    // iOS only allows audio started from a user gesture — this tap is it.
+    // Create + resume the AudioContext here so the later timer-tick beeps are audible.
+    try{
+      if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+      if(actx.state==='suspended') actx.resume();
+    }catch(e){}
     if(!curAnnounced){ announcePhase(phases[pi]); curAnnounced=true; }   // speak current phase on first start
     startTick(); draw();
   }
@@ -1019,8 +1056,8 @@ var Ab = (function(){
   function reqWake(){ try{ if('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function(w){wake=w;}).catch(function(){}); }catch(e){} }
   function relWake(){ try{ wake&&wake.release&&wake.release(); }catch(e){} wake=null; }
   function openFresh(){ buildPhases(); pi=0; remaining=phases[0].sec; running=false; started=false; lastSec=-1; curAnnounced=false; }
-  function open(){ openFresh(); el('abtimer').hidden=false; draw(); }
-  function close(){ running=false; clearInterval(timer); relWake();
+  function open(){ openFresh(); el('abtimer').hidden=false; liftWake(true); draw(); }
+  function close(){ running=false; clearInterval(timer); relWake(); liftWake(false);
     try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}
     el('abtimer').hidden=true; }
 
@@ -1056,10 +1093,10 @@ var Admin = (function(){
     var data; try{ data=JSON.parse(raw); }catch(e){ return {ok:false,msg:'Not valid JSON — '+e.message}; }
     var prog=normalizeProgram(data);
     if(!prog) return {ok:false,msg:'Parsed, but that is not a program object.'};
-    var days=Object.keys(prog), good=0;
-    days.forEach(function(d){ var x=prog[d]; if(x && Array.isArray(x.A)) good++; });
-    if(!good) return {ok:false,msg:'No days with an A block found — check the structure.'};
-    return {ok:true,prog:prog,days:days,good:good};
+    var issue=programIssue(prog);                        // same strict check the app uses before adopting
+    if(issue) return {ok:false,msg:issue};
+    var days=Object.keys(prog).filter(function(k){return ORDER.indexOf(k)>=0;});
+    return {ok:true,prog:prog,days:days,good:days.length};
   }
   function validate(){
     var v=parseInput();
@@ -1110,6 +1147,16 @@ var Admin = (function(){
 
 render();
 loadProgram();
+liftSyncLogs();   // re-upload the current log blob on every open — heals any save made offline
+
+// Returning to the app (native webview resume / PWA tab focus): refresh the widget
+// (auto-advances past midnight) and re-push logs so the cloud copy can't go stale.
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState!=='visible') return;
+  liftSyncLogs();
+  // refresh (widget + date rollover) — but never wipe a logging panel mid-entry
+  if(!document.querySelector('.log-panel:not([hidden])')) render();
+});
 </script>
 <script>
   /* PWA: registers only when hosted on https; silently skips in preview/file:// */

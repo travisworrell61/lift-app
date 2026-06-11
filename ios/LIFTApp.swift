@@ -29,6 +29,7 @@ struct WebView: UIViewRepresentable {
         let controller = WKUserContentController()
         controller.add(context.coordinator, name: "lift")       // JS → native: widget state
         controller.add(context.coordinator, name: "liftSync")   // JS → native: full log blob → cloud
+        controller.add(context.coordinator, name: "liftWake")   // JS → native: keep screen awake during the core timer
         config.userContentController = controller
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.scrollView.contentInsetAdjustmentBehavior = .never
@@ -56,6 +57,11 @@ struct WebView: UIViewRepresentable {
                 WidgetCenter.shared.reloadAllTimelines()
             case "liftSync":
                 uploadLogs(data)        // data = raw JSON blob of all logs
+            case "liftWake":
+                // The in-page wake-lock API is unreliable inside WKWebView, so the
+                // timer asks native to hold the screen awake ("1" on open, "0" on close).
+                let on = (json == "1")
+                DispatchQueue.main.async { UIApplication.shared.isIdleTimerDisabled = on }
             default:
                 break
             }
