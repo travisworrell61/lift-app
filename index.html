@@ -84,39 +84,9 @@
   .group{margin-top:13px;animation:rise .45s ease both;}
   .solo-tag{font-family:'Oswald',sans-serif;font-size:.6rem;font-weight:600;letter-spacing:.18em;
     text-transform:uppercase;color:var(--muted);margin:0 0 6px 4px;}
-  .card{border:1px solid var(--line);border-radius:14px;background:var(--panel);
-    padding:12px 14px;display:flex;align-items:center;gap:13px;position:relative;}
-  .card + .card{margin-top:9px;}
-  .accent{width:5px;align-self:stretch;border-radius:5px;background:var(--steel);flex:none;min-height:38px;}
-  .ex{flex:1;min-width:0;}
-  .ex .name{font-family:'Oswald',sans-serif;font-weight:600;font-size:1.02rem;letter-spacing:.01em;text-transform:uppercase;}
-  .ex .note{font-size:.78rem;color:var(--muted);margin-top:2px;}
-  .reps{font-family:'Anton',sans-serif;font-size:1.08rem;text-align:right;flex:none;white-space:nowrap;}
-  .reps small{display:block;font-family:'Oswald',sans-serif;font-weight:500;font-size:.56rem;
-    letter-spacing:.14em;color:var(--muted);text-transform:uppercase;}
-
-  .ss{border-radius:16px;padding:11px;
-    border:1px solid var(--c);
-    border:1px solid color-mix(in srgb,var(--c) 45%,var(--line));
-    background:var(--panel);
-    background:linear-gradient(180deg,color-mix(in srgb,var(--c) 10%,transparent),transparent 70%),var(--panel);
-    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 12%,transparent);}
-  .ss-head{display:flex;align-items:center;gap:9px;margin:2px 2px 9px;flex-wrap:wrap;}
-  .ss-pill{font-family:'Oswald',sans-serif;font-weight:700;font-size:.68rem;letter-spacing:.18em;
-    text-transform:uppercase;color:var(--bg);background:var(--c);border-radius:6px;padding:3px 9px;}
-  .ss-where{font-family:'Oswald',sans-serif;font-size:.7rem;font-weight:500;text-transform:uppercase;letter-spacing:.09em;color:var(--c);}
-  .ss .card{background:var(--panel2);border-color:color-mix(in srgb,var(--c) 22%,var(--line));}
-  .ss .accent{background:var(--c);}
-  .ss .reps{color:var(--c);}
-  .link{display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Oswald',sans-serif;
-    font-size:.58rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--c);padding:4px 0 2px;}
-  .link::before,.link::after{content:"";height:1px;flex:1;background:color-mix(in srgb,var(--c) 35%,transparent);}
   .ex-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
   .set-badge{font-family:'Oswald',sans-serif;font-size:.56rem;font-weight:700;letter-spacing:.1em;
     text-transform:uppercase;color:#ffcf5c;border:1px solid rgba(255,207,92,.45);border-radius:6px;padding:2px 7px;}
-  .ss-uneven-tag{font-family:'Oswald',sans-serif;font-size:.56rem;font-weight:700;letter-spacing:.1em;
-    text-transform:uppercase;color:#ffcf5c;border:1px solid rgba(255,207,92,.4);border-radius:6px;
-    padding:2px 7px;margin-left:auto;}
   .uneven{margin-top:9px;border-radius:9px;background:rgba(255,207,92,.12);
     border:1px dashed rgba(255,207,92,.55);color:#ffe2a0;font-family:'Oswald',sans-serif;
     font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
@@ -260,6 +230,52 @@
   .in-w:focus{border-color:var(--accent);}
   .panel-actions .btn-save{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700;}
   .saved-flash{color:var(--accent);}
+
+  /* ───────── accordion workout (T04) ───────── */
+  .blk{border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;}
+  .blk.ss{border-color:color-mix(in srgb,var(--c) 45%,var(--line));
+    background:linear-gradient(180deg,color-mix(in srgb,var(--c) 9%,transparent),transparent 70%),var(--panel);}
+  .bhead{display:flex;align-items:center;gap:11px;padding:13px 14px;width:100%;border:none;background:none;color:inherit;text-align:left;cursor:pointer;}
+  .bhead .acc{width:5px;align-self:stretch;border-radius:5px;background:var(--c,var(--steel));flex:none;min-height:34px;}
+  .exblock.done .bhead .acc,.exblock.done .exhead .acc{background:var(--accent);}
+  .bhead .ttl{flex:1;min-width:0;}
+  .bhead .where{font-family:'Oswald',sans-serif;font-weight:600;font-size:.98rem;letter-spacing:.01em;text-transform:uppercase;}
+  .blk.ss .bhead .where{color:var(--c);}
+  .bhead .names{font-size:.76rem;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bhead .rp{font-family:'Anton',sans-serif;font-size:1.04rem;color:var(--steel);flex:none;white-space:nowrap;}
+  .cnt{font-family:'Oswald',sans-serif;font-weight:700;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--c,var(--steel));border:1px solid color-mix(in srgb,var(--c,var(--steel)) 40%,var(--line));border-radius:20px;padding:2px 9px;flex:none;}
+  .cnt.alldone{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line));}
+  .chev{flex:none;color:var(--muted);font-size:1rem;transition:transform .2s;font-family:'Barlow',sans-serif;}
+  .blk.open>.bhead .chev,.exrow.open>.exhead .chev{transform:rotate(180deg);}
+  .bbody,.exbody{display:none;}
+  .blk.open>.bbody{display:block;padding:0 11px 11px;}
+  .exrow.open>.exbody{display:block;padding:2px 12px 13px;}
+  .done-mini{font-family:'Oswald',sans-serif;font-size:.72rem;color:var(--accent);margin-top:4px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .tick{color:var(--accent);font-weight:700;margin:0 2px;flex:none;}
+  .exrow{border:1px solid color-mix(in srgb,var(--c) 22%,var(--line));border-radius:11px;background:var(--panel2);margin-top:8px;overflow:hidden;}
+  .exhead{display:flex;align-items:center;gap:10px;padding:11px 12px;width:100%;border:none;background:none;color:inherit;text-align:left;cursor:pointer;}
+  .exhead .acc{width:4px;align-self:stretch;border-radius:4px;background:var(--c,var(--accent));flex:none;min-height:28px;}
+  .exhead .nm{flex:1;min-width:0;font-family:'Oswald',sans-serif;font-weight:600;font-size:.96rem;text-transform:uppercase;}
+  .exhead .rp{font-family:'Anton',sans-serif;font-size:1rem;color:var(--c,var(--accent));flex:none;white-space:nowrap;}
+  .uneven{margin:8px 0 2px;}
+  /* rec card */
+  .rec{display:flex;align-items:flex-end;gap:14px;margin:6px 0 11px;}
+  .rec .sug{font-family:'Anton',sans-serif;font-size:2.3rem;line-height:.9;color:var(--accent);}
+  .rec .sug small{font-family:'Oswald',sans-serif;font-size:.78rem;letter-spacing:.06em;margin-left:3px;}
+  .rec .meta{padding-bottom:5px;}
+  .rec .lab{font-family:'Oswald',sans-serif;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  .rec .rng{font-family:'Oswald',sans-serif;font-weight:600;font-size:.92rem;color:var(--steel);}
+  .cue{border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--panel2));
+    border-radius:0 8px 8px 0;padding:9px 12px;font-size:.84rem;color:var(--steel);line-height:1.4;margin-bottom:12px;}
+  .cue b{font-family:'Oswald',sans-serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;display:block;
+    margin-bottom:3px;color:var(--accent);font-weight:700;}
+  .in-w.suggested{color:var(--accent);}
+  .bw-note{font-size:.8rem;color:var(--muted);margin:2px 0 11px;}
+  /* the log panel blends into the accordion body (no extra frame) */
+  .bbody .log-panel,.exbody .log-panel{margin:0;border:none;background:none;padding:0;}
+  .bbody .logbar,.exbody .logbar{padding:0 0 6px;}
 
   /* ───────── core / ab timer ───────── */
   .core-timer-btn{margin-top:9px;display:inline-flex;align-items:center;gap:5px;
@@ -419,6 +435,9 @@ function applyDayAccent(day){
 
 let curDay='fri', curWk='A';
 const ORDER=['mon','tue','wed','fri'];
+var openEx=null;     // encoded name of the single expanded exercise (one log card open at a time)
+var openBlk={};      // block index → 1 (expanded superset showing its exercise rows)
+function rerender(){ var y=window.scrollY; render(); window.scrollTo(0,y); }   // keep scroll on expand/collapse
 
 const DOW={mon:1,tue:2,wed:3,fri:5};   // weekday index, Mon=1 … Sun=7
 function dateForWeekday(targetDow){
@@ -433,7 +452,7 @@ function todayMarker(){ var n=new Date(); return ['Sun','Mon','Tue','Wed','Thu',
 function buildNav(){
   const days=document.getElementById('days');
   days.innerHTML=ORDER.filter(d=>PROGRAM[d]&&PROGRAM[d].title).map(d=>`<button class="day-btn ${d===curDay?'on':''}" data-d="${d}" style="--dc:${DAY_ACCENT[d]||'#7dd3fc'}"><span class="db-lab">${PROGRAM[d].title.slice(0,3)}</span><span class="db-date">${mmdd(dateForWeekday(DOW[d]))}</span></button>`).join('');
-  days.querySelectorAll('button').forEach(b=>b.onclick=()=>{curDay=b.dataset.d;render();});
+  days.querySelectorAll('button').forEach(b=>b.onclick=()=>{curDay=b.dataset.d;openEx=null;openBlk={};render();});
 }
 
 function setsOf(r){r=String(r);var m=r.match(/^(\d+)/);if(!m)return null;return (/[×x]/.test(r)||/sets/i.test(r))?parseInt(m[1]):null;}
@@ -466,6 +485,8 @@ function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMont
 function fmtDate(s){var p=s.split('-');return parseInt(p[1])+'/'+parseInt(p[2]);}
 function logsFor(name){var all=loadLogs();return all[name]||[];}
 function isLoggedToday(name){var h=logsFor(name);return !!(h.length && h[h.length-1].date===todayStr());}
+// Coach recommendation for an exercise (suggested weight/range/cue), published in the program JSON.
+function recFor(name){ try{ return (typeof PROGRAM==='object' && PROGRAM && PROGRAM.recs && PROGRAM.recs[name]) || null; }catch(e){ return null; } }
 // Weight-only summary. Shows the weights logged (e.g. "50, 55, 60 lb").
 // Exercises with no load (bodyweight) just read "done ✓".
 function setsSummary(sets){
@@ -484,13 +505,13 @@ function defaultSetCount(name,reps){
   if(h.length && h[h.length-1].sets.length) return h[h.length-1].sets.length;
   var n=setsOf(reps); return n||3;
 }
-function setRowHTML(i,w,ph){
-  // ph = suggested weight shown as GHOST placeholder text. It is not a value, so an
-  // untouched row saves as null — a suggestion can never be logged as a lift by accident.
+function setRowHTML(i,w,ph,suggested){
+  // w = committed value; ph = ghost placeholder (heuristic guess, NOT saved if untouched);
+  // suggested = a coach rec shown as an accent value (logs if saved, signalling it's a suggestion).
   return '<div class="setrow" data-i="'+i+'">'+
     '<span class="si">SET '+(i+1)+'</span>'+
     '<button class="stp" data-step="-5" aria-label="minus 5">−</button>'+
-    '<input class="in-w" inputmode="decimal" placeholder="'+(ph!=null?ph:'—')+'" value="'+(w!=null?w:'')+'">'+
+    '<input class="in-w'+(suggested?' suggested':'')+'" inputmode="decimal" placeholder="'+(ph!=null?ph:'—')+'" value="'+(w!=null?w:'')+'">'+
     '<span class="unit">lb</span>'+
     '<button class="stp" data-step="5" aria-label="plus 5">+</button>'+
     '<button class="rm" aria-label="remove set">×</button>'+
@@ -526,25 +547,29 @@ function startWeightFor(name){
 function buildPanel(name,reps){
   var h=logsFor(name);
   var pf=(h.length)?h[h.length-1].sets:null;          // prefill from last session
-  var n=defaultSetCount(name,reps);
+  var rec=recFor(name);
   var guess=startWeightFor(name);                     // null for bodyweight
+  // bodyweight move with no coach weight → no number to log, just a "Mark done" entry
+  if(guess==null && !(rec && rec.w!=null)){
+    return '<div class="bw-note">Bodyweight — no weight to log.</div>'+
+      '<div class="panel-actions"><button class="btn-save">✓ Mark done</button></div>';
+  }
+  var n=defaultSetCount(name,reps);
   var rows='';
   for(var i=0;i<n;i++){
     var s=(pf&&pf[i])?pf[i]:{};
-    // Real history prefills as a VALUE; a first-time guess shows as a ghost placeholder
-    // only (one ＋ tap makes it real) — so accidental saves never log invented weights.
-    var wv=(s.w!=null)?s.w:'';
-    rows+=setRowHTML(i,wv,(pf||guess==null)?null:guess);
+    if(s.w!=null)                rows+=setRowHTML(i, s.w, null, false);     // real history → plain value
+    else if(rec && rec.w!=null)  rows+=setRowHTML(i, rec.w, null, true);    // coach rec → accent value (logs if saved)
+    else                         rows+=setRowHTML(i, '', guess, false);     // heuristic guess → ghost placeholder
   }
   var hint=pf
-    ? '<div class="panel-hint">Prefilled from last time — tap ＋/− (or type) to set each weight, then Save.</div>'
-    : (guess!=null
-        ? '<div class="panel-hint">Suggested start is shown in grey — tap ＋ once to use it, then adjust and Save.</div>'
-        : '<div class="panel-hint">Bodyweight move — just tap Save to mark it done.</div>');
+    ? '<div class="panel-hint">Prefilled from last time — adjust and Save.</div>'
+    : (rec && rec.w!=null
+        ? '<div class="panel-hint">Suggested weight is filled in blue — Save to log it, or adjust first.</div>'
+        : '<div class="panel-hint">Suggested start shown in grey — tap ＋ to use it, then Save.</div>');
   return hint+'<div class="setrows">'+rows+'</div>'+
     '<div class="panel-actions">'+
       '<button class="btn-add">+ Set</button>'+
-      '<button class="btn-cancel">Cancel</button>'+
       '<button class="btn-save">Save</button>'+
     '</div>';
 }
@@ -568,64 +593,86 @@ function refreshBlock(block,name){
 }
 document.addEventListener('click',function(ev){
   var t=ev.target; if(!t.closest) return;
-  var logBtn=t.closest('.log-btn');
-  if(logBtn){
-    var block=logBtn.closest('.exblock'), panel=block.querySelector('.log-panel'), name=dec(block.dataset.ex);
-    if(panel.hidden || panel.dataset.mode!=='log'){
-      panel.innerHTML=buildPanel(name, dec(block.dataset.reps||'')); panel.hidden=false; panel.dataset.mode='log';
-    } else { panel.hidden=true; }
-    return;
+
+  // ── expand / collapse ──
+  var bh=t.closest('.bhead');
+  if(bh){
+    var blk=bh.closest('.blk'), bi=blk.dataset.bi;
+    if(blk.dataset.kind==='solo'){
+      openEx=(openEx===blk.dataset.ex)?null:blk.dataset.ex;   // solo body IS its log card
+    } else {
+      if(openBlk[bi]){
+        delete openBlk[bi];
+        var encs=[].map.call(blk.querySelectorAll('.exrow'),function(r){return r.dataset.ex;});
+        if(encs.indexOf(openEx)>=0) openEx=null;              // closing the block closes its open child
+      } else { openBlk[bi]=1; }
+    }
+    rerender(); return;
   }
+  var eh=t.closest('.exhead');
+  if(eh){
+    var exrow=eh.closest('.exrow'), en=exrow.dataset.ex, pb=exrow.closest('.blk');
+    if(pb) openBlk[pb.dataset.bi]=1;                         // keep the superset open after the child collapses
+    openEx=(openEx===en)?null:en;                            // one log card open at a time
+    rerender(); return;
+  }
+
+  // ── history toggle (inside an expanded exercise) ──
   var histBtn=t.closest('.hist-btn');
   if(histBtn){
-    var block=histBtn.closest('.exblock'), panel=block.querySelector('.log-panel'), name=dec(block.dataset.ex);
-    if(panel.hidden || panel.dataset.mode!=='hist'){
-      panel.innerHTML=buildHistory(name); panel.hidden=false; panel.dataset.mode='hist';
-    } else { panel.hidden=true; }
+    var hbk=histBtn.closest('.exblock'), hp=hbk&&hbk.querySelector('.log-panel'); if(!hp) return;
+    var nm=dec(hbk.dataset.ex), rp=dec(hbk.dataset.reps||'');
+    if(hp.dataset.mode==='hist'){ hp.innerHTML=buildPanel(nm,rp); hp.dataset.mode='log'; histBtn.textContent='History'; }
+    else { hp.innerHTML=buildHistory(nm); hp.dataset.mode='hist'; histBtn.textContent='Back'; }
     return;
   }
+  if(t.classList.contains('btn-cancel')){          // history "Close" → back to the log view
+    var cp=t.closest('.log-panel'), cbk=cp&&cp.closest('.exblock');
+    if(cp&&cbk){ cp.innerHTML=buildPanel(dec(cbk.dataset.ex),dec(cbk.dataset.reps||'')); cp.dataset.mode='log';
+      var hb=cbk.querySelector('.hist-btn'); if(hb) hb.textContent='History'; }
+    return;
+  }
+
+  // ── weight stepper ──
   var stp=t.closest('.stp');
   if(stp){
     var row=stp.closest('.setrow'), inp=row.querySelector('.in-w');
+    inp.classList.remove('suggested');                       // engaging it makes it a real value
     var raw=String(inp.value).trim(), cur;
-    if(raw==='' || isNaN(parseFloat(raw))){            // first tap on an empty box → snap to the name-based guess
-      var blk=row.closest('.exblock');
-      var base=blk?startWeightFor(dec(blk.dataset.ex)):null;
+    if(raw==='' || isNaN(parseFloat(raw))){                  // first tap on empty → snap to rec, else name-guess, else 50
+      var blk2=row.closest('.exblock'), rc=blk2?recFor(dec(blk2.dataset.ex)):null;
+      var base=(rc&&rc.w!=null)?rc.w:(blk2?startWeightFor(dec(blk2.dataset.ex)):null);
       cur=(base==null)?WEIGHT_START:base;
     } else { cur=parseFloat(raw)+parseFloat(stp.dataset.step); }
     if(cur<0) cur=0;
-    inp.value=String(Math.round(cur*100)/100);     // avoid float dust like 94.99999
+    inp.value=String(Math.round(cur*100)/100);
     return;
   }
   if(t.classList.contains('btn-add')){
-    var panel=t.closest('.log-panel');
-    var rows=panel.querySelector('.setrows');
-    rows.insertAdjacentHTML('beforeend', setRowHTML(rows.querySelectorAll('.setrow').length,null));
+    var ap=t.closest('.log-panel'), rows=ap.querySelector('.setrows');
+    if(rows) rows.insertAdjacentHTML('beforeend', setRowHTML(rows.querySelectorAll('.setrow').length,null,null,false));
     return;
   }
   if(t.classList.contains('rm')){
-    var row=t.closest('.setrow'), rows=row.parentElement; row.remove(); renumber(rows); return;
+    var rr=t.closest('.setrow'), rrs=rr.parentElement; rr.remove(); renumber(rrs); return;
   }
-  if(t.classList.contains('btn-cancel')){ t.closest('.log-panel').hidden=true; return; }
+
+  // ── save ──
   if(t.classList.contains('btn-save')){
     var panel=t.closest('.log-panel'), block=panel.closest('.exblock'), name=dec(block.dataset.ex);
     function num(s){var n=Number(s); return (s!=='' && !isNaN(n))?n:null;}
-    // Weight-only: each row logs a weight. Rows are kept even when blank so that
-    // bodyweight moves (no load) still record a "done" entry when you tap Save.
-    var sets=[];
-    panel.querySelectorAll('.setrow').forEach(function(row){
-      sets.push({w:num(row.querySelector('.in-w').value.trim())});
-    });
-    if(!sets.length){ panel.hidden=true; return; }
+    var sets=[], rowEls=panel.querySelectorAll('.setrow');
+    if(rowEls.length){ rowEls.forEach(function(row){ sets.push({w:num(row.querySelector('.in-w').value.trim())}); }); }
+    else { sets.push({w:null}); }                            // bodyweight "Mark done"
     var all=loadLogs(); if(!all[name]) all[name]=[];
     var ts=todayStr();
     all[name]=all[name].filter(function(e){return e.date!==ts;});  // one entry per day; re-save overwrites
     all[name].push({date:ts, day:curDay, wk:curWk, sets:sets});
     saveLogs(all);
-    liftPushState();
-    liftSyncLogs();
+    liftPushState(); liftSyncLogs();
+    openEx=null;                                             // collapse the logged exercise; keep its superset open
     panel.innerHTML='<div class="saved-flash">✓ Saved</div>';
-    setTimeout(function(){ render(); }, 620);   // refresh done-state, progress bar & history button
+    setTimeout(function(){ rerender(); }, 560);
     return;
   }
 });
@@ -684,31 +731,77 @@ function tagBadges(ex){
     return '<span class="set-badge">'+label+'</span>';
   }).join('')+'</div>';
 }
-function cardHTML(ex,color){
-  const accent = color?`style="background:${color}"`:'';
-  const reps = ex[1];
-  const unit = /\/arm|\/leg/.test(reps)?'per side':(reps==='Burnout'?'to failure':(reps==='AMRAP'?'to failure':(reps==='4 sets'?'':'sets × reps')));
-  const name = ex[0];
-  const done = isLoggedToday(name);
-  const line = lastLine(name);
-  const hasHist = logsFor(name).length>0;
-  const lastHTML = line
-    ? `<span class="last${done?' done':''}">${done?'✓ ':''}${line}</span>`
-    : `<span class="last empty">No log yet</span>`;
-  const histBtn = hasHist?`<button class="hist-btn">History</button>`:'';
-  const logLabel = done?'Edit':'＋ Log';
-  return `<div class="exblock${done?' done':''}" data-ex="${enc(name)}" data-reps="${enc(reps)}">
-    <div class="card">
-      <div class="accent" ${accent}></div>
-      <div class="ex"><div class="name">${name}</div>${tagBadges(ex)}${ex[2]?`<div class="note">${ex[2]}</div>`:''}</div>
-      <div class="reps">${reps}${unit?`<small>${unit}</small>`:''}</div>
-    </div>
-    <div class="logbar">
-      ${lastHTML}
-      <span class="logbtns">${histBtn}<button class="log-btn">${logLabel}</button></span>
-    </div>
-    <div class="log-panel" hidden></div>
-  </div>`;
+/* ---------- accordion render (T04) ---------- */
+function recCardHTML(name){
+  var r=recFor(name); if(!r) return '';
+  var html='';
+  if(r.w!=null){
+    html+='<div class="rec"><div class="sug">'+r.w+'<small>lb</small></div>';
+    if(r.lo!=null && r.hi!=null) html+='<div class="meta"><div class="lab">Work range</div><div class="rng">'+r.lo+'–'+r.hi+' lb</div></div>';
+    html+='</div>';
+  }
+  if(r.cue) html+='<div class="cue"><b>Do this</b>'+r.cue+'</div>';
+  return html;
+}
+function lastLineFull(name){
+  var hh=logsFor(name); if(!hh.length) return '';
+  var done=isLoggedToday(name);
+  var hist=(hh.length>1)?'<button class="hist-btn">History</button>':'';
+  return '<div class="logbar"><span class="last'+(done?' done':'')+'">'+(done?'✓ ':'')+lastLine(name)+'</span><span class="logbtns">'+hist+'</span></div>';
+}
+function exerciseBodyHTML(name,reps){
+  // the note (form cue from the program) shows above the rec card
+  var note='';
+  return recCardHTML(name)+lastLineFull(name)+'<div class="log-panel" data-mode="log">'+buildPanel(name,reps)+'</div>';
+}
+function collapsedDoneLine(name){
+  if(!isLoggedToday(name)) return '';
+  var hh=logsFor(name); return '<div class="done-mini">✓ '+setsSummary(hh[hh.length-1].sets)+'</div>';
+}
+function soloBlockHTML(b,bi){
+  var ex=b.e[0], name=ex[0], reps=ex[1], en=enc(name);
+  var done=isLoggedToday(name), open=(openEx===en);
+  return '<div class="group"><div class="solo-tag">● Solo · '+b.w+'</div>'+
+    '<div class="blk exblock'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'" data-bi="'+bi+'" data-kind="solo">'+
+      '<button class="bhead" data-toggle="blk">'+
+        '<span class="acc"></span>'+
+        '<span class="ttl"><div class="where">'+name+'</div>'+tagBadges(ex)+collapsedDoneLine(name)+'</span>'+
+        '<span class="rp">'+reps+'</span>'+
+        '<span class="chev">⌄</span>'+
+      '</button>'+
+      '<div class="bbody">'+(open?exerciseBodyHTML(name,reps):'')+'</div>'+
+    '</div></div>';
+}
+function exRowHTML(ex,c){
+  var name=ex[0], reps=ex[1], en=enc(name);
+  var done=isLoggedToday(name), open=(openEx===en);
+  return '<div class="exrow exblock'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'">'+
+    '<button class="exhead" data-toggle="ex">'+
+      '<span class="acc"></span>'+
+      '<span class="nm">'+name+'</span>'+tagBadges(ex)+(done?'<span class="tick">✓</span>':'')+
+      '<span class="rp">'+reps+'</span>'+
+      '<span class="chev">⌄</span>'+
+    '</button>'+
+    '<div class="exbody">'+(open?exerciseBodyHTML(name,reps):'')+'</div>'+
+  '</div>';
+}
+function supersetBlockHTML(b,bi,c){
+  var containsOpen=b.e.some(function(e){return openEx===enc(e[0]);});
+  var open=!!openBlk[bi] || containsOpen;
+  var names=b.e.map(function(e){return e[0];}).join(' · ');
+  var doneCount=b.e.filter(function(e){return isLoggedToday(e[0]);}).length, allDone=(doneCount===b.e.length);
+  var un=unevenNote(b.e);
+  var rows=(un?'<div class="uneven">⚠ '+un+'</div>':'')+b.e.map(function(ex){return exRowHTML(ex,c);}).join('');
+  return '<div class="group"><div class="solo-tag" style="color:'+c+'">⛓ Superset · '+b.w+'</div>'+
+    '<div class="blk ss'+(open?' open':'')+'" style="--c:'+c+'" data-bi="'+bi+'" data-kind="ss">'+
+      '<button class="bhead" data-toggle="blk">'+
+        '<span class="acc"></span>'+
+        '<span class="ttl"><div class="where">'+b.w+'</div><div class="names">'+names+'</div></span>'+
+        '<span class="cnt'+(allDone?' alldone':'')+'">'+(doneCount?doneCount+'/':'')+b.e.length+(allDone?' ✓':'')+'</span>'+
+        '<span class="chev">⌄</span>'+
+      '</button>'+
+      '<div class="bbody">'+rows+'</div>'+
+    '</div></div>';
 }
 
 var _firstRender=true;
@@ -740,22 +833,9 @@ function render(){
   </div>
   <div class="warm"><div class="lab">Warm-up · ~12 min</div><p>${d.warm}</p></div>`;
 
-  blocks.forEach(b=>{
-    if(b.t==='solo'){
-      html+=`<div class="group"><div class="solo-tag">● Solo · ${b.w}</div>${cardHTML(b.e[0])}</div>`;
-    } else {
-      const c=SS_COLORS[ssi%SS_COLORS.length]; ssi++;
-      let inner='';
-      b.e.forEach((ex,i)=>{ inner+=cardHTML(ex,c); if(i<b.e.length-1) inner+=`<div class="link">↓ no rest ↓</div>`; });
-      const un=unevenNote(b.e);
-      const tag=un?`<span class="ss-uneven-tag">⚠ Uneven</span>`:'';
-      const bar=un?`<div class="uneven">⚠ ${un}</div>`:'';
-      html+=`<div class="group"><div class="ss" style="--c:${c}">
-        <div class="ss-head"><span class="ss-pill">Superset</span><span class="ss-where">${b.w}</span>${tag}</div>
-        ${inner}
-        ${bar}
-      </div></div>`;
-    }
+  blocks.forEach(function(b,bi){
+    if(b.t==='solo'){ html+=soloBlockHTML(b,bi); }
+    else { var c=SS_COLORS[ssi%SS_COLORS.length]; ssi++; html+=supersetBlockHTML(b,bi,c); }
   });
 
   const fin=d.fin||{core:'—',cardio:'—'};               // defensive: never crash on a sparse day
