@@ -93,8 +93,9 @@
     padding:8px 10px;text-align:center;line-height:1.35;}
 
   .fin{margin-top:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);
-    padding:13px 15px;display:flex;gap:16px;flex-wrap:wrap;animation:rise .45s .1s ease both;}
-  .fin div{flex:1;min-width:115px;}
+    padding:13px 15px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;animation:rise .45s .1s ease both;}
+  .fin .core-block{flex:1;min-width:140px;}
+  .fin .core-timer-btn{margin-top:0;flex:none;}
   .fin .lab{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.14em;font-size:.66rem;color:var(--muted);}
   .fin .val{font-family:'Oswald',sans-serif;font-weight:600;font-size:.95rem;color:var(--steel);margin-top:2px;}
 
@@ -360,12 +361,6 @@
 
   <div class="wrap">
     <div id="content"></div>
-
-    <div class="rules" style="margin-top:16px">
-      <span><b>3–5s</b> eccentric</span>
-      <span>To <b>form failure</b></span>
-      <span><b>1 warm-up set</b> / exercise</span>
-    </div>
 
     <div class="legend">
       <span><span class="dot" style="background:#aeb9c9"></span>Solo</span>
@@ -830,20 +825,18 @@ function render(){
   <div class="today">
     <div class="today-bar"><span style="width:${pct}%"></span></div>
     <div class="today-lab"><b>${doneEx}</b>/${totalEx} done today</div>
-  </div>
-  <div class="warm"><div class="lab">Warm-up · ~12 min</div><p>${d.warm}</p></div>`;
+  </div>`;
 
   blocks.forEach(function(b,bi){
     if(b.t==='solo'){ html+=soloBlockHTML(b,bi); }
     else { var c=SS_COLORS[ssi%SS_COLORS.length]; ssi++; html+=supersetBlockHTML(b,bi,c); }
   });
 
-  const fin=d.fin||{core:'—',cardio:'—'};               // defensive: never crash on a sparse day
+  const fin=d.fin||{core:'—'};                           // defensive: never crash on a sparse day
   const prg=d.prog||{c:'#7dd3fc',t:''};
   html+=`<div class="fin">
-    <div><div class="lab">Core</div><div class="val">${fin.core}</div>
-      <button class="core-timer-btn" data-core-timer>▶ Core Timer</button></div>
-    <div><div class="lab">Cardio</div><div class="val">${fin.cardio}</div></div>
+    <div class="core-block"><div class="lab">Core</div><div class="val">${fin.core}</div></div>
+    <button class="core-timer-btn" data-core-timer>▶ Core Timer</button>
   </div>
   <div class="prog" style="--pc:${prg.c}">📌 ${prg.t}</div>`;
 
