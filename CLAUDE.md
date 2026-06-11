@@ -48,10 +48,16 @@ Occasionally you'll also tweak the UI in `index.html`, adjust the PWA files, reg
 block = {
   t: 'solo' | 'ss',                       // single lift, or a superset
   w: <where / label string>,
-  e: [ [name, reps, note], ... ]          // exercises; a superset has 2+ entries
+  e: [ [name, reps, note, tags?], ... ]   // exercises; a superset has 2+ entries
 }
 ```
 `program.json` may be a raw object (above) or wrapped as `{ "program": { ... } }` — the loader accepts both.
+
+**Optional published data contracts (additive, backward-compatible):**
+- **Special-set tags** — exercise arrays may carry an optional **4th element**: a lowercase keyword array, e.g. `["Standing DB Lateral · burnout","3×12–15","Both DB …",["dropset"]]`. Rendered as amber badges. Known keywords: `dropset, partials, restpause, amrap, failure, tempo` (unknown → uppercased as-is). A 3-element exercise renders exactly as before.
+- **Core-timer pools** — an optional top-level **`corePools`** key on the program JSON overrides the bundled ab-timer pools: `{ "corePools": { "weightedPool": [ {ex,sec,pair?,pairLabels?,note?} ], "bodyweightPool": [ … ] } }`. The app shuffles these by ISO week. Omit it to keep the bundled pools.
+- **`recs` map** *(reserved for the accordion ticket, not yet rendered)* — a top-level `recs` keyed by exact exercise name for suggested weight/range/cue.
+- These extra top-level keys are ignored by the day renderer (it only reads `mon/tue/wed/fri`), so they ride along safely in a publish.
 
 **Single weekly program (A/B toggle retired, 2026-06-08).** The app renders each day's **`A`** block as that day's workout — there is no in-app A/B week switch anymore. A `B` block, if present, is **ignored** (the loader does `d.A || d.B`). Variety comes from rotating exercises every ~4-week mesocycle via `program.json` publishes from the coaching chat, not from alternating weeks. Logging is continuous week-to-week (keyed by exercise name), which the recommended-weight prefill relies on. Keep publishing under `day.A`; don't reintroduce `B`.
 
