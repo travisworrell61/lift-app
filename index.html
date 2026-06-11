@@ -119,6 +119,9 @@
   .link{display:flex;align-items:center;justify-content:center;gap:8px;font-family:'Oswald',sans-serif;
     font-size:.58rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--c);padding:4px 0 2px;}
   .link::before,.link::after{content:"";height:1px;flex:1;background:color-mix(in srgb,var(--c) 35%,transparent);}
+  .ex-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
+  .set-badge{font-family:'Oswald',sans-serif;font-size:.56rem;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;color:#ffcf5c;border:1px solid rgba(255,207,92,.45);border-radius:6px;padding:2px 7px;}
   .ss-uneven-tag{font-family:'Oswald',sans-serif;font-size:.56rem;font-weight:700;letter-spacing:.1em;
     text-transform:uppercase;color:#ffcf5c;border:1px solid rgba(255,207,92,.4);border-radius:6px;
     padding:2px 7px;margin-left:auto;}
@@ -240,6 +243,14 @@
   .kicker{color:var(--accent);letter-spacing:.34em;}
   .day-btn{color:color-mix(in srgb,var(--dc,var(--muted)) 80%,#c9d2de);}
   .day-btn.on{background:var(--dc,var(--accent));color:#0b0f16;border-color:transparent;}
+  /* T05: 2-line day tabs (label + current-week date) + today marker */
+  .day-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:50px;line-height:1.05;}
+  .db-date{font-family:'Oswald',sans-serif;font-weight:500;font-size:.6rem;letter-spacing:.02em;
+    text-transform:none;color:var(--muted);}
+  .day-btn.on .db-date{color:rgba(11,15,22,.6);}
+  .today-marker{position:absolute;top:16px;right:18px;z-index:1;font-family:'Oswald',sans-serif;
+    font-weight:600;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--steel);}
+  .today-marker b{color:var(--accent);font-weight:700;}
   .wk-btn.on{background:var(--accent);color:var(--accent-ink);border-color:transparent;}
   .tag.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
   .tag.main{background:transparent;color:var(--steel);border-color:var(--line);}
@@ -419,9 +430,19 @@ function applyDayAccent(day){
 let curDay='fri', curWk='A';
 const ORDER=['mon','tue','wed','fri'];
 
+const DOW={mon:1,tue:2,wed:3,fri:5};   // weekday index, Mon=1 … Sun=7
+function dateForWeekday(targetDow){
+  const now=new Date();
+  const cur=now.getDay()||7;                 // 1..7 (Sun→7)
+  const monday=new Date(now); monday.setDate(now.getDate()-(cur-1));   // this week's Monday
+  const d=new Date(monday); d.setDate(monday.getDate()+(targetDow-1));
+  return d;
+}
+const mmdd=(d)=>String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
+function todayMarker(){ var n=new Date(); return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][n.getDay()]+' <b>'+mmdd(n)+'</b>'; }
 function buildNav(){
   const days=document.getElementById('days');
-  days.innerHTML=ORDER.map(d=>`<button class="day-btn ${d===curDay?'on':''}" data-d="${d}" style="--dc:${DAY_ACCENT[d]||'#7dd3fc'}">${PROGRAM[d].title.slice(0,3)}</button>`).join('');
+  days.innerHTML=ORDER.map(d=>`<button class="day-btn ${d===curDay?'on':''}" data-d="${d}" style="--dc:${DAY_ACCENT[d]||'#7dd3fc'}"><span class="db-lab">${PROGRAM[d].title.slice(0,3)}</span><span class="db-date">${mmdd(dateForWeekday(DOW[d]))}</span></button>`).join('');
   days.querySelectorAll('button').forEach(b=>b.onclick=()=>{curDay=b.dataset.d;render();});
 }
 
@@ -650,6 +671,15 @@ function liftSyncLogs(){
   }catch(e){}
 }
 
+var SPECIAL_TAGS = {dropset:'DROP SET', partials:'PARTIALS', restpause:'REST-PAUSE', amrap:'AMRAP', failure:'TO FAILURE', tempo:'SLOW TEMPO'};
+function tagBadges(ex){
+  var tags = ex[3];                                   // optional 4th element: ["dropset", ...]
+  if(!Array.isArray(tags) || !tags.length) return '';
+  return '<div class="ex-badges">'+tags.map(function(t){
+    var label = SPECIAL_TAGS[String(t).toLowerCase()] || String(t).toUpperCase();
+    return '<span class="set-badge">'+label+'</span>';
+  }).join('')+'</div>';
+}
 function cardHTML(ex,color){
   const accent = color?`style="background:${color}"`:'';
   const reps = ex[1];
@@ -666,7 +696,7 @@ function cardHTML(ex,color){
   return `<div class="exblock${done?' done':''}" data-ex="${enc(name)}" data-reps="${enc(reps)}">
     <div class="card">
       <div class="accent" ${accent}></div>
-      <div class="ex"><div class="name">${name}</div>${ex[2]?`<div class="note">${ex[2]}</div>`:''}</div>
+      <div class="ex"><div class="name">${name}</div>${tagBadges(ex)}${ex[2]?`<div class="note">${ex[2]}</div>`:''}</div>
       <div class="reps">${reps}${unit?`<small>${unit}</small>`:''}</div>
     </div>
     <div class="logbar">
@@ -691,6 +721,7 @@ function render(){
   const doneEx=flat.filter(function(x){return isLoggedToday(x.name);}).length;
   const pct=totalEx?Math.round(doneEx/totalEx*100):0;
   let html=`<header class="head">
+    <div class="today-marker">${todayMarker()}</div>
     <div class="kicker">Day ${d.n} · Phase 1</div>
     <h1>${d.title}</h1>
     <div class="sub">${d.sub}</div>
@@ -929,8 +960,8 @@ var Admin = (function(){
     var prog=normalizeProgram(data);
     if(!prog) return {ok:false,msg:'Parsed, but that is not a program object.'};
     var days=Object.keys(prog), good=0;
-    days.forEach(function(d){ var x=prog[d]; if(x && Array.isArray(x.A) && Array.isArray(x.B)) good++; });
-    if(!good) return {ok:false,msg:'No days with A/B blocks found — check the structure.'};
+    days.forEach(function(d){ var x=prog[d]; if(x && Array.isArray(x.A)) good++; });
+    if(!good) return {ok:false,msg:'No days with an A block found — check the structure.'};
     return {ok:true,prog:prog,days:days,good:good};
   }
   function validate(){
