@@ -792,11 +792,11 @@ function supersetBlockHTML(b,bi,c){
   var doneCount=b.e.filter(function(e){return isLoggedToday(e[0]);}).length, allDone=(doneCount===b.e.length);
   var un=unevenNote(b.e);
   var rows=(un?'<div class="uneven">⚠ '+un+'</div>':'')+b.e.map(function(ex){return exRowHTML(ex,c);}).join('');
-  return '<div class="group"><div class="solo-tag" style="color:'+c+'">⛓ Superset · '+b.w+'</div>'+
+  return '<div class="group"><div class="solo-tag" style="color:'+c+'">⛓ Superset</div>'+
     '<div class="blk ss'+(open?' open':'')+'" style="--c:'+c+'" data-bi="'+bi+'" data-kind="ss">'+
       '<button class="bhead" data-toggle="blk">'+
         '<span class="acc"></span>'+
-        '<span class="ttl"><div class="where">'+b.w+'</div><div class="names">'+names+'</div></span>'+
+        '<span class="ttl"><div class="where">'+names+'</div></span>'+   // show the exercise names, not the muscle label
         '<span class="cnt'+(allDone?' alldone':'')+'">'+(doneCount?doneCount+'/':'')+b.e.length+(allDone?' ✓':'')+'</span>'+
         '<span class="chev">⌄</span>'+
       '</button>'+
