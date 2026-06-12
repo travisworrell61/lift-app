@@ -65,6 +65,8 @@ Conventions:
 - `reps` strings look like `"4×8–10"`, `"3×12–15"`, `"3×10/leg"`, `"4 sets"`, `"Burnout"`, `"AMRAP"`. (En-dash `–`, multiplication `×`.)
 - The UI auto-detects "uneven" supersets (entries with different set counts) and shows a yellow ⚠ note. **This is expected behavior, not a bug.** `setsOf()` reads the leading integer when the string contains `×`/`x` or "sets".
 - **Logging is keyed by exercise NAME** (`e[0]`). If you rename an exercise, its logged history won't follow it. Keep names stable unless a reset is intended.
+- **`" / "` in a name means alternate machines** (e.g. `"Incline Machine Press (low) / Cable Fly"` — one slot, two machines with very different loads). The log card shows a "Logging for" variant selector, and each saved entry records the chosen variant in an optional `v` field (`{date, day, sets:[{w}], v:"Cable Fly"}`). Prefill is variant-aware: picking Cable Fly prefills the last *Cable Fly* weights, never the press's. Entries logged before this feature (no `v`) are attributed to the FIRST variant. Use `" / "` (spaces required) only for true alternates; `·` and `→` in names are never split.
+- **`recs` on slashed exercises must be per-variant** to carry weights: `"recs": { "<name>": { "cue": "...", "v": { "Cable Fly": { "w": 90, "lo": 85, "hi": 95, "cue": "..." } } } }`. A flat `w` on a slashed exercise is deliberately ignored (cue-only) — the app can't know which machine it belongs to. Non-slashed exercises keep the flat `{w, lo, hi, cue}` shape.
 
 ## Deploy
 This repo *is* the GitHub Pages site (served from the repo root). To ship a change:

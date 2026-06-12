@@ -261,6 +261,14 @@
   .exhead .nm{flex:1;min-width:0;font-family:'Oswald',sans-serif;font-weight:600;font-size:.96rem;text-transform:uppercase;}
   .exhead .rp{font-family:'Anton',sans-serif;font-size:1rem;color:var(--c,var(--accent));flex:none;white-space:nowrap;}
   .uneven{margin:8px 0 2px;}
+  /* variant selector — which machine the weights belong to */
+  .vsel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0 11px;}
+  .vsel-lab{font-family:'Oswald',sans-serif;font-weight:600;font-size:.58rem;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);flex:none;margin-right:2px;}
+  .vchip{font-family:'Oswald',sans-serif;font-weight:600;font-size:.7rem;letter-spacing:.04em;
+    text-transform:uppercase;border:1px solid var(--line);border-radius:9px;background:transparent;
+    color:var(--muted);padding:8px 12px;cursor:pointer;}
+  .vchip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700;}
   /* rec card */
   .rec{display:flex;align-items:flex-end;gap:14px;margin:6px 0 11px;}
   .rec .sug{font-family:'Anton',sans-serif;font-size:2.3rem;line-height:.9;color:var(--accent);}
@@ -475,6 +483,55 @@ function logsFor(name){var all=loadLogs();return all[name]||[];}
 function isLoggedToday(name){var h=logsFor(name);return !!(h.length && h[h.length-1].date===todayStr());}
 // Coach recommendation for an exercise (suggested weight/range/cue), published in the program JSON.
 function recFor(name){ try{ return (typeof PROGRAM==='object' && PROGRAM && PROGRAM.recs && PROGRAM.recs[name]) || null; }catch(e){ return null; } }
+/* ---------- alternate-machine variants ----------
+   A name containing " / " (e.g. "Incline Machine Press (low) / Cable Fly") is one
+   slot with two interchangeable machines whose loads differ wildly. The log card
+   shows a selector, and each entry records which variant (v) the weights belong
+   to — so prefill never carries a press weight onto a fly. */
+function variantsOf(name){
+  var parts=String(name).split(' / ').map(function(s){return s.trim();}).filter(Boolean);
+  return parts.length>1 ? parts : null;
+}
+var selVariant={};   // enc(name) → variant picked this session (default = last logged)
+function currentVariant(name){
+  var vs=variantsOf(name); if(!vs) return null;
+  var sel=selVariant[enc(name)]; if(sel && vs.indexOf(sel)>=0) return sel;
+  var h=logsFor(name);
+  for(var i=h.length-1;i>=0;i--){ if(h[i].v && vs.indexOf(h[i].v)>=0) return h[i].v; }
+  return vs[0];
+}
+// Most recent entry for a variant. Entries logged before variants existed have
+// no v — treat those as belonging to the FIRST variant only.
+function lastEntryFor(name,variant){
+  var h=logsFor(name);
+  if(!variant) return h.length?h[h.length-1]:null;
+  var vs=variantsOf(name)||[];
+  for(var i=h.length-1;i>=0;i--){ if((h[i].v||vs[0])===variant) return h[i]; }
+  return null;
+}
+// Rec values for a name+variant. Slashed exercises only take WEIGHTS from a
+// per-variant rec (recs[name].v[variant]) — a flat w could be the wrong machine,
+// so without one the rec is cue-only.
+function recValsFor(name,variant){
+  var r=recFor(name); if(!r) return null;
+  if(!variant) return r;
+  var pv=(r.v && r.v[variant]) || null;
+  if(pv) return {w:pv.w, lo:pv.lo, hi:pv.hi, cue:(pv.cue!=null?pv.cue:r.cue)};
+  return {cue:r.cue};
+}
+// First-time guess, variant-aware. Shorthand left variants ("Belt / Pendulum
+// Squat" → "Belt") borrow the trailing noun of the last variant ("Belt Squat")
+// so the guess table can recognize them.
+function guessFor(name){
+  var vs=variantsOf(name);
+  if(!vs) return startWeightFor(name);
+  var v=currentVariant(name), g=startWeightFor(v);
+  if(g===WEIGHT_START && vs.indexOf(v)<vs.length-1){
+    var tail=vs[vs.length-1].split(' ').pop();
+    g=startWeightFor(v+' '+tail);
+  }
+  return g;
+}
 // Weight-only summary. Shows the weights logged (e.g. "50, 55, 60 lb").
 // Exercises with no load (bodyweight) just read "done ✓".
 function setsSummary(sets){
@@ -486,12 +543,7 @@ function lastLine(name){
   var h=logsFor(name); if(!h.length) return '';
   var last=h[h.length-1];
   var label=(last.date===todayStr())?'Today':fmtDate(last.date);
-  return '<b>'+label+':</b> '+setsSummary(last.sets);
-}
-function defaultSetCount(name,reps){
-  var h=logsFor(name);
-  if(h.length && h[h.length-1].sets.length) return h[h.length-1].sets.length;
-  var n=setsOf(reps); return n||3;
+  return '<b>'+label+':</b> '+setsSummary(last.sets)+(last.v?' · '+last.v:'');
 }
 function setRowHTML(i,w,ph,suggested){
   // w = committed value; ph = ghost placeholder (heuristic guess, NOT saved if untouched);
@@ -522,7 +574,7 @@ function startWeightFor(name){
     [/lat pulldown|pulldown|hammer row|chest-supported|machine row|seated row|cable row|bent-?over row|\bt-bar\b/, 100],
     [/shrug/, 80],
     [/single-arm|1-arm|\bkb\b|kettlebell/, 40],
-    [/pec deck|machine press|incline machine|cable fly|chest press/, 90],
+    [/pec deck|machine press|machine shoulder press|incline machine|cable fly|chest press/, 90],
     [/press/, 50],                                                  // db / other presses
     [/upright row|front raise/, 25],
     [/lateral|rear-?delt|reverse fly|face pull/, 20],
@@ -533,16 +585,17 @@ function startWeightFor(name){
   return WEIGHT_START;
 }
 function buildPanel(name,reps){
-  var h=logsFor(name);
-  var pf=(h.length)?h[h.length-1].sets:null;          // prefill from last session
-  var rec=recFor(name);
-  var guess=startWeightFor(name);                     // null for bodyweight
+  var variant=variantsOf(name)?currentVariant(name):null;
+  var ent=lastEntryFor(name,variant);
+  var pf=ent?ent.sets:null;                           // prefill from the last session OF THIS VARIANT
+  var rec=recValsFor(name,variant);
+  var guess=guessFor(name);                           // null for bodyweight
   // bodyweight move with no coach weight → no number to log, just a "Mark done" entry
   if(guess==null && !(rec && rec.w!=null)){
     return '<div class="bw-note">Bodyweight — no weight to log.</div>'+
       '<div class="panel-actions"><button class="btn-save">✓ Mark done</button></div>';
   }
-  var n=defaultSetCount(name,reps);
+  var n=(pf&&pf.length)?pf.length:(setsOf(reps)||3);
   var rows='';
   for(var i=0;i<n;i++){
     var s=(pf&&pf[i])?pf[i]:{};
@@ -551,7 +604,7 @@ function buildPanel(name,reps){
     else                         rows+=setRowHTML(i, '', guess, false);     // heuristic guess → ghost placeholder
   }
   var hint=pf
-    ? '<div class="panel-hint">Prefilled from last time — adjust and Save.</div>'
+    ? '<div class="panel-hint">Prefilled from your last '+(variant?variant:'session')+' — adjust and Save.</div>'
     : (rec && rec.w!=null
         ? '<div class="panel-hint">Suggested weight is filled in blue — Save to log it, or adjust first.</div>'
         : '<div class="panel-hint">Suggested start shown in grey — tap ＋ to use it, then Save.</div>');
@@ -564,7 +617,7 @@ function buildPanel(name,reps){
 function buildHistory(name){
   var h=logsFor(name).slice().reverse();
   if(!h.length) return '<div class="hist-item">No history yet.</div><div class="panel-actions"><button class="btn-cancel">Close</button></div>';
-  var items=h.map(function(e){return '<div class="hist-item"><b>'+fmtDate(e.date)+'</b> &nbsp;'+setsSummary(e.sets)+'</div>';}).join('');
+  var items=h.map(function(e){return '<div class="hist-item"><b>'+fmtDate(e.date)+'</b> &nbsp;'+setsSummary(e.sets)+(e.v?' · '+e.v:'')+'</div>';}).join('');
   return '<div class="hist-list">'+items+'</div><div class="panel-actions"><button class="btn-cancel">Close</button></div>';
 }
 function renumber(rows){var n=rows.querySelectorAll('.setrow .si');for(var i=0;i<n.length;i++){n[i].textContent='SET '+(i+1);}}
@@ -605,6 +658,14 @@ document.addEventListener('click',function(ev){
     rerender(); return;
   }
 
+  // ── variant selector (which machine am I logging?) ──
+  var vchip=t.closest('.vchip');
+  if(vchip){
+    var vbk=vchip.closest('.exblock');
+    if(vbk){ selVariant[vbk.dataset.ex]=dec(vchip.dataset.v); rerender(); }
+    return;
+  }
+
   // ── history toggle (inside an expanded exercise) ──
   var histBtn=t.closest('.hist-btn');
   if(histBtn){
@@ -628,8 +689,10 @@ document.addEventListener('click',function(ev){
     inp.classList.remove('suggested');                       // engaging it makes it a real value
     var raw=String(inp.value).trim(), cur;
     if(raw==='' || isNaN(parseFloat(raw))){                  // first tap on empty → snap to rec, else name-guess, else 50
-      var blk2=row.closest('.exblock'), rc=blk2?recFor(dec(blk2.dataset.ex)):null;
-      var base=(rc&&rc.w!=null)?rc.w:(blk2?startWeightFor(dec(blk2.dataset.ex)):null);
+      var blk2=row.closest('.exblock'), nm2=blk2?dec(blk2.dataset.ex):null;
+      var vt2=(nm2&&variantsOf(nm2))?currentVariant(nm2):null;
+      var rc=nm2?recValsFor(nm2,vt2):null;
+      var base=(rc&&rc.w!=null)?rc.w:(nm2?guessFor(nm2):null);
       cur=(base==null)?WEIGHT_START:base;
     } else { cur=parseFloat(raw)+parseFloat(stp.dataset.step); }
     if(cur<0) cur=0;
@@ -655,7 +718,9 @@ document.addEventListener('click',function(ev){
     var all=loadLogs(); if(!all[name]) all[name]=[];
     var ts=todayStr();
     all[name]=all[name].filter(function(e){return e.date!==ts;});  // one entry per day; re-save overwrites
-    all[name].push({date:ts, day:curDay, wk:curWk, sets:sets});
+    var entry={date:ts, day:curDay, wk:curWk, sets:sets};
+    if(variantsOf(name)) entry.v=currentVariant(name);             // record which machine these weights belong to
+    all[name].push(entry);
     saveLogs(all);
     liftPushState(); liftSyncLogs();
     openEx=null;                                             // collapse the logged exercise; keep its superset open
@@ -721,7 +786,8 @@ function tagBadges(ex){
 }
 /* ---------- accordion render (T04) ---------- */
 function recCardHTML(name){
-  var r=recFor(name); if(!r) return '';
+  var variant=variantsOf(name)?currentVariant(name):null;
+  var r=recValsFor(name,variant); if(!r) return '';
   var html='';
   if(r.w!=null){
     html+='<div class="rec"><div class="sug">'+r.w+'<small>lb</small></div>';
@@ -731,6 +797,14 @@ function recCardHTML(name){
   if(r.cue) html+='<div class="cue"><b>Do this</b>'+r.cue+'</div>';
   return html;
 }
+// Variant selector chips ("which machine am I logging?") for slashed exercises.
+function vselHTML(name){
+  var vs=variantsOf(name); if(!vs) return '';
+  var cur=currentVariant(name);
+  return '<div class="vsel"><span class="vsel-lab">Logging for</span>'+vs.map(function(v){
+    return '<button class="vchip'+(v===cur?' on':'')+'" data-v="'+enc(v)+'">'+v+'</button>';
+  }).join('')+'</div>';
+}
 function lastLineFull(name){
   var hh=logsFor(name); if(!hh.length) return '';
   var done=isLoggedToday(name);
@@ -738,13 +812,12 @@ function lastLineFull(name){
   return '<div class="logbar"><span class="last'+(done?' done':'')+'">'+(done?'✓ ':'')+lastLine(name)+'</span><span class="logbtns">'+hist+'</span></div>';
 }
 function exerciseBodyHTML(name,reps){
-  // the note (form cue from the program) shows above the rec card
-  var note='';
-  return recCardHTML(name)+lastLineFull(name)+'<div class="log-panel" data-mode="log">'+buildPanel(name,reps)+'</div>';
+  return vselHTML(name)+recCardHTML(name)+lastLineFull(name)+'<div class="log-panel" data-mode="log">'+buildPanel(name,reps)+'</div>';
 }
 function collapsedDoneLine(name){
   if(!isLoggedToday(name)) return '';
-  var hh=logsFor(name); return '<div class="done-mini">✓ '+setsSummary(hh[hh.length-1].sets)+'</div>';
+  var hh=logsFor(name), e=hh[hh.length-1];
+  return '<div class="done-mini">✓ '+setsSummary(e.sets)+(e.v?' · '+e.v:'')+'</div>';
 }
 function soloBlockHTML(b,bi){
   var ex=b.e[0], name=ex[0], reps=ex[1], en=enc(name);
