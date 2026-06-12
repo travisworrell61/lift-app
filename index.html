@@ -286,6 +286,65 @@
   .bbody .log-panel,.exbody .log-panel{margin:0;border:none;background:none;padding:0;}
   .bbody .logbar,.exbody .logbar{padding:0 0 6px;}
 
+  /* ───────── session overrides: swap / add / sets (Ticket 06) ───────── */
+  .swap-btn{flex:none;width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:.95rem;cursor:pointer;}
+  .swap-btn:active{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line));}
+  .ov-badge{display:inline-block;font-family:'Oswald',sans-serif;font-size:.54rem;font-weight:700;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--accent);vertical-align:2px;
+    border:1px solid color-mix(in srgb,var(--accent) 50%,var(--line));border-radius:6px;padding:1px 6px;margin-left:7px;}
+  .ov-badge.add{color:#2dd4bf;border-color:rgba(45,212,191,.5);}
+  .rm-added{flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:.9rem;cursor:pointer;}
+  .addex{width:100%;margin:14px 0 4px;padding:14px;border-radius:13px;cursor:pointer;
+    border:1.5px dashed color-mix(in srgb,var(--accent) 42%,var(--line));
+    background:color-mix(in srgb,var(--accent) 5%,var(--panel));color:var(--accent);
+    font-family:'Oswald',sans-serif;font-weight:600;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;}
+  .addex:active{transform:scale(.99);}
+  .sets-ctl{display:flex;align-items:center;gap:9px;margin:0 0 10px;}
+  .sc-lab{font-family:'Oswald',sans-serif;font-weight:600;font-size:.6rem;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);}
+  .sstep{width:34px;height:34px;flex:none;border:1px solid var(--line);border-radius:9px;background:var(--panel);
+    color:var(--ink);font-size:1.1rem;line-height:1;cursor:pointer;}
+  .sc-n{font-family:'Oswald',sans-serif;font-weight:700;font-size:1rem;color:var(--ink);min-width:18px;text-align:center;}
+
+  /* drawer (bottom sheet) */
+  .ex-scrim{position:fixed;inset:0;z-index:230;background:rgba(5,7,11,.62);
+    -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+  .ex-scrim[hidden],.ex-drawer[hidden]{display:none;}
+  .ex-drawer{position:fixed;left:0;right:0;bottom:0;z-index:231;background:var(--bg2);
+    border-top:1px solid #2a323f;border-radius:22px 22px 0 0;max-height:78vh;
+    display:flex;flex-direction:column;padding-bottom:max(10px,env(safe-area-inset-bottom));
+    animation:sheet .25s ease;}
+  @keyframes sheet{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+  .grip{width:38px;height:4px;border-radius:99px;background:#333d4c;margin:9px auto 2px;flex:none;}
+  .drawer-h{display:flex;align-items:center;justify-content:space-between;padding:6px 16px 8px;flex:none;}
+  .drawer-title{font-family:'Oswald',sans-serif;font-weight:600;font-size:1.02rem;letter-spacing:.02em;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  .drawer-search{margin:2px 16px 8px;height:40px;flex:none;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);padding:0 13px;font-size:.9rem;font-family:'Barlow',sans-serif;
+    -webkit-appearance:none;appearance:none;}
+  .drawer-search:focus{outline:none;border-color:var(--accent);}
+  .drawer-search::placeholder{color:var(--muted);}
+  .drawer-body{overflow-y:auto;padding:2px 16px 16px;-webkit-overflow-scrolling:touch;}
+  .grp{font-family:'Oswald',sans-serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--accent);padding:12px 2px 6px;}
+  .alt-chips{display:flex;gap:6px;flex-wrap:wrap;}
+  .libitem{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;text-align:left;
+    padding:12px;border-radius:9px;background:var(--panel);border:1px solid var(--line);margin-bottom:6px;
+    cursor:pointer;color:var(--ink);font-size:.9rem;font-family:'Barlow',sans-serif;}
+  .libitem:active{border-color:color-mix(in srgb,#2dd4bf 45%,var(--line));}
+  .libitem .pluss{font-family:'Oswald',sans-serif;color:#2dd4bf;font-size:1.05rem;font-weight:700;flex:none;}
+  .libitem.restore{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,var(--line));}
+  .custom-row{display:flex;gap:8px;margin-top:4px;}
+  .custom-row input{flex:1;min-width:0;height:44px;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);padding:0 13px;font-size:.9rem;font-family:'Barlow',sans-serif;
+    -webkit-appearance:none;appearance:none;}
+  .custom-row input:focus{outline:none;border-color:var(--accent);}
+  .drawer-custom-add{flex:none;height:44px;padding:0 18px;border-radius:9px;border:none;cursor:pointer;
+    background:var(--accent);color:var(--accent-ink);font-family:'Oswald',sans-serif;font-weight:700;
+    font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;}
+
   /* ───────── core / ab timer ───────── */
   .core-timer-btn{margin-top:9px;display:inline-flex;align-items:center;gap:5px;
     font-family:'Oswald',sans-serif;font-weight:700;font-size:.68rem;letter-spacing:.08em;
@@ -416,6 +475,18 @@
     </div>
   </div>
 
+  <!-- ───────── Exercise picker drawer (Swap ⇄ / ＋ Add exercise) ───────── -->
+  <div class="ex-scrim" id="exScrim" hidden></div>
+  <div class="ex-drawer" id="exDrawer" hidden>
+    <div class="grip"></div>
+    <div class="drawer-h">
+      <span class="drawer-title" id="drawerTitle">Add an exercise</span>
+      <button class="abt-close" id="drawerClose" aria-label="close">✕</button>
+    </div>
+    <input class="drawer-search" id="drawerSearch" type="search" autocomplete="off" autocapitalize="off" placeholder="Search exercises…">
+    <div class="drawer-body" id="drawerBody"></div>
+  </div>
+
 <script src="program.js"></script>
 <script>
 // Each superset gets its own color so its exercises read as a linked group.
@@ -519,6 +590,50 @@ function recValsFor(name,variant){
   if(pv) return {w:pv.w, lo:pv.lo, hi:pv.hi, cue:(pv.cue!=null?pv.cue:r.cue)};
   return {cue:r.cue};
 }
+/* ---------- session overrides (Ticket 06): swap / add / set-count ----------
+   Per-session, per-day: when a machine is taken, swap in an equivalent; add a
+   bonus exercise; or change today's set count. NEVER written into the published
+   program — kept in localStorage for today only and discarded tomorrow. */
+var OV_KEY='lift-overrides', sessionOv=null;
+function loadOv(){
+  if(sessionOv) return sessionOv;
+  sessionOv={date:todayStr(), swaps:{}, added:{}, sets:{}};
+  try{
+    var r=localStorage.getItem(OV_KEY);
+    if(r){ var p=JSON.parse(r);
+      if(p && p.date===todayStr()){ sessionOv=p; sessionOv.swaps=sessionOv.swaps||{}; sessionOv.added=sessionOv.added||{}; sessionOv.sets=sessionOv.sets||{}; } }
+  }catch(e){}
+  return sessionOv;
+}
+function saveOv(){ try{ localStorage.setItem(OV_KEY, JSON.stringify(loadOv())); }catch(e){} }
+// Apply a session swap to a program exercise array. Returns [name, reps, note,
+// tags, originalName?] — index 4 present only when swapped (drives the badge).
+function effectiveEx(ex){
+  var ov=loadOv().swaps[ex[0]];
+  if(!ov) return ex;
+  return [ov.name, ex[1], ex[2], ex[3], ex[0]];
+}
+function addedFor(day){ return loadOv().added[day]||[]; }
+// Master exercise library (the coach's curated list — publishable as top-level
+// `exLib` in the program JSON; this bundled set is the fallback).
+var EX_LIB_DEFAULT={
+  'Chest':['Incline DB Press','Flat Machine Press','Pec Deck','Cable Fly','Push-up'],
+  'Back':['Lat Pulldown','Seated Cable Row','Chest-supported Row','Single-arm DB Row','Straight-arm Pulldown'],
+  'Shoulders':['Machine Shoulder Press','Cable Lateral Raise','Lateral Raise Machine','Rear-delt Fly','Face Pull'],
+  'Biceps':['Dumbbell Curl','Hammer Curl','Cable Curl','Preacher Curl'],
+  'Triceps':['Rope Pushdown','Straight-bar Pushdown','Overhead Cable Extension','Skullcrusher'],
+  'Legs':['Leg Extension','Leg Curl','Leg Press','Hack Squat','Walking Lunge','Hip Thrust','Calf Raise'],
+  'Core':['Cable Crunch','Hanging Leg Raise','Ab Wheel','Plank']
+};
+function exLibData(){
+  try{ if(PROGRAM && PROGRAM.exLib && typeof PROGRAM.exLib==='object' && !Array.isArray(PROGRAM.exLib) && Object.keys(PROGRAM.exLib).length) return PROGRAM.exLib; }catch(e){}
+  return EX_LIB_DEFAULT;
+}
+// Coach-matched substitutes for one exercise (publishable top-level `alts` map).
+function altsFor(name){
+  try{ var a=PROGRAM && PROGRAM.alts && PROGRAM.alts[name]; return Array.isArray(a)?a:[]; }catch(e){ return []; }
+}
+
 // First-time guess, variant-aware. Shorthand left variants ("Belt / Pendulum
 // Squat" → "Belt") borrow the trailing noun of the last variant ("Belt Squat")
 // so the guess table can recognize them.
@@ -595,7 +710,7 @@ function buildPanel(name,reps){
     return '<div class="bw-note">Bodyweight — no weight to log.</div>'+
       '<div class="panel-actions"><button class="btn-save">✓ Mark done</button></div>';
   }
-  var n=(pf&&pf.length)?pf.length:(setsOf(reps)||3);
+  var n=loadOv().sets[name] || ((pf&&pf.length)?pf.length:(setsOf(reps)||3));   // session set-count override wins
   var rows='';
   for(var i=0;i<n;i++){
     var s=(pf&&pf[i])?pf[i]:{};
@@ -608,7 +723,11 @@ function buildPanel(name,reps){
     : (rec && rec.w!=null
         ? '<div class="panel-hint">Suggested weight is filled in blue — Save to log it, or adjust first.</div>'
         : '<div class="panel-hint">Suggested start shown in grey — tap ＋ to use it, then Save.</div>');
-  return hint+'<div class="setrows">'+rows+'</div>'+
+  var setsCtl='<div class="sets-ctl"><span class="sc-lab">Sets today</span>'+
+    '<button class="sstep" data-d="-1" aria-label="fewer sets">−</button>'+
+    '<span class="sc-n">'+n+'</span>'+
+    '<button class="sstep" data-d="1" aria-label="more sets">+</button></div>';
+  return hint+setsCtl+'<div class="setrows">'+rows+'</div>'+
     '<div class="panel-actions">'+
       '<button class="btn-add">+ Set</button>'+
       '<button class="btn-save">Save</button>'+
@@ -634,6 +753,29 @@ function refreshBlock(block,name){
 }
 document.addEventListener('click',function(ev){
   var t=ev.target; if(!t.closest) return;
+
+  // ── session overrides: swap / remove-added / add-exercise / set-count ──
+  // (these sit inside tappable headers, so they run before expand/collapse)
+  var sw=t.closest('.swap-btn');
+  if(sw){ Drawer.openSwap(dec(sw.dataset.orig)); return; }
+  var ra=t.closest('.rm-added');
+  if(ra){
+    var rn=dec(ra.dataset.name), ov=loadOv();
+    ov.added[curDay]=(ov.added[curDay]||[]).filter(function(a){return a.name!==rn;});
+    saveOv(); if(openEx===ra.dataset.name) openEx=null;
+    rerender(); return;
+  }
+  if(t.closest('.addex')){ Drawer.openAdd(); return; }
+  var ss2=t.closest('.sstep');
+  if(ss2){
+    var sp=ss2.closest('.log-panel'), sb=sp&&sp.closest('.exblock'); if(!sb) return;
+    var snm=dec(sb.dataset.ex), srp=dec(sb.dataset.reps||'');
+    var cur2=parseInt((sp.querySelector('.sc-n')||{}).textContent)||3;
+    var nv=Math.max(1, Math.min(8, cur2+parseInt(ss2.dataset.d)));
+    loadOv().sets[snm]=nv; saveOv();
+    sp.innerHTML=buildPanel(snm,srp); sp.dataset.mode='log';
+    return;
+  }
 
   // ── expand / collapse ──
   var bh=t.closest('.bhead');
@@ -735,8 +877,9 @@ function flattenExercises(d,wk){
   var list=[];
   (d[wk]||[]).forEach(function(b,gi){
     var isSS = b.t==='ss';
-    b.e.forEach(function(ex){ list.push({name:ex[0], reps:ex[1], ss:isSS, grp:gi}); });
+    b.e.forEach(function(raw){ var ex=effectiveEx(raw); list.push({name:ex[0], reps:ex[1], ss:isSS, grp:gi}); });
   });
+  addedFor(curDay).forEach(function(a){ list.push({name:a.name, reps:'Bonus', ss:false, grp:-1}); });
   return list;
 }
 function currentExerciseIdx(list){
@@ -819,39 +962,63 @@ function collapsedDoneLine(name){
   var hh=logsFor(name), e=hh[hh.length-1];
   return '<div class="done-mini">✓ '+setsSummary(e.sets)+(e.v?' · '+e.v:'')+'</div>';
 }
+// Swap control (⇄) — sits inside the tappable header; handled before the
+// expand/collapse branch so it never toggles the row. data-orig = ORIGINAL name.
+function swapBtnHTML(origName){
+  return '<span class="swap-btn" role="button" data-orig="'+enc(origName)+'" aria-label="swap exercise">⇄</span>';
+}
+function ovBadge(ex){ return (ex.length>4 && ex[4])?'<span class="ov-badge">Swapped</span>':''; }
 function soloBlockHTML(b,bi){
-  var ex=b.e[0], name=ex[0], reps=ex[1], en=enc(name);
+  var raw=b.e[0], ex=effectiveEx(raw), name=ex[0], reps=ex[1], en=enc(name);
   var done=isLoggedToday(name), open=(openEx===en);
   return '<div class="group"><div class="solo-tag">● Solo · '+b.w+'</div>'+
     '<div class="blk exblock'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'" data-bi="'+bi+'" data-kind="solo">'+
       '<button class="bhead" data-toggle="blk">'+
         '<span class="acc"></span>'+
-        '<span class="ttl"><div class="where">'+name+'</div>'+tagBadges(ex)+collapsedDoneLine(name)+'</span>'+
+        '<span class="ttl"><div class="where">'+name+ovBadge(ex)+'</div>'+tagBadges(ex)+collapsedDoneLine(name)+'</span>'+
         '<span class="rp">'+reps+'</span>'+
+        swapBtnHTML(raw[0])+
         '<span class="chev">⌄</span>'+
       '</button>'+
       '<div class="bbody">'+(open?exerciseBodyHTML(name,reps):'')+'</div>'+
     '</div></div>';
 }
-function exRowHTML(ex,c){
-  var name=ex[0], reps=ex[1], en=enc(name);
+function exRowHTML(raw,c){
+  var ex=effectiveEx(raw), name=ex[0], reps=ex[1], en=enc(name);
   var done=isLoggedToday(name), open=(openEx===en);
   return '<div class="exrow exblock'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'">'+
     '<button class="exhead" data-toggle="ex">'+
       '<span class="acc"></span>'+
-      '<span class="nm">'+name+'</span>'+tagBadges(ex)+(done?'<span class="tick">✓</span>':'')+
+      '<span class="nm">'+name+ovBadge(ex)+'</span>'+tagBadges(ex)+(done?'<span class="tick">✓</span>':'')+
       '<span class="rp">'+reps+'</span>'+
+      swapBtnHTML(raw[0])+
       '<span class="chev">⌄</span>'+
     '</button>'+
     '<div class="exbody">'+(open?exerciseBodyHTML(name,reps):'')+'</div>'+
   '</div>';
 }
+// Session-added bonus exercise — its own teal block, loggable like any other.
+function addedBlockHTML(a){
+  var name=a.name, en=enc(name), reps='Bonus';
+  var done=isLoggedToday(name), open=(openEx===en);
+  return '<div class="group"><div class="solo-tag" style="color:#2dd4bf">＋ Added today</div>'+
+    '<div class="blk exblock added'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'" data-kind="solo" style="--c:#2dd4bf">'+
+      '<button class="bhead" data-toggle="blk">'+
+        '<span class="acc" style="background:#2dd4bf"></span>'+
+        '<span class="ttl"><div class="where">'+name+'<span class="ov-badge add">Added</span></div>'+collapsedDoneLine(name)+'</span>'+
+        '<span class="rm-added" role="button" data-name="'+en+'" aria-label="remove added exercise">✕</span>'+
+        '<span class="chev">⌄</span>'+
+      '</button>'+
+      '<div class="bbody">'+(open?exerciseBodyHTML(name,reps):'')+'</div>'+
+    '</div></div>';
+}
 function supersetBlockHTML(b,bi,c){
-  var containsOpen=b.e.some(function(e){return openEx===enc(e[0]);});
+  var effs=b.e.map(effectiveEx);
+  var containsOpen=effs.some(function(e){return openEx===enc(e[0]);});
   var open=!!openBlk[bi] || containsOpen;
-  var names=b.e.map(function(e){return e[0];}).join(' · ');
-  var doneCount=b.e.filter(function(e){return isLoggedToday(e[0]);}).length, allDone=(doneCount===b.e.length);
-  var un=unevenNote(b.e);
+  var names=effs.map(function(e){return e[0];}).join(' · ');
+  var doneCount=effs.filter(function(e){return isLoggedToday(e[0]);}).length, allDone=(doneCount===b.e.length);
+  var un=unevenNote(effs);
   var rows=(un?'<div class="uneven">⚠ '+un+'</div>':'')+b.e.map(function(ex){return exRowHTML(ex,c);}).join('');
   return '<div class="group"><div class="solo-tag" style="color:'+c+'">⛓ Superset</div>'+
     '<div class="blk ss'+(open?' open':'')+'" style="--c:'+c+'" data-bi="'+bi+'" data-kind="ss">'+
@@ -897,6 +1064,8 @@ function render(){
     if(b.t==='solo'){ html+=soloBlockHTML(b,bi); }
     else { var c=SS_COLORS[ssi%SS_COLORS.length]; ssi++; html+=supersetBlockHTML(b,bi,c); }
   });
+  addedFor(curDay).forEach(function(a){ html+=addedBlockHTML(a); });
+  html+='<button class="addex">＋ Add exercise</button>';
 
   const fin=d.fin||{core:'—'};                           // defensive: never crash on a sparse day
   const prg=d.prog||{c:'#7dd3fc',t:''};
@@ -1282,6 +1451,72 @@ var Admin = (function(){
     brand.addEventListener('contextmenu',function(e){ e.preventDefault(); });
   }
   return { open:open, close:close };
+})();
+
+/* ───────── Exercise picker drawer (Swap ⇄ / ＋ Add) — Ticket 06 ───────── */
+var Drawer=(function(){
+  var g=function(id){ return document.getElementById(id); };
+  var mode='add', swapTarget=null;     // swapTarget = ORIGINAL program name
+  function open(){ g('exScrim').hidden=false; g('exDrawer').hidden=false; g('drawerSearch').value=''; renderList(''); }
+  function close(){ g('exScrim').hidden=true; g('exDrawer').hidden=true; }
+  function openAdd(){ mode='add'; swapTarget=null; g('drawerTitle').textContent='Add an exercise'; open(); }
+  function openSwap(orig){ mode='swap'; swapTarget=orig; g('drawerTitle').textContent='Swap · '+orig; open(); }
+  function renderList(q){
+    q=String(q||'').toLowerCase();
+    var html='';
+    if(mode==='swap'){
+      if(loadOv().swaps[swapTarget]) html+='<button class="libitem restore" data-pick="__restore">↩ Restore original — '+swapTarget+'</button>';
+      var alts=altsFor(swapTarget).filter(function(a){return a.toLowerCase().indexOf(q)>=0;});
+      if(alts.length){
+        html+='<div class="grp">Coach\'s alternates</div><div class="alt-chips">'+
+          alts.map(function(a){return '<button class="vchip" data-pick="'+enc(a)+'">'+a+'</button>';}).join('')+'</div>';
+      }
+    }
+    var lib=exLibData();
+    Object.keys(lib).forEach(function(grp){
+      var items=(lib[grp]||[]).filter(function(n){return String(n).toLowerCase().indexOf(q)>=0;});
+      if(!items.length) return;
+      html+='<div class="grp">'+grp+'</div>'+items.map(function(n){
+        return '<button class="libitem" data-pick="'+enc(n)+'"><span>'+n+'</span><span class="pluss">＋</span></button>';
+      }).join('');
+    });
+    html+='<div class="grp">Custom</div><div class="custom-row">'+
+      '<input id="drawerCustom" type="text" autocomplete="off" placeholder="Type any exercise…">'+
+      '<button class="drawer-custom-add">Add</button></div>';
+    g('drawerBody').innerHTML=html;
+  }
+  function pick(name){
+    var ov=loadOv();
+    if(mode==='swap'){
+      if(name==='__restore'){
+        delete ov.swaps[swapTarget];
+        if(openEx) openEx=enc(swapTarget);              // keep the restored card open
+      } else {
+        ov.swaps[swapTarget]={name:name};
+        if(openEx) openEx=enc(name);                    // keep the swapped card open
+      }
+    } else {
+      var arr=ov.added[curDay]||(ov.added[curDay]=[]);
+      if(!arr.some(function(a){return a.name===name;})) arr.push({name:name});
+      openEx=enc(name);                                 // open the new bonus card right away
+    }
+    saveOv(); close(); rerender();
+  }
+  document.addEventListener('click',function(ev){
+    var t=ev.target; if(!t.closest) return;
+    if(t.id==='exScrim' || t.closest('#drawerClose')){ close(); return; }
+    var li=t.closest('[data-pick]');
+    if(li && t.closest('#exDrawer')){ var v=li.dataset.pick; pick(v==='__restore'?'__restore':dec(v)); return; }
+    if(t.closest('.drawer-custom-add')){
+      var inp=g('drawerCustom'), val=(inp&&inp.value||'').trim();
+      if(val) pick(val);
+      return;
+    }
+  });
+  document.addEventListener('input',function(ev){
+    if(ev.target && ev.target.id==='drawerSearch') renderList(ev.target.value);
+  });
+  return {openAdd:openAdd, openSwap:openSwap, close:close};
 })();
 
 render();
