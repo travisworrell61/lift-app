@@ -177,6 +177,19 @@
     letter-spacing:.06em;flex:none;}
   .setrow .rm{width:30px;height:30px;flex:none;margin-left:auto;border:1px solid var(--line);
     border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;}
+  /* plate-mode picker */
+  .setrow.plate{display:block;padding:9px 10px;}
+  .prow-head{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+  .prow-head .si{width:auto;}
+  .pstack{flex:1;min-width:0;font-family:'Oswald',sans-serif;font-weight:600;font-size:.95rem;color:var(--accent);
+    text-transform:uppercase;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pstack-empty{color:var(--muted);font-weight:500;text-transform:none;letter-spacing:0;opacity:.7;}
+  .ptotal{font-family:'Anton',sans-serif;font-size:1.05rem;color:var(--steel);flex:none;white-space:nowrap;}
+  .pbtns{display:flex;gap:6px;flex-wrap:wrap;}
+  .pbtn{min-width:42px;height:42px;border:1px solid var(--line);border-radius:9px;background:var(--bg2);
+    color:var(--ink);font-family:'Barlow',sans-serif;font-weight:700;font-size:.92rem;cursor:pointer;padding:0 8px;}
+  .pbtn:active{background:var(--panel2);}
+  .pbtn.paux{font-weight:600;color:var(--muted);background:transparent;font-size:.84rem;min-width:38px;}
   .panel-actions{display:flex;gap:8px;margin-top:2px;}
   .panel-actions button{flex:1;min-height:42px;border-radius:10px;cursor:pointer;
     font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
@@ -645,14 +658,47 @@ function startWeightFor(name){
   for(var i=0;i<T.length;i++){ if(T[i][0].test(s)) return T[i][1]; }
   return WEIGHT_START;
 }
+/* ---------- plate mode (Ticket 07): per-side plate picker ----------
+   For plate-loaded / barbell lifts the coach tags by the name being LOGGED
+   (variant for " / " exercises, else the plain name). Tracks added plates only
+   (machine/bar base ignored); stores total w = 2 × Σ(per-side) plus the per-side
+   array p, so prefill can re-load the exact plates. */
+function plateSet(){ try{ var ps=(typeof PROGRAM==='object'&&PROGRAM&&PROGRAM.plateSet); return (Array.isArray(ps)&&ps.length)?ps:[45,35,25,10,5,2.5]; }catch(e){ return [45,35,25,10,5,2.5]; } }
+function isPlateMode(name,variant){
+  try{ var pm=(typeof PROGRAM==='object'&&PROGRAM&&PROGRAM.plateMode); if(!Array.isArray(pm)) return false;
+    return pm.indexOf(name)>=0 || (variant && pm.indexOf(variant)>=0);
+  }catch(e){ return false; }
+}
+function perSideLabel(arr){           // [45,45,25] → "45×2 · 25"
+  if(!arr||!arr.length) return '';
+  var out=[], i=0;
+  while(i<arr.length){ var v=arr[i], c=1; while(i+c<arr.length&&arr[i+c]===v) c++; out.push(c>1?(v+'×'+c):(''+v)); i+=c; }
+  return out.join(' · ');
+}
+function plateTotal(arr){ return (arr||[]).reduce(function(s,x){return s+x;},0)*2; }
+function plateRowHTML(i,pArr){
+  pArr=pArr||[];
+  var has=pArr.length>0;
+  return '<div class="setrow plate" data-i="'+i+'" data-p="'+pArr.join(',')+'">'+
+    '<div class="prow-head"><span class="si">SET '+(i+1)+'</span>'+
+      '<span class="pstack">'+(has?perSideLabel(pArr):'<span class="pstack-empty">add plates / side</span>')+'</span>'+
+      '<span class="ptotal">'+(has?(plateTotal(pArr)+' lb'):'')+'</span>'+
+      '<button class="rm" aria-label="remove set">×</button></div>'+
+    '<div class="pbtns">'+plateSet().map(function(pl){return '<button class="pbtn" data-pl="'+pl+'">'+pl+'</button>';}).join('')+
+      '<button class="pbtn paux pundo" data-act="undo" aria-label="undo plate">↶</button>'+
+      '<button class="pbtn paux pclear" data-act="clear" aria-label="clear plates">clr</button>'+
+    '</div>'+
+  '</div>';
+}
 function buildPanel(name,reps){
   var variant=variantsOf(name)?currentVariant(name):null;
+  var plate=isPlateMode(name,variant);
   var ent=lastEntryFor(name,variant);
   var pf=ent?ent.sets:null;                           // prefill from the last session OF THIS VARIANT
   var rec=recValsFor(name,variant);
   var guess=guessFor(name);                           // null for bodyweight
-  // bodyweight move with no coach weight → no number to log, just a "Mark done" entry
-  if(guess==null && !(rec && rec.w!=null)){
+  // bodyweight move with no coach weight → no number to log, just a "Mark done" entry (never for plate-loaded)
+  if(!plate && guess==null && !(rec && rec.w!=null)){
     return '<div class="bw-note">Bodyweight — no weight to log.</div>'+
       '<div class="panel-actions"><button class="btn-save">✓ Mark done</button></div>';
   }
@@ -660,15 +706,18 @@ function buildPanel(name,reps){
   var rows='';
   for(var i=0;i<n;i++){
     var s=(pf&&pf[i])?pf[i]:{};
-    if(s.w!=null)                rows+=setRowHTML(i, s.w, null, false);     // real history → plain value
+    if(plate)                    rows+=plateRowHTML(i, (s.p&&s.p.length)?s.p:[]);   // plate picker, prefilled from stored p
+    else if(s.w!=null)           rows+=setRowHTML(i, s.w, null, false);     // real history → plain value
     else if(rec && rec.w!=null)  rows+=setRowHTML(i, rec.w, null, true);    // coach rec → accent value (logs if saved)
     else                         rows+=setRowHTML(i, '', guess, false);     // heuristic guess → ghost placeholder
   }
-  var hint=pf
-    ? '<div class="panel-hint">Prefilled from your last '+(variant?variant:'session')+' — adjust and Save.</div>'
-    : (rec && rec.w!=null
+  var hint=plate
+    ? '<div class="panel-hint">Tap plates to load <b>one side</b> — the app doubles it for the total.'+(pf?' Prefilled from last time.':'')+'</div>'
+    : (pf
+      ? '<div class="panel-hint">Prefilled from your last '+(variant?variant:'session')+' — adjust and Save.</div>'
+      : (rec && rec.w!=null
         ? '<div class="panel-hint">Suggested weight is filled in blue — Save to log it, or adjust first.</div>'
-        : '<div class="panel-hint">Suggested start shown in grey — tap ＋ to use it, then Save.</div>');
+        : '<div class="panel-hint">Suggested start shown in grey — tap ＋ to use it, then Save.</div>'));
   var setsCtl='<div class="sets-ctl"><span class="sc-lab">Sets today</span>'+
     '<button class="sstep" data-d="-1" aria-label="fewer sets">−</button>'+
     '<span class="sc-n">'+n+'</span>'+
@@ -770,6 +819,20 @@ document.addEventListener('click',function(ev){
     return;
   }
 
+  // ── plate picker (add/undo/clear a per-side plate) ──
+  var pbtn=t.closest('.pbtn');
+  if(pbtn){
+    var prow=pbtn.closest('.setrow.plate'); if(!prow) return;
+    var arr=(prow.dataset.p||'').split(',').filter(Boolean).map(Number);
+    if(pbtn.dataset.act==='undo') arr.pop();
+    else if(pbtn.dataset.act==='clear') arr=[];
+    else arr.push(parseFloat(pbtn.dataset.pl));
+    prow.dataset.p=arr.join(',');
+    prow.querySelector('.pstack').innerHTML = arr.length?perSideLabel(arr):'<span class="pstack-empty">add plates / side</span>';
+    prow.querySelector('.ptotal').textContent = arr.length?(plateTotal(arr)+' lb'):'';
+    return;
+  }
+
   // ── weight stepper ──
   var stp=t.closest('.stp');
   if(stp){
@@ -789,7 +852,10 @@ document.addEventListener('click',function(ev){
   }
   if(t.classList.contains('btn-add')){
     var ap=t.closest('.log-panel'), rows=ap.querySelector('.setrows');
-    if(rows) rows.insertAdjacentHTML('beforeend', setRowHTML(rows.querySelectorAll('.setrow').length,null,null,false));
+    if(!rows) return;
+    var abk=ap.closest('.exblock'), anm=abk?dec(abk.dataset.ex):'', avar=variantsOf(anm)?currentVariant(anm):null;
+    var idx=rows.querySelectorAll('.setrow').length;
+    rows.insertAdjacentHTML('beforeend', isPlateMode(anm,avar)?plateRowHTML(idx,[]):setRowHTML(idx,null,null,false));
     return;
   }
   if(t.classList.contains('rm')){
@@ -801,7 +867,14 @@ document.addEventListener('click',function(ev){
     var panel=t.closest('.log-panel'), block=panel.closest('.exblock'), name=dec(block.dataset.ex);
     function num(s){var n=Number(s); return (s!=='' && !isNaN(n))?n:null;}
     var sets=[], rowEls=panel.querySelectorAll('.setrow');
-    if(rowEls.length){ rowEls.forEach(function(row){ sets.push({w:num(row.querySelector('.in-w').value.trim())}); }); }
+    if(rowEls.length){ rowEls.forEach(function(row){
+      if(row.classList.contains('plate')){
+        var arr=(row.dataset.p||'').split(',').filter(Boolean).map(Number);
+        sets.push(arr.length?{w:plateTotal(arr), p:arr}:{w:null});   // plate row → total + per-side breakdown
+      } else {
+        sets.push({w:num(row.querySelector('.in-w').value.trim())});
+      }
+    }); }
     else { sets.push({w:null}); }                            // bodyweight "Mark done"
     var all=loadLogs(); if(!all[name]) all[name]=[];
     var ts=todayStr();
