@@ -81,8 +81,9 @@ Logs sync one-way to a Vercel backend so the **Claude.ai chat can read the user'
 - **Upload path:** on each save, web calls `liftSyncLogs()` → posts the full log blob over the `liftSync` WKScriptMessageHandler → `ios/LIFTApp.swift` `uploadLogs()` does a `URLSession` `POST` to the Vercel endpoint. This only runs inside the **native app** (the bridge is a no-op in a plain browser/PWA). The app also re-uploads the full blob on every open / return-to-foreground, so a save made offline heals on the next launch.
 - **Why native, not web:** the GitHub repo is **public**. The write credential must never live in committed web source. It sits in gitignored `ios/Secrets.swift` + the Vercel server env only.
 - **API contract (deployed — `lift-sync-api`, a SEPARATE repo at `…/Desktop/CLAUDE PROJECTS/lift-sync-api`):**
-  - WRITE: `POST /api/logs` with header `x-write-secret: <WRITE_SECRET>`, body = the raw logs object `{ "<exercise name>": [ {date,day,wk,sets:[{w,r}]} ] }`.
-  - READ: `GET /api/logs?token=<READ_TOKEN>` → `{ updated, logs }`. The read URL (token embedded) is what the user pastes into the Claude.ai chat.
+  - WRITE: `POST /api/logs` with header `x-write-secret: <WRITE_SECRET>`, body = `{ logs, notes }` (a bare logs object is still accepted for back-compat). Logs are name-keyed `{ "<exercise name>": [ {date,day,sets:[{w, v?, p?}]} ] }`.
+  - READ: `GET /api/logs?token=<READ_TOKEN>` → `{ updated, logs, notes }`. The read URL (token embedded) is what the user pastes into the Claude.ai chat.
+  - **Session notes** ride the same blob: `notes` is keyed `"<YYYY-MM-DD>|<day>"` → free text. Saved on-device under `lift-notes`, uploaded with the logs.
   - Read and write use **different** credentials (read token ≠ write secret) — by design, so the chat's read link can't write.
 - **Not implemented (deliberately):** a web-side read/merge/write layer (PWA cross-device sync). It would require a write-capable token in public JS / on-device, which breaks the secret model above. If cross-device PWA sync is ever wanted, change the API + auth deliberately — don't bolt a `?token=` web write onto the current read-token API (the credentials don't match).
 - The service worker ignores cross-origin requests, so the Vercel calls always hit the network.

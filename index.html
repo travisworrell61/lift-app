@@ -98,6 +98,14 @@
   .fin .lab{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.14em;font-size:.66rem;color:var(--muted);}
   .fin .val{font-family:'Oswald',sans-serif;font-weight:600;font-size:.95rem;color:var(--steel);margin-top:2px;}
 
+  .notes{margin-top:16px;}
+  .notes-lab{font-family:'Oswald',sans-serif;font-weight:600;font-size:.66rem;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted);margin:0 2px 6px;}
+  .notes-ta{width:100%;min-height:84px;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    color:var(--ink);font-size:.92rem;padding:12px;font-family:'Barlow',sans-serif;resize:vertical;
+    line-height:1.45;-webkit-appearance:none;appearance:none;}
+  .notes-ta:focus{outline:none;border-color:var(--accent);}
+  .notes-ta::placeholder{color:var(--muted);opacity:.65;}
   .prog{margin-top:11px;border-left:4px solid var(--pc,#fb9a3c);border-radius:6px;
     background:color-mix(in srgb,var(--pc,#fb9a3c) 9%,var(--panel));padding:11px 14px;font-size:.84rem;color:var(--steel);animation:rise .45s .12s ease both;}
   .prog b{color:var(--ink);}
@@ -844,9 +852,21 @@ function liftPushState(){
 function liftSyncLogs(){
   try{
     if(!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.liftSync)) return;
-    window.webkit.messageHandlers.liftSync.postMessage(JSON.stringify(loadLogs()));
+    window.webkit.messageHandlers.liftSync.postMessage(JSON.stringify({logs: loadLogs(), notes: loadNotes()}));
   }catch(e){}
 }
+
+/* ---------- daily session notes (Ticket 08) ----------
+   Per (day, this-week's date) free-text feedback that uploads with the logs. */
+function loadNotes(){ try{ var r=localStorage.getItem('lift-notes'); var o=r?JSON.parse(r):{}; return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; } }
+function saveNotesObj(o){ try{ localStorage.setItem('lift-notes', JSON.stringify(o)); }catch(e){} }
+function noteKey(){
+  var dt=dateForWeekday(DOW[curDay]);
+  var k=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+  return k+'|'+curDay;                    // e.g. "2026-06-12|fri" — lines up with that day's lifts
+}
+function currentNote(){ return loadNotes()[noteKey()]||''; }
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 var SPECIAL_TAGS = {dropset:'DROP SET', partials:'PARTIALS', restpause:'REST-PAUSE', amrap:'AMRAP', failure:'TO FAILURE', tempo:'SLOW TEMPO'};
 function tagBadges(ex){
@@ -1002,7 +1022,11 @@ function render(){
   html+=`<div class="fin">
     <div class="core-block"><div class="lab">Core</div><div class="val">${fin.core}</div></div>
   </div>
-  <div class="prog" style="--pc:${prg.c}">📌 ${prg.t}</div>`;
+  <div class="prog" style="--pc:${prg.c}">📌 ${prg.t}</div>
+  <div class="notes">
+    <div class="notes-lab">Session notes</div>
+    <textarea class="notes-ta" id="sessionNotes" placeholder="How did today go? Soreness, energy, anything you changed…">${escHtml(currentNote())}</textarea>
+  </div>`;
 
   document.getElementById('content').innerHTML=html;
   _firstRender=false;
@@ -1199,6 +1223,15 @@ var Drawer=(function(){
 render();
 loadProgram();
 liftSyncLogs();   // re-upload the current log blob on every open — heals any save made offline
+
+// Session notes: save locally as the user types (upload rides the next sync).
+document.addEventListener('input', function(ev){
+  if(ev.target && ev.target.id==='sessionNotes'){
+    var o=loadNotes(), k=noteKey(), v=ev.target.value;
+    if(v.trim()==='') delete o[k]; else o[k]=v;
+    saveNotesObj(o);
+  }
+});
 
 // Returning to the app (native webview resume / PWA tab focus): refresh the widget
 // (auto-advances past midnight) and re-push logs so the cloud copy can't go stale.
