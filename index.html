@@ -127,6 +127,10 @@
     display:flex;align-items:center;gap:7px;margin-bottom:9px;}
   .brand .dotmark{width:11px;height:11px;border-radius:3px;
     background:linear-gradient(135deg,#4ade80,#2dd4bf);transform:rotate(30deg);flex:none;}
+  .brand{-webkit-touch-callout:none;}
+  .nav-gear{margin-left:10px;background:none;border:none;color:var(--muted);font-size:1.05rem;line-height:1;
+    cursor:pointer;padding:4px 6px;border-radius:8px;flex:none;-webkit-tap-highlight-color:transparent;}
+  .nav-gear:active{color:var(--ink);background:var(--panel);}
   .brand small{font-family:'Oswald',sans-serif;font-weight:500;font-size:.6rem;letter-spacing:.16em;
     text-transform:uppercase;color:var(--muted);margin-left:auto;}
 
@@ -421,7 +425,7 @@
 <body>
   <div class="nav">
     <div class="nav-inner">
-      <div class="brand"><span class="dotmark"></span>LIFT<small>4-Day Split</small></div>
+      <div class="brand"><span class="dotmark"></span>LIFT<small>4-Day Split</small><button class="nav-gear" id="navGear" aria-label="Update program">⚙</button></div>
       <div class="days" id="days"></div>
     </div>
   </div>
@@ -1438,16 +1442,20 @@ var Admin = (function(){
   g('admValidate').addEventListener('click',validate);
   g('admPublish').addEventListener('click',publish);
 
-  // hidden entry: long-press the LIFT logo
+  // Primary, reliable entry: the gear in the nav (a normal tap).
+  var gear=g('navGear'); if(gear) gear.addEventListener('click',function(e){ e.stopPropagation(); open(); });
+
+  // Secondary: long-press the LIFT logo. Don't cancel on pointercancel — iOS
+  // WKWebView fires it spuriously when it starts its own long-press gesture,
+  // which used to kill the timer before it opened.
   var brand=document.querySelector('.brand'), lp=null;
-  function lpStart(){ lp=setTimeout(open,650); }
+  function lpStart(){ lp=setTimeout(open,600); }
   function lpEnd(){ if(lp){ clearTimeout(lp); lp=null; } }
   if(brand){
     brand.style.userSelect='none'; brand.style.webkitUserSelect='none';
     brand.addEventListener('pointerdown',lpStart);
     brand.addEventListener('pointerup',lpEnd);
     brand.addEventListener('pointerleave',lpEnd);
-    brand.addEventListener('pointercancel',lpEnd);
     brand.addEventListener('contextmenu',function(e){ e.preventDefault(); });
   }
   return { open:open, close:close };
