@@ -440,6 +440,10 @@
     background:var(--panel);color:var(--ink);font-family:'Oswald',sans-serif;font-weight:700;
     letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;}
   .adm-pub{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);flex:1.4;}
+  .adm-paste{width:100%;min-height:46px;margin:0 0 8px;display:flex;align-items:center;justify-content:center;gap:8px;
+    background:color-mix(in srgb,var(--accent) 14%,var(--panel));border-color:color-mix(in srgb,var(--accent) 40%,var(--line));
+    color:var(--accent);}
+  .adm-paste i{font-style:normal;}
   .adm-hint{font-size:.74rem;color:var(--muted);line-height:1.4;margin-top:14px;}
 </style>
 </head>
@@ -488,8 +492,9 @@
       </div>
       <label class="adm-lab">Publish token</label>
       <input class="adm-in" id="admToken" type="password" autocomplete="off" placeholder="paste once — saved on this device">
-      <label class="adm-lab">New routine (paste the JSON from the chat)</label>
-      <textarea class="adm-ta" id="admJson" spellcheck="false" autocapitalize="off" placeholder="{ &quot;mon&quot;: { … }, &quot;tue&quot;: { … }, … }"></textarea>
+      <label class="adm-lab">New routine — paste the JSON from the chat</label>
+      <button class="adm-btn adm-paste" id="admPaste"><i>📋</i> Paste from clipboard</button>
+      <textarea class="adm-ta" id="admJson" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="…or tap here and paste the routine"></textarea>
       <div class="adm-status" id="admStatus">&nbsp;</div>
       <div class="adm-actions">
         <button class="adm-btn" id="admClear">Clear</button>
@@ -1499,10 +1504,22 @@ var Admin = (function(){
   var g=function(id){ return document.getElementById(id); };
   var TOKEN_KEY='lift-pub-token';
   function setStatus(msg,cls){ var s=g('admStatus'); s.textContent=msg||' '; s.className='adm-status'+(cls?' '+cls:''); }
+  // One-tap clipboard read (iOS shows a Paste permission prompt). Falls back to manual paste.
+  function pasteFromClipboard(){
+    if(navigator.clipboard && navigator.clipboard.readText){
+      navigator.clipboard.readText().then(function(text){
+        if(text && text.trim()){ g('admJson').value=text; validate(); }
+        else { setStatus('Clipboard looks empty - copy the routine from the chat first.',''); g('admJson').focus(); }
+      }).catch(function(){ setStatus('Could not read the clipboard - tap the box and paste manually.','err'); g('admJson').focus(); });
+    } else { setStatus('Tap the box below and paste (hold, then Paste).',''); g('admJson').focus(); }
+  }
   function parseInput(){
     var raw=g('admJson').value.trim();
     if(!raw) return {ok:false,msg:'Paste the routine JSON first.'};
-    var data; try{ data=JSON.parse(raw); }catch(e){ return {ok:false,msg:'Not valid JSON — '+e.message}; }
+    var data; try{ data=JSON.parse(raw); }catch(e){
+      var m=String(e.message||''), pos=(m.match(/position (\d+)/)||[])[1];
+      var near=pos!=null?(' — check near: …'+raw.slice(Math.max(0,pos-18), Number(pos)+12).replace(/\s+/g,' ')+'…'):'';
+      return {ok:false,msg:'That isn’t valid JSON (a bracket, quote, or comma is off)'+near}; }
     var prog=normalizeProgram(data);
     if(!prog) return {ok:false,msg:'Parsed, but that is not a program object.'};
     var issue=programIssue(prog);                        // same strict check the app uses before adopting
@@ -1528,7 +1545,7 @@ var Admin = (function(){
           try{ localStorage.setItem(TOKEN_KEY, token); }catch(e){}
           setCachedProgram(v.prog); PROGRAM=v.prog; render();
           g('admJson').value='';                 // auto-clear the paste box after a successful publish
-          setStatus('✓ Published — live on all your devices.','ok');
+          setStatus('✓ Published — this week’s routine is now live on all your devices.','ok');
         } else if(o.s===401){ setStatus('✕ Wrong publish token.','err'); }
         else { setStatus('✕ '+((o.j&&o.j.error)||('error '+o.s)),'err'); }
       })
@@ -1538,6 +1555,7 @@ var Admin = (function(){
   function close(){ g('admin').hidden=true; }
 
   g('admClose').addEventListener('click',close);
+  g('admPaste').addEventListener('click',pasteFromClipboard);
   g('admClear').addEventListener('click',function(){ g('admJson').value=''; setStatus(' '); g('admJson').focus(); });
   g('admValidate').addEventListener('click',validate);
   g('admPublish').addEventListener('click',publish);
