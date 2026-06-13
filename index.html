@@ -95,7 +95,6 @@
   .fin{margin-top:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);
     padding:13px 15px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;animation:rise .45s .1s ease both;}
   .fin .core-block{flex:1;min-width:140px;}
-  .fin .core-timer-btn{margin-top:0;flex:none;}
   .fin .lab{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.14em;font-size:.66rem;color:var(--muted);}
   .fin .val{font-family:'Oswald',sans-serif;font-weight:600;font-size:.95rem;color:var(--steel);margin-top:2px;}
 
@@ -349,51 +348,9 @@
     background:var(--accent);color:var(--accent-ink);font-family:'Oswald',sans-serif;font-weight:700;
     font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;}
 
-  /* ───────── core / ab timer ───────── */
-  .core-timer-btn{margin-top:9px;display:inline-flex;align-items:center;gap:5px;
-    font-family:'Oswald',sans-serif;font-weight:700;font-size:.68rem;letter-spacing:.08em;
-    text-transform:uppercase;color:var(--accent-ink);background:var(--accent);border:none;
-    border-radius:9px;padding:9px 13px;cursor:pointer;}
-  .abt{position:fixed;inset:0;z-index:200;background:rgba(8,10,14,.975);
-    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-    display:flex;align-items:center;justify-content:center;
-    padding:max(20px,env(safe-area-inset-top)) 22px max(24px,env(safe-area-inset-bottom));}
-  .abt[hidden]{display:none;}
-  .abt.rest{background:rgba(10,9,7,.975);}
-  .abt-inner{width:100%;max-width:460px;text-align:center;}
-  .abt-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-  .abt-top-btns{display:flex;gap:8px;}
-  .abt-close.off{opacity:.5;}
-  .abt-stage{font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:.22em;
-    text-transform:uppercase;font-size:.82rem;color:var(--accent);}
-  .abt.rest .abt-stage{color:#ffb24d;}
+  /* shared overlay close button (Update Program + exercise drawer) */
   .abt-close{width:42px;height:42px;border:1px solid var(--line);border-radius:11px;
-    background:transparent;color:var(--muted);font-size:1.1rem;cursor:pointer;}
-  .abt-name{font-family:'Anton',sans-serif;text-transform:uppercase;font-size:2.5rem;
-    line-height:1.02;margin:6px 0 2px;}
-  .abt-time{font-family:'Anton',sans-serif;font-size:6rem;line-height:1;color:var(--accent);
-    font-variant-numeric:tabular-nums;}
-  .abt.rest .abt-time{color:#ffb24d;}
-  .abt-next{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:.1em;
-    color:var(--muted);font-size:.86rem;margin-top:6px;min-height:1em;}
-  .abt-dots{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:20px 0 24px;}
-  .abt-dot{width:11px;height:11px;border-radius:50%;background:var(--line);transition:.2s;}
-  .abt-dot.done{background:color-mix(in srgb,var(--accent) 55%,var(--line));}
-  .abt-dot.cur{background:var(--accent);transform:scale(1.35);}
-  .abt-controls{display:flex;gap:12px;justify-content:center;align-items:center;}
-  .abt-btn{min-width:62px;height:58px;border-radius:14px;border:1px solid var(--line);
-    background:var(--panel);color:var(--ink);font-size:1.3rem;cursor:pointer;}
-  .abt-play{flex:1;max-width:210px;background:var(--accent);color:var(--accent-ink);
-    border-color:var(--accent);font-family:'Oswald',sans-serif;font-weight:700;
-    letter-spacing:.08em;text-transform:uppercase;font-size:1rem;}
-  .abt-list{margin-top:22px;display:flex;flex-direction:column;gap:4px;max-height:26vh;
-    overflow-y:auto;text-align:left;}
-  .abt-li{font-family:'Oswald',sans-serif;font-size:.8rem;color:var(--muted);
-    display:flex;justify-content:space-between;padding:5px 9px;border-radius:8px;}
-  .abt-li.cur{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--ink);}
-  .abt-li.done{opacity:.45;}
-  .abt-li span:last-child{font-variant-numeric:tabular-nums;}
-
+    background:transparent;color:var(--muted);font-size:1.1rem;cursor:pointer;flex:none;}
   /* ───────── Update Program admin ───────── */
   .adm{position:fixed;inset:0;z-index:210;background:rgba(8,10,14,.985);
     -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
@@ -435,30 +392,7 @@
 
   </div>
 
-  <!-- ───────── Core / ab interval timer (replaces the browser trip) ───────── -->
-  <div class="abt" id="abtimer" hidden>
-    <div class="abt-inner">
-      <div class="abt-top">
-        <div class="abt-stage" id="abtStage">Core Timer</div>
-        <div class="abt-top-btns">
-          <button class="abt-close" id="abtVoice" aria-label="toggle voice">🔊</button>
-          <button class="abt-close" id="abtClose" aria-label="close">✕</button>
-        </div>
-      </div>
-      <div class="abt-name" id="abtName">Ready?</div>
-      <div class="abt-time" id="abtTime">0:30</div>
-      <div class="abt-next" id="abtNext">&nbsp;</div>
-      <div class="abt-dots" id="abtDots"></div>
-      <div class="abt-controls">
-        <button class="abt-btn" id="abtPrev" aria-label="previous">⏮</button>
-        <button class="abt-btn abt-play" id="abtPlay">Start</button>
-        <button class="abt-btn" id="abtSkip" aria-label="skip">⏭</button>
-      </div>
-      <div class="abt-list" id="abtList"></div>
-    </div>
-  </div>
-
-  <!-- ───────── Update Program (long-press the LIFT logo) ───────── -->
+  <!-- ───────── Update Program (gear in nav, or long-press the LIFT logo) ───────── -->
   <div class="adm" id="admin" hidden>
     <div class="adm-inner">
       <div class="adm-top">
@@ -913,14 +847,6 @@ function liftSyncLogs(){
     window.webkit.messageHandlers.liftSync.postMessage(JSON.stringify(loadLogs()));
   }catch(e){}
 }
-// Ask the native shell to keep the screen awake (the browser wake-lock API is
-// unreliable inside WKWebView). No-op in a plain browser / PWA.
-function liftWake(on){
-  try{
-    if(!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.liftWake)) return;
-    window.webkit.messageHandlers.liftWake.postMessage(on?'1':'0');
-  }catch(e){}
-}
 
 var SPECIAL_TAGS = {dropset:'DROP SET', partials:'PARTIALS', restpause:'REST-PAUSE', amrap:'AMRAP', failure:'TO FAILURE', tempo:'SLOW TEMPO'};
 function tagBadges(ex){
@@ -1075,7 +1001,6 @@ function render(){
   const prg=d.prog||{c:'#7dd3fc',t:''};
   html+=`<div class="fin">
     <div class="core-block"><div class="lab">Core</div><div class="val">${fin.core}</div></div>
-    <button class="core-timer-btn" data-core-timer>▶ Core Timer</button>
   </div>
   <div class="prog" style="--pc:${prg.c}">📌 ${prg.t}</div>`;
 
@@ -1137,262 +1062,6 @@ async function loadProgram(){
   if(!prog){ try{ prog=await fetchProgram(PROGRAM_URL); }catch(e){} }   // 2) GitHub
   if(prog){ PROGRAM=prog; setCachedProgram(prog); render(); }           // 3) else bundled program.js stays
 }
-
-/* ───────── Core / ab interval timer — pool + weekly shuffle (BUILD-QUEUE T03) ─────────
-   Monday = weighted-leaning (6 weighted + 2 bodyweight); any other day = all bodyweight.
-   Each week the pools are seed-shuffled by ISO week → a fresh circuit every week.
-   8 work intervals + two 30s rests (~7 min). Paired moves run as two sided intervals;
-   rests never split a pair. Pools are plain data — easy to edit (later: publishable). */
-var AB_LEADIN = 5;   // seconds before the first move
-var AB_POOLS = {
-  weightedPool: [
-    { ex:'Single-Arm Otis-Up', sec:50, pair:true },
-    { ex:'DB Oblique Wipers', sec:45, pair:true },
-    { ex:'Statue of Liberty → Thread-the-Needle', sec:50, pair:true },
-    { ex:'Plank Reach-Outs', sec:45, note:'alternate arms' },
-    { ex:'Dumbbell Sunrise-to-Sunset', sec:45 },
-    { ex:'Russian Press', sec:45 },
-    { ex:'Weighted Russian Twist', sec:45 },
-    { ex:'Twisting Toe Taps', sec:45, note:'alternate sides' },
-    { ex:'Recliner Presses', sec:45 },
-    { ex:'Handoffs', sec:45, note:'pass DB hand to hand under legs' }
-  ],
-  bodyweightPool: [
-    { ex:'Single-Single-Double V-Up', sec:45 },
-    { ex:'Starfish Crunch', sec:45 },
-    { ex:'X-Men Crunch', sec:45 },
-    { ex:'Russian Twist (bodyweight)', sec:45 },
-    { ex:'Penguins', sec:40, note:'side to side' },
-    { ex:'Seated Ab Circles', sec:50, pair:true, pairLabels:['CW','CCW'] },
-    { ex:'Plank Tuck-to-Kickback', sec:45, note:'alternate legs' },
-    { ex:'Frog Crunches', sec:45 },
-    { ex:'McDonald\'s', sec:45, note:'trace the M' },
-    { ex:'Rainbows', sec:45, note:'arc side to side' },
-    { ex:'Dragon Thrusts', sec:45 },
-    { ex:'90-90 Crunches', sec:45 },
-    { ex:'Canoe Crunch', sec:45 },
-    { ex:'Hands Back Raises', sec:45 },
-    { ex:'Recliner Elbow-to-Knee Tucks', sec:45, note:'alternate' },
-    { ex:'"21" Crunch', sec:45 },
-    { ex:'Figure 8\'s', sec:45 },
-    { ex:'Tuck Planks (Same Side)', sec:45 },
-    { ex:'Walk the Plank', sec:45, note:'alternate' },
-    { ex:'Sprinter Tuck Planks', sec:45, note:'alternate' },
-    { ex:'Heels to the Heavens', sec:45 },
-    { ex:'Marching Planks', sec:45, note:'alternate' },
-    { ex:'Scissor "V" Ups', sec:45 },
-    { ex:'One Down Two Ups', sec:45 },
-    { ex:'Twisting Pistons', sec:45, note:'alternate' },
-    { ex:'Cross Hop Planks', sec:45 },
-    { ex:'Prayer Crunch', sec:45 },
-    { ex:'Scissors', sec:45 },
-    { ex:'Side Crunches', sec:50, pair:true },
-    { ex:'Russian "V" Tuck Twists', sec:45 }
-  ]
-};
-function ab_mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-function ab_shuffle(arr,seed){var r=ab_mulberry32(seed);var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
-function ab_isoWeek(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);var ys=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-ys)/86400000)+1)/7);}
-// Build this week's circuit (8 work intervals + two 30s rests) deterministically from the day + ISO week.
-function ab_buildCircuit(){
-  // pools are publishable: if the live program JSON carries a `corePools` key, use it; else the bundled pools.
-  var pools = (typeof PROGRAM==='object' && PROGRAM && PROGRAM.corePools
-               && Array.isArray((PROGRAM.corePools.weightedPool)) && Array.isArray((PROGRAM.corePools.bodyweightPool)))
-             ? PROGRAM.corePools : AB_POOLS;
-  var now=new Date();
-  var seed=ab_isoWeek(now);
-  var isWeighted=(now.getDay()===1);                 // Monday = weighted-leaning; any other day = bodyweight
-  var candidates;
-  if(isWeighted){
-    var w=ab_shuffle(pools.weightedPool, seed);
-    var b=ab_shuffle(pools.bodyweightPool, seed+101);
-    candidates=ab_shuffle(w.slice(0,6).concat(b.slice(0,2)), seed+777).concat(w.slice(6), b.slice(2));
-  } else {
-    candidates=ab_shuffle(pools.bodyweightPool, seed);
-  }
-  var TARGET=8, work=[], pairStart=[];
-  for(var k=0;k<candidates.length && work.length<TARGET;k++){
-    var ex=candidates[k];
-    if(ex.pair){
-      if(work.length<=TARGET-2){                       // only if both sides fit (never truncate a pair)
-        var lbl=ex.pairLabels||['L','R'];
-        pairStart.push(work.length);
-        work.push({ex:ex.ex+' — '+lbl[0], sec:ex.sec, note:ex.note});
-        work.push({ex:ex.ex+' — '+lbl[1], sec:ex.sec, note:ex.note});
-      }
-    } else {
-      work.push({ex:ex.ex, sec:ex.sec, note:ex.note});
-    }
-  }
-  function restSlot(i){ return pairStart.indexOf(i-1)>=0 ? i+1 : i; }   // don't split a pair
-  var restAt={}; [restSlot(3),restSlot(6)].forEach(function(i){ if(i>0 && i<work.length) restAt[i]=1; });
-  var seq=[];
-  work.forEach(function(it,i){ if(restAt[i]) seq.push({rest:30}); seq.push(it); });
-  var dayName=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][now.getDay()];
-  return { seq:seq, work:work, title:dayName+' Core · Week '+seed };
-}
-
-var Ab = (function(){
-  var el = function(id){ return document.getElementById(id); };
-  var phases=[], pi=0, remaining=0, running=false, started=false, timer=null, endAt=0, lastSec=-1, wake=null, actx=null;
-  var voiceOn=true, curAnnounced=false;
-  var circuitWork=[], circuitTitle='';   // this week's generated exercises + label
-
-  // ---- spoken cues (Web Speech API) ----
-  function say(text){
-    if(!voiceOn || !text) return;
-    try{
-      if(!('speechSynthesis' in window)) return;
-      var u=new SpeechSynthesisUtterance(text);
-      u.rate=1.0; u.pitch=1.0; u.volume=1.0; u.lang='en-US';
-      window.speechSynthesis.speak(u);
-    }catch(e){}
-  }
-  function announcePhase(p){
-    if(!p) return;
-    if(p.kind==='work') say(p.label);
-    else if(p.kind==='rest') say('Rest. Next up, '+(p.next||''));
-    else if(p.kind==='ready') say('Get ready. First up, '+(p.next||''));
-    else if(p.kind==='done') say('Workout complete. Great work.');
-  }
-  function callout(p,r){
-    if(!p) return;
-    if(p.kind==='work'){
-      if(r===20 && p.sec>=40) say('20 seconds');
-      else if(r===10) say('10 seconds left');
-      else if(r<=3 && r>0) beep(900,0.12,0.25);          // work ending: beeps
-    } else if((p.kind==='rest'||p.kind==='ready') && r<=3 && r>0){
-      say(String(r));                                     // spoken 3·2·1 before the exercise
-    }
-  }
-
-  function buildPhases(){
-    var gen=ab_buildCircuit();
-    circuitWork=gen.work; circuitTitle=gen.title;
-    var seq=gen.seq, firstEx='';
-    for(var f=0;f<seq.length;f++){ if(!seq[f].rest){ firstEx=seq[f].ex; break; } }
-    phases=[{kind:'ready',label:circuitTitle,sec:AB_LEADIN,next:firstEx}];
-    for(var i=0;i<seq.length;i++){
-      var it=seq[i];
-      if(it.rest){
-        var nx=''; for(var j=i+1;j<seq.length;j++){ if(!seq[j].rest){ nx=seq[j].ex; break; } }
-        phases.push({kind:'rest',label:'Rest',sec:it.rest,next:nx});
-      } else {
-        phases.push({kind:'work',label:it.ex,sec:it.sec,note:it.note});
-      }
-    }
-    phases.push({kind:'done',label:'Done 🔥',sec:0});
-  }
-  function beep(freq,dur,vol){
-    try{
-      if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
-      var o=actx.createOscillator(), g=actx.createGain();
-      o.type='sine'; o.frequency.value=freq||880; o.connect(g); g.connect(actx.destination);
-      g.gain.setValueAtTime(0.0001,actx.currentTime);
-      g.gain.exponentialRampToValueAtTime(vol||0.25,actx.currentTime+0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+(dur||0.16));
-      o.start(); o.stop(actx.currentTime+(dur||0.16));
-    }catch(e){}
-  }
-  function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
-  function fmt(s){ if(s>=60){var m=Math.floor(s/60);return m+':'+String(s%60).padStart(2,'0');} return String(s); }
-  function workIndex(idx){ // 1-based exercise number for a work phase, else null
-    var n=0; for(var i=0;i<=idx;i++){ if(phases[i].kind==='work') n++; } return n;
-  }
-  function draw(){
-    var p=phases[pi]; if(!p) return;
-    var rest = (p.kind==='rest'||p.kind==='ready');
-    el('abtimer').classList.toggle('rest', rest);
-    el('abtStage').textContent = p.kind==='work' ? ('Exercise '+workIndex(pi)+' / '+circuitWork.length)
-                              : p.kind==='done' ? 'Complete' : (p.kind==='ready'?circuitTitle:'Rest');
-    el('abtName').innerHTML = (p.kind==='work' && p.note)
-      ? (p.label+'<span style="display:block;font-size:.46em;opacity:.7;font-weight:400;margin-top:4px">'+p.note+'</span>')
-      : p.label;
-    el('abtTime').textContent = p.kind==='done' ? '✓' : fmt(remaining);
-    el('abtNext').innerHTML = p.next ? ('Next: '+p.next) : '&nbsp;';
-    // dots = one per exercise
-    el('abtDots').innerHTML = circuitWork.map(function(_,i){
-      var cur=workIndex(pi); var cls = (p.kind==='work'&&i===cur-1)?'cur':(i<cur-1||(p.kind==='done'))?'done':((p.kind==='rest'&&i<cur)?'done':'');
-      return '<span class="abt-dot '+cls+'"></span>';
-    }).join('');
-    el('abtList').innerHTML = circuitWork.map(function(it,i){
-      var cur=workIndex(pi); var cls=(p.kind==='work'&&i===cur-1)?'cur':(i<cur-1?'done':'');
-      return '<div class="abt-li '+cls+'"><span>'+(i+1)+'. '+it.ex+'</span><span>'+it.sec+'s</span></div>';
-    }).join('');
-    el('abtPlay').textContent = running ? 'Pause' : (p.kind==='done' ? 'Restart' : (started ? 'Resume' : 'Start'));
-  }
-  function tick(){
-    var now=Date.now();
-    var r=Math.max(0, Math.round((endAt-now)/1000));
-    if(r!==lastSec){
-      lastSec=r;
-      remaining=r;
-      callout(phases[pi], r);
-      draw();
-    }
-    if(now>=endAt) next(true);
-  }
-  function startTick(){ clearInterval(timer); timer=setInterval(tick,150); }
-  function play(){
-    if(phases[pi] && phases[pi].kind==='done'){ openFresh(); }
-    running=true; started=true; endAt=Date.now()+remaining*1000; lastSec=-1;
-    reqWake();
-    // iOS only allows audio started from a user gesture — this tap is it.
-    // Create + resume the AudioContext here so the later timer-tick beeps are audible.
-    try{
-      if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
-      if(actx.state==='suspended') actx.resume();
-    }catch(e){}
-    if(!curAnnounced){ announcePhase(phases[pi]); curAnnounced=true; }   // speak current phase on first start
-    startTick(); draw();
-  }
-  function pause(){ running=false; clearInterval(timer); relWake();
-    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){} draw(); }
-  function next(auto){
-    if(pi>=phases.length-1){ // finished
-      running=false; clearInterval(timer); relWake();
-      pi=phases.length-1; remaining=0; draw();
-      if(auto){ beep(660,0.5,0.3); buzz([120,60,120,60,240]); announcePhase(phases[pi]); }
-      return;
-    }
-    pi++; remaining=phases[pi].sec; lastSec=-1; curAnnounced=true;
-    if(phases[pi].kind==='work'){ beep(1046,0.18,0.3); buzz(180); }      // exercise start
-    else if(phases[pi].kind==='done'){ beep(660,0.5,0.3); buzz([120,60,120,60,240]); }
-    else { beep(523,0.16,0.22); buzz(80); }                              // rest
-    announcePhase(phases[pi]);
-    if(running){ endAt=Date.now()+remaining*1000; }
-    draw();
-  }
-  function prev(){ if(pi>0){ pi--; remaining=phases[pi].sec; lastSec=-1; curAnnounced=true;
-    if(running) endAt=Date.now()+remaining*1000; announcePhase(phases[pi]); draw(); } }
-  function reqWake(){ try{ if('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function(w){wake=w;}).catch(function(){}); }catch(e){} }
-  function relWake(){ try{ wake&&wake.release&&wake.release(); }catch(e){} wake=null; }
-  function openFresh(){ buildPhases(); pi=0; remaining=phases[0].sec; running=false; started=false; lastSec=-1; curAnnounced=false; }
-  function open(){ openFresh(); el('abtimer').hidden=false; liftWake(true); draw(); }
-  function close(){ running=false; clearInterval(timer); relWake(); liftWake(false);
-    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}
-    el('abtimer').hidden=true; }
-
-  // wiring (overlay buttons are static)
-  document.addEventListener('click',function(ev){
-    var t=ev.target; if(t&&t.closest&&t.closest('[data-core-timer]')){ open(); }
-  });
-  el('abtPlay').addEventListener('click',function(){ running?pause():play(); });
-  el('abtSkip').addEventListener('click',function(){ next(false); });
-  el('abtPrev').addEventListener('click',function(){ prev(); });
-  el('abtClose').addEventListener('click',function(){ close(); });
-  el('abtVoice').addEventListener('click',function(){
-    voiceOn=!voiceOn;
-    el('abtVoice').textContent = voiceOn ? '🔊' : '🔇';
-    el('abtVoice').classList.toggle('off', !voiceOn);
-    if(!voiceOn){ try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){} }
-    else { say('Voice on'); }   // also primes speech within this tap
-  });
-  // re-acquire wake lock if the user tabs back while running
-  document.addEventListener('visibilitychange',function(){ if(running && document.visibilityState==='visible') reqWake(); });
-
-  return { open:open, close:close };
-})();
 
 /* ───────── Update Program (publish to Vercel; long-press the LIFT logo) ───────── */
 var Admin = (function(){

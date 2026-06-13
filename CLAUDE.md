@@ -22,13 +22,13 @@ Training decisions are made by the user **in conversation with Claude in the Cla
 Occasionally you'll also tweak the UI in `index.html`, adjust the PWA files, regenerate icons, or edit the Swift wrapper — but the day-to-day is editing `program.json`.
 
 ## File map
-- `index.html` — UI, the day/week renderer, the on-device logging+history engine, the runtime loader that fetches the live program, and the native bridges (`liftPushState` → widget, `liftSyncLogs` → cloud upload, `liftWake` → keep screen awake during the core timer). Loads `program.js` via `<script src>` as the fallback. **Do not put workout data here.**
+- `index.html` — UI, the day/week renderer, the on-device logging+history engine, the runtime loader that fetches the live program, and the native bridges (`liftPushState` → widget, `liftSyncLogs` → cloud upload). Loads `program.js` via `<script src>` as the fallback. **Do not put workout data here.**
 - `program.json` — **the live workout data**, fetched at runtime from raw.githubusercontent. `{ mon, tue, wed, fri }` as JSON. **Edit this to change routines.**
 - `program.js` — bundled **offline / cold-start fallback** only (`var PROGRAM = { ... }` — `var`, so the live fetch can override it). Not the live source.
 - `manifest.webmanifest` — PWA manifest (name "LIFT", icons, dark theme).
 - `service-worker.js` — network-first SW (auto-update + offline). **If you add new same-origin files, add their paths to the `CORE` array here.** (The cross-origin `program.json` fetch is intentionally not cached by the SW.)
 - `icon-192/512/180.png`, `favicon-32.png` — web/PWA icons.
-- `ios/LIFTApp.swift` — native wrapper. `APP_URL` must be the hosted URL. Hosts the `lift` (widget state), `liftSync` (log upload), and `liftWake` (screen-awake toggle) message handlers.
+- `ios/LIFTApp.swift` — native wrapper. `APP_URL` must be the hosted URL. Hosts the `lift` (widget state) and `liftSync` (log upload) message handlers. (A `liftWake` handler also exists from the retired core timer; it's now dead/no-op and can be dropped on the next native cleanup.)
 - `ios/Secrets.swift` — **gitignored.** Holds the Vercel sync URL + WRITE_SECRET for native uploads. Never commit it (`ios/Secrets.example.swift` is the committed template).
 - `ios/Shared/LiftStore.swift`, `ios/LIFTWidget/*` — App Group store + Lock Screen widget.
 - `ios/project.yml` — XcodeGen project spec (run `xcodegen generate` in `ios/` after changing sources/targets).
@@ -55,7 +55,7 @@ block = {
 
 **Optional published data contracts (additive, backward-compatible):**
 - **Special-set tags** — exercise arrays may carry an optional **4th element**: a lowercase keyword array, e.g. `["Standing DB Lateral · burnout","3×12–15","Both DB …",["dropset"]]`. Rendered as amber badges. Known keywords: `dropset, partials, restpause, amrap, failure, tempo` (unknown → uppercased as-is). A 3-element exercise renders exactly as before.
-- **Core-timer pools** — an optional top-level **`corePools`** key on the program JSON overrides the bundled ab-timer pools: `{ "corePools": { "weightedPool": [ {ex,sec,pair?,pairLabels?,note?} ], "bodyweightPool": [ … ] } }`. The app shuffles these by ISO week. Omit it to keep the bundled pools.
+- **Core timer: RETIRED.** Abs are now a normal tracked exercise in the routine (e.g. Friday's "Vertical Knee Raise"). The timed core circuit, its pools, the `corePools` key, and the Core Timer button are all removed. `fin.core` stays a published field — now just a short text line shown in the Core section.
 - **`recs` map** *(live — drives the accordion log card)* — a top-level `recs` keyed by **exact exercise name** (same string as in the exercise array and log keys): `{ "<name>": { w, lo, hi, cue } }`. When present, the exercise's expanded card shows the suggested weight `w` (big, accent), the `lo–hi` range, and the `cue` ("Do this"), and pre-fills the set rows to `w` in accent (Save logs it, or the user adjusts). Omit `w/lo/hi` for a bodyweight cue. No `recs[name]` → the card falls back to last-session prefill / name-based ghost guess. Republish just `recs` weekly to refresh recommendations without touching the routine.
 - These extra top-level keys are ignored by the day renderer (it only reads `mon/tue/wed/fri`), so they ride along safely in a publish.
 
