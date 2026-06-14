@@ -69,14 +69,26 @@ struct WebView: UIViewRepresentable {
 
         // Push the full log blob to the Vercel sync endpoint so the Claude.ai chat can read progress.
         // Secrets live in Secrets.swift (gitignored) — never in the public web repo.
-        private func uploadLogs(_ body: Data) {
+        private func uploadLogs(_ body: Data, retry: Int = 1) {
             guard let url = URL(string: Secrets.syncURL) else { return }
             var req = URLRequest(url: url)
             req.httpMethod = "POST"
             req.setValue("application/json", forHTTPHeaderField: "content-type")
             req.setValue(Secrets.writeSecret, forHTTPHeaderField: "x-write-secret")
             req.httpBody = body
-            URLSession.shared.dataTask(with: req).resume()
+            URLSession.shared.dataTask(with: req) { [weak self] _, response, error in
+                let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+                let ok = error == nil && (200...299).contains(code)
+                if ok {
+                    NSLog("LIFT sync: uploaded (\(code))")
+                } else if retry > 0 {
+                    // one retry after a short delay (transient network / cold start)
+                    NSLog("LIFT sync: upload failed (code \(code), err \(error?.localizedDescription ?? "none")) — retrying")
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) { self?.uploadLogs(body, retry: retry - 1) }
+                } else {
+                    NSLog("LIFT sync: upload failed twice (code \(code)) — will re-send on next save/open")
+                }
+            }.resume()
         }
     }
 }

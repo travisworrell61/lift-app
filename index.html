@@ -435,6 +435,7 @@
   .adm-status{min-height:1.3em;font-family:'Oswald',sans-serif;font-size:.8rem;margin:11px 2px;color:var(--muted);}
   .adm-status.ok{color:#7ef0b0;}
   .adm-status.err{color:#fb7185;}
+  .adm-status.warn{color:#ffcf5c;}
   .adm-actions{display:flex;gap:10px;}
   .adm-btn{flex:1;min-height:48px;border-radius:11px;cursor:pointer;border:1px solid var(--line);
     background:var(--panel);color:var(--ink);font-family:'Oswald',sans-serif;font-weight:700;
@@ -626,7 +627,7 @@ function recValsFor(name,variant){
    program — kept in localStorage for today only and discarded tomorrow. */
 var OV_KEY='lift-overrides', sessionOv=null;
 function loadOv(){
-  if(sessionOv) return sessionOv;
+  if(sessionOv && sessionOv.date===todayStr()) return sessionOv;   // overrides are for TODAY only; reset across midnight
   sessionOv={date:todayStr(), swaps:{}, added:{}, sets:{}};
   try{
     var r=localStorage.getItem(OV_KEY);
@@ -647,13 +648,15 @@ function addedFor(day){ return loadOv().added[day]||[]; }
 // Master exercise library (the coach's curated list — publishable as top-level
 // `exLib` in the program JSON; this bundled set is the fallback).
 var EX_LIB_DEFAULT={
-  'Chest':['Incline DB Press','Flat Machine Press','Pec Deck','Cable Fly','Push-up'],
-  'Back':['Lat Pulldown','Seated Cable Row','Chest-supported Row','Single-arm DB Row','Straight-arm Pulldown'],
-  'Shoulders':['Machine Shoulder Press','Cable Lateral Raise','Lateral Raise Machine','Rear-delt Fly','Face Pull'],
-  'Biceps':['Dumbbell Curl','Hammer Curl','Cable Curl','Preacher Curl'],
-  'Triceps':['Rope Pushdown','Straight-bar Pushdown','Overhead Cable Extension','Skullcrusher'],
-  'Legs':['Leg Extension','Leg Curl','Leg Press','Hack Squat','Walking Lunge','Hip Thrust','Calf Raise'],
-  'Core':['Cable Crunch','Hanging Leg Raise','Ab Wheel','Plank']
+  'Chest':['Incline DB Press','Incline Machine Press','Flat DB Press','Flat Machine Press','Smith Incline Press','Pec Deck','Cable Fly (high)','Cable Fly (low)','Incline Cable Fly','Push-up','Dip'],
+  'Back':['Wide Lat Pulldown','Close-grip Pulldown','Neutral-grip Pulldown','Pull-up','Chin-up','Seated Cable Row','Chest-supported Row','Machine Row','T-bar Row','Barbell Row','Single-arm DB Row','Single-arm Cable Row','Straight-arm Pulldown','DB Pullover'],
+  'Shoulders':['Machine Shoulder Press','DB Shoulder Press','Arnold Press','DB Lateral Raise','Cable Lateral Raise','Lateral Raise Machine','Rear-delt Fly','Reverse Pec Deck','Face Pull','Upright Row','Front Raise'],
+  'Biceps':['DB Curl','Hammer Curl','Cable Curl','Bayesian Cable Curl','Preacher Curl','Incline DB Curl','Concentration Curl','Spider Curl','EZ-bar Curl'],
+  'Triceps':['Rope Pushdown','Straight-bar Pushdown','Single-arm Pushdown','Overhead Cable Extension','DB Overhead Extension','Skullcrusher','Tricep Kickback','Close-grip Press','Dip'],
+  'Quads':['Leg Extension','Leg Press','Hack Squat','Pendulum Squat','Belt Squat','Smith Squat','Front Squat','Back Squat','Goblet Squat','Bulgarian Split Squat','Walking Lunge','Reverse Lunge','Single-Leg Lunge','Single-Leg Press','Sissy Squat','Spanish Squat','Step-up'],
+  'Hamstrings & Glutes':['Lying Leg Curl','Seated Leg Curl','Romanian Deadlift','Stiff-leg Deadlift','Single-Leg RDL','Hip Thrust','Glute Kickback','Cable Pull-through','Good Morning','Glute Bridge','Back Extension'],
+  'Calves':['Standing Calf Raise','Seated Calf Raise','Leg Press Calf Raise','Calf Press'],
+  'Core':['Cable Crunch','Hanging Leg Raise','Vertical Knee Raise','Ab Wheel','Plank','Russian Twist','Decline Sit-up','Cable Woodchop','Toes-to-bar','Crunch']
 };
 function exLibData(){
   try{ if(PROGRAM && PROGRAM.exLib && typeof PROGRAM.exLib==='object' && !Array.isArray(PROGRAM.exLib) && Object.keys(PROGRAM.exLib).length) return PROGRAM.exLib; }catch(e){}
@@ -806,17 +809,6 @@ function buildHistory(name){
   return '<div class="hist-list">'+items+'</div><div class="panel-actions"><button class="btn-cancel">Close</button></div>';
 }
 function renumber(rows){var n=rows.querySelectorAll('.setrow .si');for(var i=0;i<n.length;i++){n[i].textContent='SET '+(i+1);}}
-function refreshBlock(block,name){
-  var last=block.querySelector('.last');
-  var line=lastLine(name);
-  if(line){last.className='last';last.innerHTML=line;}
-  else{last.className='last empty';last.textContent='No log yet';}
-  var btns=block.querySelector('.logbtns');
-  if(logsFor(name).length && !btns.querySelector('.hist-btn')){
-    var b=document.createElement('button');b.className='hist-btn';b.textContent='History';
-    btns.insertBefore(b,btns.firstChild);
-  }
-}
 document.addEventListener('click',function(ev){
   var t=ev.target; if(!t.closest) return;
 
@@ -836,10 +828,25 @@ document.addEventListener('click',function(ev){
   if(ss2){
     var sp=ss2.closest('.log-panel'), sb=sp&&sp.closest('.exblock'); if(!sb) return;
     var snm=dec(sb.dataset.ex), srp=dec(sb.dataset.reps||'');
+    // capture what's already typed so changing the count doesn't wipe it
+    var typed=[].map.call(sp.querySelectorAll('.setrow'),function(row){
+      return row.classList.contains('plate')?{p:row.dataset.p||''}:{w:((row.querySelector('.in-w')||{}).value||'')};
+    });
     var cur2=parseInt((sp.querySelector('.sc-n')||{}).textContent)||3;
     var nv=Math.max(1, Math.min(8, cur2+parseInt(ss2.dataset.d)));
     loadOv().sets[snm]=nv; saveOv();
     sp.innerHTML=buildPanel(snm,srp); sp.dataset.mode='log';
+    [].forEach.call(sp.querySelectorAll('.setrow'),function(row,i){
+      var tv=typed[i]; if(!tv) return;
+      if(row.classList.contains('plate') && tv.p!=null){
+        row.dataset.p=tv.p; var arr=tv.p.split(',').filter(Boolean).map(Number);
+        var stk=row.querySelector('.pstack'), tot=row.querySelector('.ptotal');
+        if(stk) stk.innerHTML=arr.length?perSideLabel(arr):'<span class="pstack-empty">add plates / side</span>';
+        if(tot) tot.textContent=arr.length?(plateTotal(arr)+' lb'):'';
+      } else if(tv.w!=null && tv.w!==''){
+        var inp=row.querySelector('.in-w'); if(inp){ inp.value=tv.w; inp.classList.remove('suggested'); }
+      }
+    });
     return;
   }
 
@@ -949,9 +956,17 @@ document.addEventListener('click',function(ev){
     else { sets.push({w:null}); }                            // bodyweight "Mark done"
     var all=loadLogs(); if(!all[name]) all[name]=[];
     var ts=todayStr();
-    all[name]=all[name].filter(function(e){return e.date!==ts;});  // one entry per day; re-save overwrites
-    var entry={date:ts, day:curDay, wk:curWk, sets:sets};
-    if(variantsOf(name)) entry.v=currentVariant(name);             // record which machine these weights belong to
+    var vNow=variantsOf(name)?currentVariant(name):null;
+    // Overwrite only a PRIOR SAVE OF THE SAME SLOT today — scoped by (date, day, variant) — so the
+    // same exercise programmed on two days, or two machines of a " / " exercise, don't clobber each other.
+    all[name]=all[name].filter(function(e){
+      if(e.date!==ts) return true;
+      if((e.day||curDay)!==curDay) return true;                          // different day → keep
+      if(vNow && (e.v||variantsOf(name)[0])!==vNow) return true;         // different variant → keep
+      return false;
+    });
+    var entry={date:ts, day:curDay, sets:sets};
+    if(vNow) entry.v=vNow;                                               // record which machine these weights belong to
     all[name].push(entry);
     saveLogs(all);
     liftPushState(); liftSyncLogs();
@@ -996,7 +1011,11 @@ function liftPushState(){
 function liftSyncLogs(){
   try{
     if(!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.liftSync)) return;
-    window.webkit.messageHandlers.liftSync.postMessage(JSON.stringify({logs: loadLogs(), notes: loadNotes()}));
+    var lg=loadLogs(), nt=loadNotes();
+    // NEVER upload an empty store — a fresh/cleared local store (reinstall, iOS data eviction)
+    // would otherwise overwrite and wipe the server's logged history. Nothing to send → skip.
+    if(!Object.keys(lg).length && !Object.keys(nt).length) return;
+    window.webkit.messageHandlers.liftSync.postMessage(JSON.stringify({logs: lg, notes: nt}));
   }catch(e){}
 }
 // Ask the native shell to keep the screen awake (the browser wake-lock API is
@@ -1199,7 +1218,15 @@ function cachedProgram(){ try{ var r=localStorage.getItem('lift-program-cache');
 function setCachedProgram(p){ try{ localStorage.setItem('lift-program-cache', JSON.stringify(p)); }catch(e){} }
 function normalizeProgram(data){
   var p=(data && data.program)?data.program:data;        // accept a raw object or { program: {...} }
-  return (p && typeof p==='object' && !Array.isArray(p) && Object.keys(p).length) ? p : null;
+  if(!(p && typeof p==='object' && !Array.isArray(p) && Object.keys(p).length)) return null;
+  // If wrapped as { program:{…}, recs:{…}, … }, fold the sibling top-level keys
+  // (recs/alts/exLib/plateMode/plateSet/corePools) onto the program so they aren't dropped.
+  if(data && data.program && data!==p){
+    ['recs','alts','exLib','plateMode','plateSet','corePools'].forEach(function(k){
+      if(data[k]!=null && p[k]==null) p[k]=data[k];
+    });
+  }
+  return p;
 }
 // Structural check shared by the publish validator AND the runtime loader, so a
 // malformed program can neither be published nor adopted from the network/cache.
@@ -1499,6 +1526,27 @@ var Ab = (function(){
   return { open:open, close:close };
 })();
 
+// Publish-time sanity: which recs/alts/plateMode keys DON'T match a real exercise name
+// (the most common silent two-chat failure — a "·"/space/quote typo shows nothing).
+function programKeyWarnings(prog){
+  try{
+    var names={}, variants={};
+    ORDER.forEach(function(dk){ var d=prog[dk]; if(!d||!Array.isArray(d.A)) return;
+      d.A.forEach(function(b){ (b.e||[]).forEach(function(ex){ if(ex&&ex[0]){ names[ex[0]]=1;
+        var vs=variantsOf(ex[0]); if(vs) vs.forEach(function(v){ variants[v]=1; }); } }); }); });
+    function known(n){ return !!(names[n]||variants[n]); }
+    function q(s){ return '“'+s+'”'; }
+    var warns=[];
+    function checkMap(obj,label){ if(obj && typeof obj==='object' && !Array.isArray(obj)){
+      var bad=Object.keys(obj).filter(function(k){ return !known(k); });
+      if(bad.length) warns.push(label+' for '+bad.slice(0,3).map(q).join(', ')+(bad.length>3?' +'+(bad.length-3):'')+' (no matching exercise — typo?)'); } }
+    checkMap(prog.recs,'recs'); checkMap(prog.alts,'alts');
+    if(Array.isArray(prog.plateMode)){ var bp=prog.plateMode.filter(function(k){ return !known(k); });
+      if(bp.length) warns.push('plateMode '+bp.slice(0,3).map(q).join(', ')+(bp.length>3?' +'+(bp.length-3):'')+' (no matching exercise)'); }
+    return warns;
+  }catch(e){ return []; }
+}
+
 /* ───────── Update Program (publish to Vercel; long-press the LIFT logo) ───────── */
 var Admin = (function(){
   var g=function(id){ return document.getElementById(id); };
@@ -1530,8 +1578,10 @@ var Admin = (function(){
   function validate(){
     var v=parseInput();
     if(!v.ok){ setStatus('✕ '+v.msg,'err'); return null; }
-    setStatus('✓ Looks good — '+v.good+' day(s): '+v.days.join(', '),'ok');
-    return v;
+    var warns=programKeyWarnings(v.prog);
+    if(warns.length){ setStatus('✓ '+v.good+' days valid — heads up: '+warns.join(' · '),'warn'); }
+    else { setStatus('✓ Looks good — '+v.good+' day(s): '+v.days.join(', '),'ok'); }
+    return v;   // warnings don't block publishing (keys may be intentional)
   }
   function publish(){
     var v=validate(); if(!v) return;
@@ -1663,8 +1713,10 @@ document.addEventListener('input', function(ev){
 document.addEventListener('visibilitychange', function(){
   if(document.visibilityState!=='visible') return;
   liftSyncLogs();
-  // refresh (widget + date rollover) — but never wipe a logging panel mid-entry
-  if(!document.querySelector('.log-panel:not([hidden])')) render();
+  // refresh (widget + date rollover) — but never wipe an open log panel OR a field
+  // being typed in (notes / weight), which would drop focus + the iOS keyboard.
+  var ae=document.activeElement, typing=ae && (ae.tagName==='TEXTAREA'||ae.tagName==='INPUT');
+  if(!typing && !document.querySelector('.log-panel:not([hidden])')) render();
 });
 </script>
 <script>
