@@ -538,10 +538,21 @@ var openBlk={};      // block index → 1 (expanded superset showing its exercis
 function rerender(){ var y=window.scrollY; render(); window.scrollTo(0,y); }   // keep scroll on expand/collapse
 
 const DOW={mon:1,tue:2,wed:3,fri:5};   // weekday index, Mon=1 … Sun=7
-function dateForWeekday(targetDow){
+// Anchor the displayed week to the one holding the NEXT upcoming training day (Mon–Fri).
+// On the weekend the week's training is done, so roll the tab dates forward to next week's
+// Mon–Fri (Ticket 09). Logging still keys on the real todayStr() — only the displayed dates roll.
+function weekAnchorMonday(){
   const now=new Date();
-  const cur=now.getDay()||7;                 // 1..7 (Sun→7)
-  const monday=new Date(now); monday.setDate(now.getDate()-(cur-1));   // this week's Monday
+  const dow=now.getDay();                                    // 0=Sun … 6=Sat
+  const monday=new Date(now);
+  if(dow===6)      monday.setDate(now.getDate()+2);          // Sat → next Monday
+  else if(dow===0) monday.setDate(now.getDate()+1);          // Sun → next Monday
+  else             monday.setDate(now.getDate()-(dow-1));    // Mon–Fri → this week's Monday
+  monday.setHours(0,0,0,0);
+  return monday;
+}
+function dateForWeekday(targetDow){           // targetDow: 1=Mon … 5=Fri
+  const monday=weekAnchorMonday();
   const d=new Date(monday); d.setDate(monday.getDate()+(targetDow-1));
   return d;
 }
@@ -680,6 +691,18 @@ function guessFor(name){
   }
   return g;
 }
+// Bodyweight / reps-only detection (Ticket 09 item #9): such moves get NO weight field by default.
+// Primary trigger is the rep-spec (AMRAP / "× burnout" / "to failure") — the simplest, most reliable
+// signal, and what the coach actually writes. Then a few UNAMBIGUOUS bodyweight names. Deliberately
+// NOT triggered by "crunch"/"sit-up" alone — cable crunches and loaded sit-ups carry weight.
+function isBodyweight(name, reps){
+  var r=String(reps||'').toLowerCase();
+  if(/amrap|burnout|to\s*failure|max\s*reps/.test(r)) return true;
+  var s=String(name||'').toLowerCase();
+  if(/push-?up|pull-?up|chin-?up|\bdip\b|\bplank\b/.test(s)) return true;
+  if(/vertical knee raise|captain'?s chair|hanging (knee|leg) raise/.test(s)) return true;
+  return false;
+}
 // Weight-only summary. Shows the weights logged (e.g. "50, 55, 60 lb").
 // Exercises with no load (bodyweight) just read "done ✓".
 function setsSummary(sets){
@@ -771,10 +794,18 @@ function buildPanel(name,reps){
   var pf=ent?ent.sets:null;                           // prefill from the last session OF THIS VARIANT
   var rec=recValsFor(name,variant);
   var guess=guessFor(name);                           // null for bodyweight
-  // bodyweight move with no coach weight → no number to log, just a "Mark done" entry (never for plate-loaded)
-  if(!plate && guess==null && !(rec && rec.w!=null)){
-    return '<div class="bw-note">Bodyweight — no weight to log.</div>'+
-      '<div class="panel-actions"><button class="btn-save">✓ Mark done</button></div>';
+  // Bodyweight / reps-only → no weight prompt by default, just "Mark done" (never for plate-loaded).
+  // Triggered by an AMRAP/burnout rep-spec or a bodyweight name, plus the legacy guess==null case.
+  // "+ Add weight" reveals a normal weight row (the VKR note: "add a DB once it's easy") — the existing
+  // .btn-add handler appends into .setrows and Save reads it like any weighted set.
+  if(!plate && (isBodyweight(name,reps) || (guess==null && !(rec && rec.w!=null)))){
+    return '<div class="bw-note">Bodyweight — reps to failure, no weight needed. '+
+        'Tap <b>+ Add weight</b> only if you loaded a dumbbell.</div>'+
+      '<div class="setrows"></div>'+
+      '<div class="panel-actions">'+
+        '<button class="btn-add">+ Add weight</button>'+
+        '<button class="btn-save">✓ Mark done</button>'+
+      '</div>';
   }
   var n=loadOv().sets[name] || ((pf&&pf.length)?pf.length:(setsOf(reps)||3));   // session set-count override wins
   var rows='';
@@ -1269,11 +1300,14 @@ async function loadProgram(){
 }
 
 /* ───────── Core / ab interval timer — pool + weekly shuffle (BUILD-QUEUE T03) ─────────
-   Monday = weighted-leaning (6 weighted + 2 bodyweight); any other day = all bodyweight.
+   Monday = weighted-leaning (CORE_TARGET-2 weighted + 2 bodyweight); any other day = all bodyweight.
    Each week the pools are seed-shuffled by ISO week → a fresh circuit every week.
-   8 work intervals + two 30s rests (~7 min). Paired moves run as two sided intervals;
+   CORE_TARGET work intervals + two 30s rests. Paired moves run as two sided intervals;
    rests never split a pair. Pools are plain data — easy to edit (later: publishable). */
+var CORE_TARGET = 6; // work intervals per circuit — single tunable constant (was 8; trimmed, felt long).
+                     // Mon = CORE_TARGET-2 weighted + 2 bodyweight; rests fall at the thirds.
 var AB_LEADIN = 5;   // seconds before the first move
+var AB_TRANS  = 5;   // TRANSITION_SECONDS — prep window between exercises (Ticket 10); bump for slower weight swaps
 var AB_POOLS = {
   weightedPool: [
     { ex:'Single-Arm Otis-Up', sec:50, pair:true },
@@ -1323,7 +1357,7 @@ var AB_POOLS = {
 function ab_mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function ab_shuffle(arr,seed){var r=ab_mulberry32(seed);var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function ab_isoWeek(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);var ys=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-ys)/86400000)+1)/7);}
-// Build this week's circuit (8 work intervals + two 30s rests) deterministically from the day + ISO week.
+// Build this week's circuit (CORE_TARGET work intervals + two 30s rests) deterministically from the day + ISO week.
 function ab_buildCircuit(){
   // pools are publishable: if the live program JSON carries a `corePools` key, use it; else the bundled pools.
   var pools = (typeof PROGRAM==='object' && PROGRAM && PROGRAM.corePools
@@ -1338,11 +1372,11 @@ function ab_buildCircuit(){
   if(isWeighted){
     var w=ab_shuffle(pools.weightedPool, seed);
     var b=ab_shuffle(pools.bodyweightPool, seed+101);
-    candidates=ab_shuffle(w.slice(0,6).concat(b.slice(0,2)), seed+777).concat(w.slice(6), b.slice(2));
+    candidates=ab_shuffle(w.slice(0,CORE_TARGET-2).concat(b.slice(0,2)), seed+777).concat(w.slice(CORE_TARGET-2), b.slice(2));
   } else {
     candidates=ab_shuffle(pools.bodyweightPool, seed);
   }
-  var TARGET=8, work=[], pairStart=[];
+  var TARGET=CORE_TARGET, work=[], pairStart=[];
   for(var k=0;k<candidates.length && work.length<TARGET;k++){
     var ex=candidates[k];
     if(ex.pair){
@@ -1357,7 +1391,7 @@ function ab_buildCircuit(){
     }
   }
   function restSlot(i){ return pairStart.indexOf(i-1)>=0 ? i+1 : i; }   // don't split a pair
-  var restAt={}; [restSlot(3),restSlot(6)].forEach(function(i){ if(i>0 && i<work.length) restAt[i]=1; });
+  var restAt={}; [restSlot(Math.round(CORE_TARGET/3)),restSlot(Math.round(CORE_TARGET*2/3))].forEach(function(i){ if(i>0 && i<work.length) restAt[i]=1; });
   var seq=[];
   work.forEach(function(it,i){ if(restAt[i]) seq.push({rest:30}); seq.push(it); });
   var dayName=(PROGRAM[curDay]&&PROGRAM[curDay].title)||({mon:'Monday',wed:'Wednesday'}[curDay])||'Core';
@@ -1384,6 +1418,7 @@ var Ab = (function(){
     if(!p) return;
     if(p.kind==='work') say(p.label);
     else if(p.kind==='rest') say('Rest. Next up, '+(p.next||''));
+    else if(p.kind==='trans') say('Next up, '+(p.next||''));
     else if(p.kind==='ready') say('Get ready. First up, '+(p.next||''));
     else if(p.kind==='done') say('Workout complete. Great work.');
   }
@@ -1393,7 +1428,7 @@ var Ab = (function(){
       if(r===20 && p.sec>=40) say('20 seconds');
       else if(r===10) say('10 seconds left');
       else if(r<=3 && r>0) beep(900,0.12,0.25);          // work ending: beeps
-    } else if((p.kind==='rest'||p.kind==='ready') && r<=3 && r>0){
+    } else if((p.kind==='rest'||p.kind==='ready'||p.kind==='trans') && r<=3 && r>0){
       say(String(r));                                     // spoken 3·2·1 before the exercise
     }
   }
@@ -1411,6 +1446,12 @@ var Ab = (function(){
         phases.push({kind:'rest',label:'Rest',sec:it.rest,next:nx});
       } else {
         phases.push({kind:'work',label:it.ex,sec:it.sec,note:it.note});
+        // Ticket 10: a short transition window BEFORE the next exercise so there's time to reposition
+        // — but only when no 30s rest already separates them (the rest already announces + counts in).
+        var nxt=seq[i+1];
+        if(nxt && !nxt.rest){
+          phases.push({kind:'trans',label:nxt.ex,sec:AB_TRANS,next:nxt.ex});
+        }
       }
     }
     phases.push({kind:'done',label:'Done 🔥',sec:0});
@@ -1433,22 +1474,26 @@ var Ab = (function(){
   }
   function draw(){
     var p=phases[pi]; if(!p) return;
-    var rest = (p.kind==='rest'||p.kind==='ready');
+    var rest = (p.kind==='rest'||p.kind==='ready'||p.kind==='trans');
     el('abtimer').classList.toggle('rest', rest);
     el('abtStage').textContent = p.kind==='work' ? ('Exercise '+workIndex(pi)+' / '+circuitWork.length)
-                              : p.kind==='done' ? 'Complete' : (p.kind==='ready'?circuitTitle:'Rest');
+                              : p.kind==='done'  ? 'Complete'
+                              : p.kind==='ready' ? circuitTitle
+                              : p.kind==='trans' ? 'Get ready'
+                              : 'Rest';
     el('abtName').innerHTML = (p.kind==='work' && p.note)
       ? (p.label+'<span style="display:block;font-size:.46em;opacity:.7;font-weight:400;margin-top:4px">'+p.note+'</span>')
       : p.label;
     el('abtTime').textContent = p.kind==='done' ? '✓' : fmt(remaining);
-    el('abtNext').innerHTML = p.next ? ('Next: '+p.next) : '&nbsp;';
+    // During a transition the big name already shows the upcoming exercise, so don't repeat "Next:".
+    el('abtNext').innerHTML = (p.kind==='trans') ? 'Get ready…' : (p.next ? ('Next: '+p.next) : '&nbsp;');
     // dots = one per exercise
     el('abtDots').innerHTML = circuitWork.map(function(_,i){
-      var cur=workIndex(pi); var cls = (p.kind==='work'&&i===cur-1)?'cur':(i<cur-1||(p.kind==='done'))?'done':((p.kind==='rest'&&i<cur)?'done':'');
+      var cur=workIndex(pi); var cls = (p.kind==='work'&&i===cur-1)?'cur':(i<cur-1||(p.kind==='done'))?'done':(((p.kind==='rest'||p.kind==='trans')&&i<cur)?'done':'');
       return '<span class="abt-dot '+cls+'"></span>';
     }).join('');
     el('abtList').innerHTML = circuitWork.map(function(it,i){
-      var cur=workIndex(pi); var cls=(p.kind==='work'&&i===cur-1)?'cur':(i<cur-1?'done':'');
+      var cur=workIndex(pi); var cls=(p.kind==='work'&&i===cur-1)?'cur':((i<cur-1||((p.kind==='rest'||p.kind==='trans')&&i<cur))?'done':'');
       return '<div class="abt-li '+cls+'"><span>'+(i+1)+'. '+it.ex+'</span><span>'+it.sec+'s</span></div>';
     }).join('');
     el('abtPlay').textContent = running ? 'Pause' : (p.kind==='done' ? 'Restart' : (started ? 'Resume' : 'Start'));
