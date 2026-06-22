@@ -326,6 +326,9 @@
   .rec .meta{padding-bottom:5px;}
   .rec .lab{font-family:'Oswald',sans-serif;font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
   .rec .rng{font-family:'Oswald',sans-serif;font-weight:600;font-size:.92rem;color:var(--steel);}
+  /* Plate breakdown next to the target (Ticket 14) — display only, distinct from the weight box */
+  .rec .plate-conv{font-family:'Oswald',sans-serif;font-weight:600;font-size:.86rem;color:var(--steel);padding-bottom:6px;white-space:nowrap;}
+  .rec .plate-conv::before{content:'· ';color:var(--muted);}
   .cue{border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--panel2));
     border-radius:0 8px 8px 0;padding:9px 12px;font-size:.84rem;color:var(--steel);line-height:1.4;margin-bottom:12px;}
   .cue b{font-family:'Oswald',sans-serif;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;display:block;
@@ -676,6 +679,15 @@ function recFor(name){
       var lv=R[name]; return (typeof lv==='number')?{w:lv}:(lv||null);
     }
     return null;
+  }catch(e){ return null; }
+}
+// Coach's per-side plate breakdown for plate-loaded moves (Ticket 14): plates[day][name]
+// = a display string e.g. "3×45/side". Display only — never computed; absent for non-plate moves.
+function platesFor(name){
+  try{
+    var P=(typeof PROGRAM==='object' && PROGRAM && PROGRAM.plates) || null; if(!P) return null;
+    var dp=P[curDay];
+    return (dp && typeof dp==='object' && dp[name]) ? String(dp[name]) : null;
   }catch(e){ return null; }
 }
 /* ---------- alternate-machine variants ----------
@@ -1179,7 +1191,9 @@ function recCardHTML(name){
   var r=recValsFor(name,variant); if(!r) return '';
   var html='';
   if(r.w!=null){
+    var pl=platesFor(name);                              // Ticket 14: per-side plate string, if any
     html+='<div class="rec"><div class="sug">'+r.w+'<small>lb</small></div>';
+    if(pl) html+='<div class="plate-conv">'+escHtml(pl)+'</div>';
     if(r.lo!=null && r.hi!=null) html+='<div class="meta"><div class="lab">Work range</div><div class="rng">'+r.lo+'–'+r.hi+' lb</div></div>';
     html+='</div>';
   }
