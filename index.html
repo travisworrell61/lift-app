@@ -175,6 +175,10 @@
   .log-panel{margin:7px 2px 0;border:1px solid var(--line);border-radius:12px;
     background:var(--panel2);padding:11px;}
   .panel-hint{font-size:.74rem;color:var(--muted);margin:0 2px 10px;line-height:1.35;}
+  .panel-hint b{color:var(--ink);font-weight:700;}
+  .last-ref{display:inline-block;font-family:'Oswald',sans-serif;font-weight:600;font-size:.66rem;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--steel);
+    border:1px solid var(--line);border-radius:6px;padding:1px 7px;margin-left:4px;white-space:nowrap;}
   /* weight-only set rows — one compact line each */
   .setrow{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);
     border-radius:11px;padding:8px 9px;margin-bottom:8px;}
@@ -658,7 +662,22 @@ function fmtDate(s){var p=s.split('-');return parseInt(p[1])+'/'+parseInt(p[2]);
 function logsFor(name){var all=loadLogs();return all[name]||[];}
 function isLoggedToday(name){var h=logsFor(name);return !!(h.length && h[h.length-1].date===todayStr());}
 // Coach recommendation for an exercise (suggested weight/range/cue), published in the program JSON.
-function recFor(name){ try{ return (typeof PROGRAM==='object' && PROGRAM && PROGRAM.recs && PROGRAM.recs[name]) || null; }catch(e){ return null; } }
+function recFor(name){
+  try{
+    var R=(typeof PROGRAM==='object' && PROGRAM && PROGRAM.recs) || null; if(!R) return null;
+    // Ticket 13 shape: recs[day][exerciseName] = target number (in the logging convention).
+    // Normalize a bare number to {w}. Tolerate an object value, and fall back to a legacy
+    // flat recs[name] (older published programs) so nothing breaks if the shape is older.
+    var dr=R[curDay];
+    if(dr && typeof dr==='object' && Object.prototype.hasOwnProperty.call(dr,name)){
+      var v=dr[name]; return (typeof v==='number')?{w:v}:(v||null);
+    }
+    if(Object.prototype.hasOwnProperty.call(R,name)){
+      var lv=R[name]; return (typeof lv==='number')?{w:lv}:(lv||null);
+    }
+    return null;
+  }catch(e){ return null; }
+}
 /* ---------- alternate-machine variants ----------
    A name containing " / " (e.g. "Incline Machine Press (low) / Cable Fly") is one
    slot with two interchangeable machines whose loads differ wildly. The log card
@@ -693,7 +712,10 @@ function recValsFor(name,variant){
   if(!variant) return r;
   var pv=(r.v && r.v[variant]) || null;
   if(pv) return {w:pv.w, lo:pv.lo, hi:pv.hi, cue:(pv.cue!=null?pv.cue:r.cue)};
-  return {cue:r.cue};
+  // No per-variant entry: a numeric/flat target (Ticket 13) applies to whatever variant is
+  // picked; only a legacy rec that DEFINES a .v map withholds the parent target.
+  if(r.v) return {cue:r.cue};
+  return {w:r.w, lo:r.lo, hi:r.hi, cue:r.cue};
 }
 /* ---------- session overrides (Ticket 06): swap / add / set-count ----------
    Per-session, per-day: when a machine is taken, swap in an equivalent; add a
@@ -875,16 +897,18 @@ function buildPanel(name,reps){
   for(var i=0;i<n;i++){
     var s=(pf&&pf[i])?pf[i]:{};
     if(plate)                    rows+=plateRowHTML(i, (s.p&&s.p.length)?s.p:[]);   // plate picker, prefilled from stored p
-    else if(s.w!=null)           rows+=setRowHTML(i, s.w, null, false);     // real history → plain value
-    else if(rec && rec.w!=null)  rows+=setRowHTML(i, rec.w, null, true);    // coach rec → accent value (logs if saved)
-    else                         rows+=setRowHTML(i, '', guess, false);     // heuristic guess → ghost placeholder
+    else if(rec && rec.w!=null)  rows+=setRowHTML(i, rec.w, null, true);    // Ticket 13: coach target first (accent, editable)
+    else if(s.w!=null)           rows+=setRowHTML(i, s.w, null, false);     // else last week's logged value
+    else                         rows+=setRowHTML(i, '', guess, false);     // else heuristic ghost placeholder
   }
+  // Last session's logged weights, kept visible as a reference so target + history sit together (Ticket 13).
+  var lastRef=(pf&&pf.length)?setsSummary(pf):'';
   var hint=plate
-    ? '<div class="panel-hint">Tap plates to load <b>one side</b> — the app doubles it for the total.'+(pf?' Prefilled from last time.':'')+'</div>'
-    : (pf
-      ? '<div class="panel-hint">Prefilled from your last '+(variant?variant:'session')+' — adjust and Save.</div>'
-      : (rec && rec.w!=null
-        ? '<div class="panel-hint">Suggested weight is filled in blue — Save to log it, or adjust first.</div>'
+    ? '<div class="panel-hint">Tap plates to load <b>one side</b> — the app doubles it for the total.'+(lastRef?' <span class="last-ref">last: '+lastRef+'</span>':'')+'</div>'
+    : (rec && rec.w!=null
+      ? '<div class="panel-hint">Target <b>'+rec.w+'</b> filled in — a floor to beat, fully editable.'+(lastRef?' <span class="last-ref">last: '+lastRef+'</span>':'')+'</div>'
+      : (pf
+        ? '<div class="panel-hint">Prefilled from your last '+(variant?variant:'session')+' — adjust and Save.</div>'
         : '<div class="panel-hint">Suggested start shown in grey — tap ＋ to use it, then Save.</div>'));
   var setsCtl='<div class="sets-ctl"><span class="sc-lab">Sets today</span>'+
     '<button class="sstep" data-d="-1" aria-label="fewer sets">−</button>'+
