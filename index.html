@@ -52,6 +52,22 @@
     color:var(--muted);min-height:46px;padding:0;transition:.15s;text-align:center;
   }
   .day-btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+  /* Week navigation (Ticket 11) */
+  .weeknav{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:8px;}
+  .weeknav:empty{display:none;}
+  .wn-btn{width:30px;height:26px;display:flex;align-items:center;justify-content:center;flex:none;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--steel);
+    font-size:1rem;line-height:1;cursor:pointer;transition:.15s;-webkit-appearance:none;-webkit-touch-callout:none;}
+  .wn-btn:active{color:var(--ink);border-color:var(--accent);}
+  .wn-btn[disabled]{opacity:.32;pointer-events:none;}
+  .wn-lab{font-family:'Oswald',sans-serif;font-size:.66rem;font-weight:500;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--muted);min-width:150px;text-align:center;white-space:nowrap;}
+  .wn-lab b{color:var(--ink);font-weight:600;}
+  .wn-today{font-family:'Oswald',sans-serif;font-size:.6rem;font-weight:600;letter-spacing:.1em;
+    text-transform:uppercase;height:26px;padding:0 10px;cursor:pointer;transition:.15s;-webkit-appearance:none;
+    border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:8px;
+    background:color-mix(in srgb,var(--accent) 12%,var(--panel));color:var(--accent);}
+  .wn-today:active{background:color-mix(in srgb,var(--accent) 24%,var(--panel));}
 
   /* ---------- header ---------- */
   .head{position:relative;border:1px solid var(--line);border-radius:16px;
@@ -285,6 +301,11 @@
   .exhead .acc{width:4px;align-self:stretch;border-radius:4px;background:var(--c,var(--accent));flex:none;min-height:28px;}
   .exhead .nm{flex:1;min-width:0;font-family:'Oswald',sans-serif;font-weight:600;font-size:.96rem;text-transform:uppercase;}
   .exhead .rp{font-family:'Anton',sans-serif;font-size:1rem;color:var(--c,var(--accent));flex:none;white-space:nowrap;}
+  /* Coach note line under each card (Ticket 12) — always visible, wraps, never truncated */
+  .blk>.ex-note,.exrow>.ex-note{font-family:'Barlow',sans-serif;font-weight:500;font-size:.8rem;
+    line-height:1.45;color:var(--steel);white-space:normal;overflow-wrap:anywhere;}
+  .blk>.ex-note{padding:0 14px 12px 30px;margin-top:-4px;}
+  .exrow>.ex-note{padding:0 12px 11px 26px;margin-top:-3px;}
   .uneven{margin:8px 0 2px;}
   /* variant selector — which machine the weights belong to */
   .vsel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0 11px;}
@@ -453,6 +474,7 @@
     <div class="nav-inner">
       <div class="brand"><span class="dotmark"></span>LIFT<small>4-Day Split</small><button class="nav-gear" id="navGear" aria-label="Update program">⚙</button></div>
       <div class="days" id="days"></div>
+      <div class="weeknav" id="weeknav"></div>
     </div>
   </div>
 
@@ -538,23 +560,44 @@ var openBlk={};      // block index → 1 (expanded superset showing its exercis
 function rerender(){ var y=window.scrollY; render(); window.scrollTo(0,y); }   // keep scroll on expand/collapse
 
 const DOW={mon:1,tue:2,wed:3,fri:5};   // weekday index, Mon=1 … Sun=7
-// Anchor the displayed week to the one holding the NEXT upcoming training day (Mon–Fri).
-// On the weekend the week's training is done, so roll the tab dates forward to next week's
-// Mon–Fri (Ticket 09). Logging still keys on the real todayStr() — only the displayed dates roll.
-function weekAnchorMonday(){
-  const now=new Date();
-  const dow=now.getDay();                                    // 0=Sun … 6=Sat
-  const monday=new Date(now);
-  if(dow===6)      monday.setDate(now.getDate()+2);          // Sat → next Monday
-  else if(dow===0) monday.setDate(now.getDate()+1);          // Sun → next Monday
-  else             monday.setDate(now.getDate()-(dow-1));    // Mon–Fri → this week's Monday
-  monday.setHours(0,0,0,0);
-  return monday;
+const WEEK_OFFSET_MIN=-8, WEEK_OFFSET_MAX=4;   // bounds for manual week paging (Ticket 11)
+var weekOffset=null;   // manual week shift in weeks; null = follow the auto default
+
+// ── Displayed-week math (Tickets 09 + 11) ──────────────────────────────────────
+// Logging ALWAYS keys on the real date (todayStr); only the day-tab DATES roll/page here.
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// Monday of the calendar week containing today (most-recent Monday; today if it is Monday).
+function thisCalendarMonday(){
+  const now=new Date(); const dow=now.getDay();              // 0=Sun … 6=Sat
+  const m=new Date(now); m.setDate(now.getDate()-(dow===0?6:dow-1)); m.setHours(0,0,0,0); return m;
 }
-function dateForWeekday(targetDow){           // targetDow: 1=Mon … 5=Fri
-  const monday=weekAnchorMonday();
-  const d=new Date(monday); d.setDate(monday.getDate()+(targetDow-1));
-  return d;
+// Any logged set on a given YYYY-MM-DD, across all exercises?
+function anyLogOn(dateStr){
+  var all=loadLogs();
+  for(var k in all){ var h=all[k]; if(!h) continue; for(var i=0;i<h.length;i++){ if(h[i] && h[i].date===dateStr) return true; } }
+  return false;
+}
+// All four training days (Mon/Tue/Wed/Fri) of the week starting `monday` already logged?
+function weekTrainingComplete(monday){
+  return [0,1,2,4].every(function(off){ const d=new Date(monday); d.setDate(monday.getDate()+off); return anyLogOn(ymd(d)); });
+}
+// Default displayed week when the user hasn't paged manually: this week, but roll to next week
+// once the week's training is over — on the weekend (Ticket 09) OR when all 4 days are already
+// logged (Ticket 11 Fix B: finished early, e.g. Friday-on-Thursday). Conservative: a skipped day
+// (no log) leaves it on this week until the weekend trigger fires.
+function autoWeekOffset(){
+  const dow=new Date().getDay();
+  if(dow===0||dow===6) return 1;                             // Sat/Sun → next week
+  if(weekTrainingComplete(thisCalendarMonday())) return 1;   // finished early → next week
+  return 0;
+}
+function effWeekOffset(){
+  var o=(weekOffset===null)?autoWeekOffset():weekOffset;
+  return Math.max(WEEK_OFFSET_MIN, Math.min(WEEK_OFFSET_MAX, o));
+}
+function dateForWeekday(targetDow){           // targetDow: 1=Mon … 5=Fri, in the DISPLAYED week
+  const m=thisCalendarMonday(); m.setDate(m.getDate()+effWeekOffset()*7+(targetDow-1));
+  return m;
 }
 const mmdd=(d)=>String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
 function todayMarker(){ var n=new Date(); return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][n.getDay()]+' <b>'+mmdd(n)+'</b>'; }
@@ -562,6 +605,26 @@ function buildNav(){
   const days=document.getElementById('days');
   days.innerHTML=ORDER.filter(d=>PROGRAM[d]&&PROGRAM[d].title).map(d=>`<button class="day-btn ${d===curDay?'on':''}" data-d="${d}" style="--dc:${DAY_ACCENT[d]||'#7dd3fc'}"><span class="db-lab">${PROGRAM[d].title.slice(0,3)}</span><span class="db-date">${mmdd(dateForWeekday(DOW[d]))}</span></button>`).join('');
   days.querySelectorAll('button').forEach(b=>b.onclick=()=>{curDay=b.dataset.d;openEx=null;openBlk={};render();});
+  buildWeekNav();
+}
+// Manual week navigation (Ticket 11): page the DISPLAYED week ±1 with a snap-back "Today".
+// Setting weekOffset (non-null) takes over from the auto default; render() rebuilds the nav.
+function buildWeekNav(){
+  var wn=document.getElementById('weeknav'); if(!wn) return;
+  var off=effWeekOffset();
+  var mon=dateForWeekday(1), fri=dateForWeekday(5);
+  var lab = off===0?'This week' : off===1?'Next week' : off===-1?'Last week'
+          : (off>0?('+'+off+' wks'):(off+' wks'));
+  var canPrev=off>WEEK_OFFSET_MIN, canNext=off<WEEK_OFFSET_MAX;
+  wn.innerHTML=
+    '<button class="wn-btn" id="wnPrev"'+(canPrev?'':' disabled')+' aria-label="Previous week">‹</button>'+
+    '<span class="wn-lab"><b>'+lab+'</b> · '+mmdd(mon)+'–'+mmdd(fri)+'</span>'+
+    '<button class="wn-btn" id="wnNext"'+(canNext?'':' disabled')+' aria-label="Next week">›</button>'+
+    (off!==0?'<button class="wn-today" id="wnToday" aria-label="Back to this week">Today</button>':'');
+  function go(v){ weekOffset=Math.max(WEEK_OFFSET_MIN,Math.min(WEEK_OFFSET_MAX,v)); render(); }
+  var bp=document.getElementById('wnPrev'); if(bp) bp.onclick=function(){ go(effWeekOffset()-1); };
+  var bn=document.getElementById('wnNext'); if(bn) bn.onclick=function(){ go(effWeekOffset()+1); };
+  var bt=document.getElementById('wnToday'); if(bt) bt.onclick=function(){ weekOffset=0; render(); };
 }
 
 function setsOf(r){r=String(r);var m=r.match(/^(\d+)/);if(!m)return null;return (/[×x]/.test(r)||/sets/i.test(r))?parseInt(m[1]):null;}
@@ -1079,6 +1142,13 @@ function tagBadges(ex){
     return '<span class="set-badge">'+label+'</span>';
   }).join('')+'</div>';
 }
+// Coach's per-exercise note (3rd array element): the week's target weight + plate math + cue.
+// Always visible under the header so it's read mid-set; wraps, never truncated (Ticket 12).
+function exNoteHTML(ex){
+  var note = ex && ex[2];
+  if(!note || !String(note).trim()) return '';
+  return '<div class="ex-note">'+escHtml(note)+'</div>';
+}
 /* ---------- accordion render (T04) ---------- */
 function recCardHTML(name){
   var variant=variantsOf(name)?currentVariant(name):null;
@@ -1132,6 +1202,7 @@ function soloBlockHTML(b,bi){
         swapBtnHTML(raw[0])+
         '<span class="chev">⌄</span>'+
       '</button>'+
+      exNoteHTML(ex)+
       '<div class="bbody">'+(open?exerciseBodyHTML(name,reps):'')+'</div>'+
     '</div></div>';
 }
@@ -1146,6 +1217,7 @@ function exRowHTML(raw,c){
       swapBtnHTML(raw[0])+
       '<span class="chev">⌄</span>'+
     '</button>'+
+    exNoteHTML(ex)+
     '<div class="exbody">'+(open?exerciseBodyHTML(name,reps):'')+'</div>'+
   '</div>';
 }
