@@ -606,6 +606,24 @@ function dateForWeekday(targetDow){           // targetDow: 1=Mon … 5=Fri, in 
   const m=thisCalendarMonday(); m.setDate(m.getDate()+effWeekOffset()*7+(targetDow-1));
   return m;
 }
+// Program-week counter for the kicker (Ticket 16). Week 1 = the program's first training Monday;
+// counts whole calendar weeks to the DISPLAYED week's Monday, so it tracks week-nav (Ticket 11).
+var PROGRAM_START_MONDAY='2026-06-08';   // anchor: Week 1 Monday
+function programWeek(){
+  try{
+    var start=new Date(PROGRAM_START_MONDAY+'T00:00:00');
+    var disp=dateForWeekday(1); disp.setHours(0,0,0,0);   // displayed week's Monday
+    var weeks=Math.round((disp-start)/(7*86400000));
+    return weeks>=0 ? weeks+1 : null;                     // null before program start → weekday-only kicker
+  }catch(e){ return null; }
+}
+// Kicker label: "<Weekday> · Week N", or just "<Weekday>" if the week can't be derived.
+// No "Phase" (autoregulated — no fixed phases); never the literal "undefined".
+function kickerText(d){
+  var wd=(d && d.title) ? d.title : ({mon:'Monday',tue:'Tuesday',wed:'Wednesday',fri:'Friday'}[curDay]||'');
+  var wk=programWeek();
+  return wk ? (wd+' · Week '+wk) : wd;
+}
 const mmdd=(d)=>String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
 function todayMarker(){ var n=new Date(); return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][n.getDay()]+' <b>'+mmdd(n)+'</b>'; }
 function buildNav(){
@@ -1313,7 +1331,7 @@ function render(){
   const pct=totalEx?Math.round(doneEx/totalEx*100):0;
   let html=`<header class="head">
     <div class="today-marker">${todayMarker()}</div>
-    <div class="kicker">Day ${d.n} · Phase 1</div>
+    <div class="kicker">${kickerText(d)}</div>
     <h1>${d.title}</h1>
     <div class="sub">${d.sub}</div>
     <div class="tags">
