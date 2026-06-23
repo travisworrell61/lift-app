@@ -818,10 +818,10 @@ function setRowHTML(i,w,ph,suggested){
   // suggested = a coach rec shown as an accent value (logs if saved, signalling it's a suggestion).
   return '<div class="setrow" data-i="'+i+'">'+
     '<span class="si">SET '+(i+1)+'</span>'+
-    '<button class="stp" data-step="-5" aria-label="minus 5">−</button>'+
-    '<input class="in-w'+(suggested?' suggested':'')+'" inputmode="decimal" placeholder="'+(ph!=null?ph:'—')+'" value="'+(w!=null?w:'')+'">'+
+    '<button class="stp" data-step="-2.5" aria-label="minus 2.5">−</button>'+
+    '<input class="in-w'+(suggested?' suggested':'')+'" inputmode="decimal" placeholder="'+(ph!=null?ph:'—')+'" value="'+(w!=null?w:'')+'" onfocus="this.select()" oninput="this.classList.remove(\'suggested\')">'+
     '<span class="unit">lb</span>'+
-    '<button class="stp" data-step="5" aria-label="plus 5">+</button>'+
+    '<button class="stp" data-step="2.5" aria-label="plus 2.5">+</button>'+
     '<button class="rm" aria-label="remove set">×</button>'+
   '</div>';
 }
@@ -889,6 +889,7 @@ function buildPanel(name,reps){
   var plate=isPlateMode(name,variant);
   var ent=lastEntryFor(name,variant);
   var pf=ent?ent.sets:null;                           // prefill from the last session OF THIS VARIANT
+  var loggedToday=!!(ent && ent.date===todayStr());   // Ticket 15: reopening today's own log → show what was saved (editable)
   var rec=recValsFor(name,variant);
   var guess=guessFor(name);                           // null for bodyweight
   // Bodyweight / reps-only → no weight prompt by default, just "Mark done" (never for plate-loaded).
@@ -908,20 +909,23 @@ function buildPanel(name,reps){
   var rows='';
   for(var i=0;i<n;i++){
     var s=(pf&&pf[i])?pf[i]:{};
-    if(plate)                    rows+=plateRowHTML(i, (s.p&&s.p.length)?s.p:[]);   // plate picker, prefilled from stored p
-    else if(rec && rec.w!=null)  rows+=setRowHTML(i, rec.w, null, true);    // Ticket 13: coach target first (accent, editable)
-    else if(s.w!=null)           rows+=setRowHTML(i, s.w, null, false);     // else last week's logged value
-    else                         rows+=setRowHTML(i, '', guess, false);     // else heuristic ghost placeholder
+    if(plate)                          rows+=plateRowHTML(i, (s.p&&s.p.length)?s.p:[]);   // plate picker, prefilled from stored p
+    else if(loggedToday && s.w!=null)  rows+=setRowHTML(i, s.w, null, false);   // Ticket 15: today's own logged value (editable) — so re-Save can't clobber it with the target
+    else if(rec && rec.w!=null)        rows+=setRowHTML(i, rec.w, null, true);  // Ticket 13: coach target first (accent, editable)
+    else if(s.w!=null)                 rows+=setRowHTML(i, s.w, null, false);   // else last week's logged value
+    else                               rows+=setRowHTML(i, '', guess, false);   // else heuristic ghost placeholder
   }
   // Last session's logged weights, kept visible as a reference so target + history sit together (Ticket 13).
   var lastRef=(pf&&pf.length)?setsSummary(pf):'';
   var hint=plate
     ? '<div class="panel-hint">Tap plates to load <b>one side</b> — the app doubles it for the total.'+(lastRef?' <span class="last-ref">last: '+lastRef+'</span>':'')+'</div>'
-    : (rec && rec.w!=null
-      ? '<div class="panel-hint">Target <b>'+rec.w+'</b> filled in — a floor to beat, fully editable.'+(lastRef?' <span class="last-ref">last: '+lastRef+'</span>':'')+'</div>'
-      : (pf
-        ? '<div class="panel-hint">Prefilled from your last '+(variant?variant:'session')+' — adjust and Save.</div>'
-        : '<div class="panel-hint">Suggested start shown in grey — tap ＋ to use it, then Save.</div>'));
+    : (loggedToday
+      ? '<div class="panel-hint">Logged today — tap a value to retype it, then Save to correct the entry.</div>'
+      : (rec && rec.w!=null
+        ? '<div class="panel-hint">Target <b>'+rec.w+'</b> filled in — a floor to beat, fully editable.'+(lastRef?' <span class="last-ref">last: '+lastRef+'</span>':'')+'</div>'
+        : (pf
+          ? '<div class="panel-hint">Prefilled from your last '+(variant?variant:'session')+' — adjust and Save.</div>'
+          : '<div class="panel-hint">Suggested start shown in grey — tap ＋ to use it, then Save.</div>')));
   var setsCtl='<div class="sets-ctl"><span class="sc-lab">Sets today</span>'+
     '<button class="sstep" data-d="-1" aria-label="fewer sets">−</button>'+
     '<span class="sc-n">'+n+'</span>'+
