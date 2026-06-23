@@ -7,11 +7,13 @@
    - Offline: serves the last cached version so the app still opens at the gym.
    NOTE: if you add new files to the app, add them to CORE below. */
 
-const CACHE = 'lift-v3';   // bump purges old caches on activate
+const CACHE = 'lift-v4';   // bump purges old caches on activate
 const CORE = [
   './',
   './index.html',
   './program.js',
+  './exercise-library.json',
+  './equipment-catalog.json',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',

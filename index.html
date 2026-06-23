@@ -319,6 +319,11 @@
     text-transform:uppercase;border:1px solid var(--line);border-radius:9px;background:transparent;
     color:var(--muted);padding:8px 12px;cursor:pointer;}
   .vchip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700;}
+  /* Ticket 17: promotion flag on a recurring added exercise */
+  .promote-flag{display:inline-block;margin-top:6px;font-family:'Oswald',sans-serif;font-weight:600;
+    font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:#fbbf24;
+    border:1px solid color-mix(in srgb,#fbbf24 45%,var(--line));border-radius:6px;padding:2px 7px;
+    background:color-mix(in srgb,#fbbf24 10%,var(--panel));}
   /* rec card */
   .rec{display:flex;align-items:flex-end;gap:14px;margin:6px 0 11px;}
   .rec .sug{font-family:'Anton',sans-serif;font-size:2.3rem;line-height:.9;color:var(--accent);}
@@ -606,23 +611,10 @@ function dateForWeekday(targetDow){           // targetDow: 1=Mon … 5=Fri, in 
   const m=thisCalendarMonday(); m.setDate(m.getDate()+effWeekOffset()*7+(targetDow-1));
   return m;
 }
-// Program-week counter for the kicker (Ticket 16). Week 1 = the program's first training Monday;
-// counts whole calendar weeks to the DISPLAYED week's Monday, so it tracks week-nav (Ticket 11).
-var PROGRAM_START_MONDAY='2026-06-08';   // anchor: Week 1 Monday
-function programWeek(){
-  try{
-    var start=new Date(PROGRAM_START_MONDAY+'T00:00:00');
-    var disp=dateForWeekday(1); disp.setHours(0,0,0,0);   // displayed week's Monday
-    var weeks=Math.round((disp-start)/(7*86400000));
-    return weeks>=0 ? weeks+1 : null;                     // null before program start → weekday-only kicker
-  }catch(e){ return null; }
-}
-// Kicker label: "<Weekday> · Week N", or just "<Weekday>" if the week can't be derived.
-// No "Phase" (autoregulated — no fixed phases); never the literal "undefined".
+// Kicker label (Ticket 16, revised): weekday ONLY — no "Phase", no week number (autoregulated,
+// week-to-week programming with no running week tally). Never renders the literal "undefined".
 function kickerText(d){
-  var wd=(d && d.title) ? d.title : ({mon:'Monday',tue:'Tuesday',wed:'Wednesday',fri:'Friday'}[curDay]||'');
-  var wk=programWeek();
-  return wk ? (wd+' · Week '+wk) : wd;
+  return (d && d.title) ? d.title : ({mon:'Monday',tue:'Tuesday',wed:'Wednesday',fri:'Friday'}[curDay]||'');
 }
 const mmdd=(d)=>String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
 function todayMarker(){ var n=new Date(); return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][n.getDay()]+' <b>'+mmdd(n)+'</b>'; }
@@ -788,6 +780,71 @@ function exLibData(){
   try{ if(PROGRAM && PROGRAM.exLib && typeof PROGRAM.exLib==='object' && !Array.isArray(PROGRAM.exLib) && Object.keys(PROGRAM.exLib).length) return PROGRAM.exLib; }catch(e){}
   return EX_LIB_DEFAULT;
 }
+
+/* ───────── Ticket 17: master exercise library + equipment catalog (read-only data) ───────── */
+var EXLIB=null, EQUIP=null;   // loaded async from exercise-library.json / equipment-catalog.json
+(function(){
+  function grab(url,set){ fetch(url+'?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){ if(d){ set(d); if(typeof render==='function') render(); } }).catch(function(){}); }
+  grab('exercise-library.json', function(d){ EXLIB=d; });
+  grab('equipment-catalog.json', function(d){ EQUIP=d; });
+})();
+function libEntry(name){
+  try{ if(EXLIB && Array.isArray(EXLIB.groups)){ var n=String(name);
+    for(var i=0;i<EXLIB.groups.length;i++){ var ex=EXLIB.groups[i].exercises||[]; for(var j=0;j<ex.length;j++){ if(ex[j].name===n) return ex[j]; } } } }catch(e){}
+  return null;
+}
+function libConvention(name){ var e=libEntry(name); return e?e.convention:null; }
+function libNote(name){ var e=libEntry(name); return e?e.note:null; }
+function isAddedExercise(name){ try{ return addedFor(curDay).some(function(a){return a.name===name;}); }catch(e){ return false; } }
+// Muscle-grouped picker source (Ticket 17): library groups in priority order → [{label,names}].
+function pickerGroups(){
+  if(EXLIB && Array.isArray(EXLIB.groups) && EXLIB.groups.length)
+    return EXLIB.groups.map(function(g){ return {label:g.muscle, names:(g.exercises||[]).map(function(e){return e.name;})}; });
+  var lib=exLibData(); return Object.keys(lib).map(function(k){ return {label:k, names:lib[k]||[]}; });
+}
+// ── Cable scale tags: TAG & STORE only, never auto-convert across scales (Ticket 17 Feature B). ──
+function scaleOptions(){
+  try{ if(EQUIP && Array.isArray(EQUIP.lines))
+    return EQUIP.lines.filter(function(l){ return l.scale_tag && (l.type==='selectorized_cable'||l.type==='functional_trainer'); })
+      .map(function(l){ return {tag:l.scale_tag, label:scaleLabel(l.scale_tag)}; });
+  }catch(e){} return [];
+}
+function scaleLabel(tag){ return {hoist_cmj:'Hoist ~1:1', versa:'Versa 1:2', matrix_g3ms53:'Matrix G3MS53'}[tag] || tag; }
+function needsScaleTag(name){ var e=libEntry(name); return !!(e && e.scale_tag_required); }
+function defaultScaleTag(name){
+  var e=libEntry(name), s=String((e&&e.default_equipment)||'')+' '+String((e&&e.note)||'');
+  if(/versa/i.test(s)) return 'versa';
+  if(/g3ms53|matrix/i.test(s)) return 'matrix_g3ms53';
+  if(/hoist/i.test(s)) return 'hoist_cmj';
+  var o=scaleOptions(); return o.length?o[0].tag:null;     // HOME default = first listed (Hoist)
+}
+var selScale={};   // enc(name) → scale_tag chosen this session
+function currentScale(name){
+  var sel=selScale[enc(name)]; if(sel) return sel;
+  var h=logsFor(name); for(var i=h.length-1;i>=0;i--){ if(h[i].scale_tag) return h[i].scale_tag; }
+  return defaultScaleTag(name);
+}
+function scaleSelHTML(name){
+  if(!needsScaleTag(name)) return '';
+  var opts=scaleOptions(); if(!opts.length) return '';
+  var cur=currentScale(name);
+  return '<div class="vsel scale-sel"><span class="vsel-lab">Cable station</span>'+opts.map(function(o){
+    return '<button class="vchip'+(o.tag===cur?' on':'')+'" data-scale="'+o.tag+'">'+o.label+'</button>';
+  }).join('')+'</div>';
+}
+// ── Promotion flag (Ticket 17): a non-program exercise logged on ≥3 distinct dates → suggest promoting. ──
+var PROMOTE_AFTER=3;
+function isProgramExercise(name){
+  try{ var ord=['mon','tue','wed','fri'];
+    for(var d=0;d<ord.length;d++){ var bl=(PROGRAM[ord[d]]&&PROGRAM[ord[d]].A)||[]; for(var b=0;b<bl.length;b++){ var es=bl[b].e||[]; for(var x=0;x<es.length;x++){ if(es[x][0]===name) return true; } } }
+  }catch(e){} return false;
+}
+function addedSessionCount(name){ var h=logsFor(name), seen={}; for(var i=0;i<h.length;i++){ if(h[i]&&h[i].date) seen[h[i].date]=1; } return Object.keys(seen).length; }
+function promoteFlag(name){
+  if(isProgramExercise(name)) return '';
+  var c=addedSessionCount(name);
+  return c>=PROMOTE_AFTER ? '<span class="promote-flag">★ added '+c+'× · ask coach to bake it in</span>' : '';
+}
 // Coach-matched substitutes for one exercise (publishable top-level `alts` map).
 function altsFor(name){
   try{ var a=PROGRAM && PROGRAM.alts && PROGRAM.alts[name]; return Array.isArray(a)?a:[]; }catch(e){ return []; }
@@ -816,6 +873,7 @@ function isBodyweight(name, reps){
   var s=String(name||'').toLowerCase();
   if(/push-?up|pull-?up|chin-?up|\bdip\b|\bplank\b/.test(s)) return true;
   if(/vertical knee raise|captain'?s chair|hanging (knee|leg) raise/.test(s)) return true;
+  if(isAddedExercise(name) && libConvention(name)==='bodyweight') return true;   // Ticket 17: library convention
   return false;
 }
 // Weight-only summary. Shows the weights logged (e.g. "50, 55, 60 lb").
@@ -877,9 +935,13 @@ function startWeightFor(name){
    array p, so prefill can re-load the exact plates. */
 function plateSet(){ try{ var ps=(typeof PROGRAM==='object'&&PROGRAM&&PROGRAM.plateSet); return (Array.isArray(ps)&&ps.length)?ps:[45,35,25,10,5,2.5]; }catch(e){ return [45,35,25,10,5,2.5]; } }
 function isPlateMode(name,variant){
-  try{ var pm=(typeof PROGRAM==='object'&&PROGRAM&&PROGRAM.plateMode); if(!Array.isArray(pm)) return false;
-    return pm.indexOf(name)>=0 || (variant && pm.indexOf(variant)>=0);
-  }catch(e){ return false; }
+  try{ var pm=(typeof PROGRAM==='object'&&PROGRAM&&PROGRAM.plateMode);
+    if(Array.isArray(pm) && (pm.indexOf(name)>=0 || (variant && pm.indexOf(variant)>=0))) return true;
+  }catch(e){}
+  // Ticket 17: an ADDED exercise logs per its library convention (per_side → plate picker).
+  // Program exercises keep their existing T13/T14 numeric+label treatment untouched.
+  if(isAddedExercise(name)){ var e=libEntry(name)||(variant?libEntry(variant):null); if(e && e.convention==='per_side') return true; }
+  return false;
 }
 function perSideLabel(arr){           // [45,45,25] → "45×2 · 25"
   if(!arr||!arr.length) return '';
@@ -1029,7 +1091,11 @@ document.addEventListener('click',function(ev){
   var vchip=t.closest('.vchip');
   if(vchip){
     var vbk=vchip.closest('.exblock');
-    if(vbk){ selVariant[vbk.dataset.ex]=dec(vchip.dataset.v); rerender(); }
+    if(vbk){
+      if(vchip.dataset.scale){ selScale[vbk.dataset.ex]=vchip.dataset.scale; }   // Ticket 17: cable-station pick
+      else { selVariant[vbk.dataset.ex]=dec(vchip.dataset.v); }
+      rerender();
+    }
     return;
   }
 
@@ -1119,6 +1185,7 @@ document.addEventListener('click',function(ev){
     });
     var entry={date:ts, day:curDay, sets:sets};
     if(vNow) entry.v=vNow;                                               // record which machine these weights belong to
+    if(needsScaleTag(name)) entry.scale_tag=currentScale(name);          // Ticket 17: store the cable scale (own track; never converted)
     all[name].push(entry);
     saveLogs(all);
     liftPushState(); liftSyncLogs();
@@ -1237,7 +1304,7 @@ function lastLineFull(name){
   return '<div class="logbar"><span class="last'+(done?' done':'')+'">'+(done?'✓ ':'')+lastLine(name)+'</span><span class="logbtns">'+hist+'</span></div>';
 }
 function exerciseBodyHTML(name,reps){
-  return vselHTML(name)+recCardHTML(name)+lastLineFull(name)+'<div class="log-panel" data-mode="log">'+buildPanel(name,reps)+'</div>';
+  return vselHTML(name)+scaleSelHTML(name)+recCardHTML(name)+lastLineFull(name)+'<div class="log-panel" data-mode="log">'+buildPanel(name,reps)+'</div>';
 }
 function collapsedDoneLine(name){
   if(!isLoggedToday(name)) return '';
@@ -1289,10 +1356,11 @@ function addedBlockHTML(a){
     '<div class="blk exblock added'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'" data-kind="solo" style="--c:#2dd4bf">'+
       '<button class="bhead" data-toggle="blk">'+
         '<span class="acc" style="background:#2dd4bf"></span>'+
-        '<span class="ttl"><div class="where">'+name+'<span class="ov-badge add">Added</span></div>'+collapsedDoneLine(name)+'</span>'+
+        '<span class="ttl"><div class="where">'+name+'<span class="ov-badge add">Added</span></div>'+promoteFlag(name)+collapsedDoneLine(name)+'</span>'+
         '<span class="rm-added" role="button" data-name="'+en+'" aria-label="remove added exercise">✕</span>'+
         '<span class="chev">⌄</span>'+
       '</button>'+
+      (libNote(name)?'<div class="ex-note">'+escHtml(libNote(name))+'</div>':'')+
       '<div class="bbody">'+(open?exerciseBodyHTML(name,reps):'')+'</div>'+
     '</div></div>';
 }
@@ -1825,11 +1893,10 @@ var Drawer=(function(){
           alts.map(function(a){return '<button class="vchip" data-pick="'+enc(a)+'">'+a+'</button>';}).join('')+'</div>';
       }
     }
-    var lib=exLibData();
-    Object.keys(lib).forEach(function(grp){
-      var items=(lib[grp]||[]).filter(function(n){return String(n).toLowerCase().indexOf(q)>=0;});
+    pickerGroups().forEach(function(g){
+      var items=(g.names||[]).filter(function(n){return String(n).toLowerCase().indexOf(q)>=0;});
       if(!items.length) return;
-      html+='<div class="grp">'+grp+'</div>'+items.map(function(n){
+      html+='<div class="grp">'+g.label+'</div>'+items.map(function(n){
         return '<button class="libitem" data-pick="'+enc(n)+'"><span>'+n+'</span><span class="pluss">＋</span></button>';
       }).join('');
     });

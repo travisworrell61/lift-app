@@ -1,0 +1,87 @@
+{
+  "_meta": {
+    "purpose": "Structured equipment catalog for LIFT machine-aware logging. The app reads a machine's convention + scale_tag so logging is handled automatically when Travis picks the station. Pairs with exercise-library.json.",
+    "owner": "coaching chat (this file). Mirrors the prose gym-equipment.md; this is the machine-readable version.",
+    "gym": "Physique Fitness",
+    "convention_legend": {
+      "per_side": "Plate-loaded — log ONE side's plate weight, exclude bar.",
+      "as_marked": "Selectorized stack / DB / fixed bar — log marked/total."
+    },
+    "scale_rule": "TAG & STORE, never auto-convert. Each scale_tag is its own track. A number difference across tags is NOT a strength change. Cable scales currently in building: hoist_cmj (~1:1), versa (1:2), matrix_g3ms53 (UNKNOWN). Confirm matrix ratio before bridging."
+  },
+
+  "lines": [
+    {
+      "line": "Hoist ROC-IT",
+      "type": "plate_loaded",
+      "convention": "per_side",
+      "scale_tag": null,
+      "notes": "Per-side plate logging. The plate-loaded Hoist line."
+    },
+    {
+      "line": "Hoist Commercial Multi Jungle CMJ-6000",
+      "type": "selectorized_cable",
+      "convention": "as_marked",
+      "scale_tag": "hoist_cmj",
+      "ratio": "~1:1",
+      "stations": ["Hi-Lo Pulley CMJ-6175 (195 stack, ~1:1) = Travis's tricep cable HOME"],
+      "notes": "Selectorized EXCEPTION to the 'every Hoist is plate-loaded' rule. Pushdowns ~110 / overheads ~60 live here."
+    },
+    {
+      "line": "Matrix G3MS53 Multi-Station Jungle",
+      "type": "selectorized_cable",
+      "convention": "as_marked",
+      "scale_tag": "matrix_g3ms53",
+      "ratio": "UNKNOWN — not yet determined",
+      "stations": ["2× lat pulldown", "2× seated row", "2× adjustable high/low pulley", "2× fixed high pulley"],
+      "model": "G3MS53 (G3MS53-KM) · S/N G3MS53E1708GA052 · asset 9051345",
+      "notes": "★ NEW this session. SECOND selectorized cable jungle. Ratio TBD → own track, do NOT bridge vs hoist_cmj or versa until confirmed. Settle ratio: on a pulldown, handle travels SAME as stack & effort matches number → ~1:1; handle travels ~2× / feels ~half → ~1:2."
+    },
+    {
+      "line": "Matrix Versa VS-VFT functional trainer",
+      "type": "functional_trainer",
+      "convention": "as_marked",
+      "scale_tag": "versa",
+      "ratio": "1:2 (handle = half the stack)",
+      "cap": "215",
+      "notes": "Tricep FALLBACK only. Log its number + 'versa' tag. Bridge separately (≈ half of hoist_cmj read)."
+    },
+    {
+      "line": "Matrix Aura (G3-S)",
+      "type": "selectorized",
+      "convention": "as_marked",
+      "scale_tag": "matrix_aura",
+      "notes": "Full selectorized circuit. G3-S model numbers. Machine Lateral Raise = G3-S21 (★ Wk4 finisher). Dip/Chin Assist G3-S60 is INVERTED (higher # = more assist = easier)."
+    },
+    {
+      "line": "Matrix Ultra (G7-S)",
+      "type": "selectorized",
+      "convention": "as_marked",
+      "scale_tag": "matrix_ultra",
+      "notes": "Second selectorized circuit. G7-S model numbers. Lateral Raise backup = G7-S21. Glute G7-S78 on radar for glute priority."
+    },
+    {
+      "line": "Matrix Magnum (MG-PL / MG-A)",
+      "type": "plate_loaded",
+      "convention": "per_side",
+      "scale_tag": null,
+      "notes": "Plate-loaded — per-side. Leg press + hack squat live here."
+    },
+    {
+      "line": "Soft Plyo Boxes (×2)",
+      "type": "platform",
+      "convention": null,
+      "scale_tag": null,
+      "dimensions": "20\" × 24\" × 30\" each (3 selectable heights)",
+      "notes": "★ NEW this session. No load to log — height is the only variable. Bulgarian setup: 20\" face, ~2.5 ft stance."
+    }
+  ],
+
+  "bridging_flags": [
+    "FIVE lat pulldowns across different scales — log off the SAME machine each week or tag which.",
+    "Multiple rows / leg presses across scales — always tag.",
+    "EZ/easy-grip bar = 25 lb (NOT 45). Wide-Grip Bar Curl = fixed 50-lb bar.",
+    "Pre-convention bridges: Preacher Curl 65 = bar+plates TOTAL; Wide Grip Bar Curl 50 = fixed bar total — do NOT read as drops.",
+    "THREE cable scales now (hoist_cmj 1:1, versa 1:2, matrix_g3ms53 TBD) — tag every cable lift."
+  ]
+}
