@@ -1458,7 +1458,7 @@ async function loadProgram(){
    rests never split a pair. Pools are plain data — easy to edit (later: publishable). */
 var CORE_TARGET = 6; // work intervals per circuit — single tunable constant (was 8; trimmed, felt long).
                      // Mon = CORE_TARGET-2 weighted + 2 bodyweight; rests fall at the thirds.
-var AB_LEADIN = 5;   // seconds before the first move
+var AB_LEADIN = 10;  // first-core-timer lead-in ONLY — longer so there's time to get set (Ticket 19). Transitions stay AB_TRANS (5).
 var AB_TRANS  = 5;   // TRANSITION_SECONDS — prep window between exercises (Ticket 10); bump for slower weight swaps
 var AB_POOLS = {
   weightedPool: [
@@ -1686,7 +1686,7 @@ var Ab = (function(){
     }
     pi++; remaining=phases[pi].sec; lastSec=-1; curAnnounced=true;
     if(phases[pi].kind==='work'){ beep(1046,0.18,0.3); buzz(180); }      // exercise start
-    else if(phases[pi].kind==='done'){ beep(660,0.5,0.3); buzz([120,60,120,60,240]); }
+    else if(phases[pi].kind==='done'){ beep(660,0.5,0.3); buzz([120,60,120,60,240]); running=false; clearInterval(timer); relWake(); }   // terminal: stop the loop so the sec:0 done phase can't re-fire next() → completion fires exactly once (Ticket 19)
     else { beep(523,0.16,0.22); buzz(80); }                              // rest
     announcePhase(phases[pi]);
     if(running){ endAt=Date.now()+remaining*1000; }
