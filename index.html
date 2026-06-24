@@ -52,22 +52,6 @@
     color:var(--muted);min-height:46px;padding:0;transition:.15s;text-align:center;
   }
   .day-btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink);}
-  /* Week navigation (Ticket 11) */
-  .weeknav{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:8px;}
-  .weeknav:empty{display:none;}
-  .wn-btn{width:30px;height:26px;display:flex;align-items:center;justify-content:center;flex:none;
-    border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--steel);
-    font-size:1rem;line-height:1;cursor:pointer;transition:.15s;-webkit-appearance:none;-webkit-touch-callout:none;}
-  .wn-btn:active{color:var(--ink);border-color:var(--accent);}
-  .wn-btn[disabled]{opacity:.32;pointer-events:none;}
-  .wn-lab{font-family:'Oswald',sans-serif;font-size:.66rem;font-weight:500;letter-spacing:.07em;
-    text-transform:uppercase;color:var(--muted);min-width:150px;text-align:center;white-space:nowrap;}
-  .wn-lab b{color:var(--ink);font-weight:600;}
-  .wn-today{font-family:'Oswald',sans-serif;font-size:.6rem;font-weight:600;letter-spacing:.1em;
-    text-transform:uppercase;height:26px;padding:0 10px;cursor:pointer;transition:.15s;-webkit-appearance:none;
-    border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:8px;
-    background:color-mix(in srgb,var(--accent) 12%,var(--panel));color:var(--accent);}
-  .wn-today:active{background:color-mix(in srgb,var(--accent) 24%,var(--panel));}
 
   /* ---------- header ---------- */
   .head{position:relative;border:1px solid var(--line);border-radius:16px;
@@ -486,7 +470,6 @@
     <div class="nav-inner">
       <div class="brand"><span class="dotmark"></span>LIFT<small>4-Day Split</small><button class="nav-gear" id="navGear" aria-label="Update program">⚙</button></div>
       <div class="days" id="days"></div>
-      <div class="weeknav" id="weeknav"></div>
     </div>
   </div>
 
@@ -565,51 +548,40 @@ function applyDayAccent(day){
   document.documentElement.style.setProperty('--accent-ink', '#0b0f16');
 }
 
-let curDay='fri', curWk='A';
+let curDay=defaultDayKey(), curWk='A';   // Ticket 18: open to today's training day (not a hardcoded day)
 const ORDER=['mon','tue','wed','fri'];
 var openEx=null;     // encoded name of the single expanded exercise (one log card open at a time)
 var openBlk={};      // block index → 1 (expanded superset showing its exercise rows)
 function rerender(){ var y=window.scrollY; render(); window.scrollTo(0,y); }   // keep scroll on expand/collapse
 
 const DOW={mon:1,tue:2,wed:3,fri:5};   // weekday index, Mon=1 … Sun=7
-const WEEK_OFFSET_MIN=-8, WEEK_OFFSET_MAX=4;   // bounds for manual week paging (Ticket 11)
-var weekOffset=null;   // manual week shift in weeks; null = follow the auto default
-
-// ── Displayed-week math (Tickets 09 + 11) ──────────────────────────────────────
-// Logging ALWAYS keys on the real date (todayStr); only the day-tab DATES roll/page here.
-function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-// Monday of the calendar week containing today (most-recent Monday; today if it is Monday).
-function thisCalendarMonday(){
-  const now=new Date(); const dow=now.getDay();              // 0=Sun … 6=Sat
-  const m=new Date(now); m.setDate(now.getDate()-(dow===0?6:dow-1)); m.setHours(0,0,0,0); return m;
+// ── Day-tab dates: pure week-to-week, keyed off today (Ticket 18) ──────────────
+// There is only ever "this week" — no week navigation. The tab dates derive from today's
+// calendar week and roll forward automatically; logging still keys on the real todayStr().
+function anchorMonday(){
+  // This week's Monday — but on Sat/Sun the week's training (Mon/Tue/Wed/Fri) is done, so roll
+  // to next Monday so the tabs (and the default Monday selection) point at the upcoming week.
+  const now=new Date(), dow=now.getDay();                    // 0=Sun … 6=Sat
+  const m=new Date(now);
+  if(dow===0)      m.setDate(now.getDate()+1);               // Sun → next Monday
+  else if(dow===6) m.setDate(now.getDate()+2);               // Sat → next Monday
+  else             m.setDate(now.getDate()-(dow-1));         // Mon–Fri → this week's Monday
+  m.setHours(0,0,0,0); return m;
 }
-// Any logged set on a given YYYY-MM-DD, across all exercises?
-function anyLogOn(dateStr){
-  var all=loadLogs();
-  for(var k in all){ var h=all[k]; if(!h) continue; for(var i=0;i<h.length;i++){ if(h[i] && h[i].date===dateStr) return true; } }
-  return false;
+function dateForWeekday(targetDow){           // targetDow: 1=Mon … 5=Fri, in the current week
+  const m=anchorMonday(); m.setDate(m.getDate()+(targetDow-1)); return m;
 }
-// All four training days (Mon/Tue/Wed/Fri) of the week starting `monday` already logged?
-function weekTrainingComplete(monday){
-  return [0,1,2,4].every(function(off){ const d=new Date(monday); d.setDate(monday.getDate()+off); return anyLogOn(ymd(d)); });
-}
-// Default displayed week when the user hasn't paged manually: this week, but roll to next week
-// once the week's training is over — on the weekend (Ticket 09) OR when all 4 days are already
-// logged (Ticket 11 Fix B: finished early, e.g. Friday-on-Thursday). Conservative: a skipped day
-// (no log) leaves it on this week until the weekend trigger fires.
-function autoWeekOffset(){
-  const dow=new Date().getDay();
-  if(dow===0||dow===6) return 1;                             // Sat/Sun → next week
-  if(weekTrainingComplete(thisCalendarMonday())) return 1;   // finished early → next week
-  return 0;
-}
-function effWeekOffset(){
-  var o=(weekOffset===null)?autoWeekOffset():weekOffset;
-  return Math.max(WEEK_OFFSET_MIN, Math.min(WEEK_OFFSET_MAX, o));
-}
-function dateForWeekday(targetDow){           // targetDow: 1=Mon … 5=Fri, in the DISPLAYED week
-  const m=thisCalendarMonday(); m.setDate(m.getDate()+effWeekOffset()*7+(targetDow-1));
-  return m;
+// Which day tab to open on (Ticket 18): today's training day, else the nearest upcoming one
+// (Thu → Fri this week; Sat/Sun → Mon of the rolled-forward week). Never an arbitrary day.
+function defaultDayKey(){
+  switch(new Date().getDay()){           // 0=Sun … 6=Sat
+    case 1:  return 'mon';
+    case 2:  return 'tue';
+    case 3:  return 'wed';
+    case 4:  return 'fri';               // Thursday → nearest upcoming training day = Friday
+    case 5:  return 'fri';
+    default: return 'mon';               // Sat/Sun → next Monday
+  }
 }
 // Kicker label (Ticket 16, revised): weekday ONLY — no "Phase", no week number (autoregulated,
 // week-to-week programming with no running week tally). Never renders the literal "undefined".
@@ -622,26 +594,6 @@ function buildNav(){
   const days=document.getElementById('days');
   days.innerHTML=ORDER.filter(d=>PROGRAM[d]&&PROGRAM[d].title).map(d=>`<button class="day-btn ${d===curDay?'on':''}" data-d="${d}" style="--dc:${DAY_ACCENT[d]||'#7dd3fc'}"><span class="db-lab">${PROGRAM[d].title.slice(0,3)}</span><span class="db-date">${mmdd(dateForWeekday(DOW[d]))}</span></button>`).join('');
   days.querySelectorAll('button').forEach(b=>b.onclick=()=>{curDay=b.dataset.d;openEx=null;openBlk={};render();});
-  buildWeekNav();
-}
-// Manual week navigation (Ticket 11): page the DISPLAYED week ±1 with a snap-back "Today".
-// Setting weekOffset (non-null) takes over from the auto default; render() rebuilds the nav.
-function buildWeekNav(){
-  var wn=document.getElementById('weeknav'); if(!wn) return;
-  var off=effWeekOffset();
-  var mon=dateForWeekday(1), fri=dateForWeekday(5);
-  var lab = off===0?'This week' : off===1?'Next week' : off===-1?'Last week'
-          : (off>0?('+'+off+' wks'):(off+' wks'));
-  var canPrev=off>WEEK_OFFSET_MIN, canNext=off<WEEK_OFFSET_MAX;
-  wn.innerHTML=
-    '<button class="wn-btn" id="wnPrev"'+(canPrev?'':' disabled')+' aria-label="Previous week">‹</button>'+
-    '<span class="wn-lab"><b>'+lab+'</b> · '+mmdd(mon)+'–'+mmdd(fri)+'</span>'+
-    '<button class="wn-btn" id="wnNext"'+(canNext?'':' disabled')+' aria-label="Next week">›</button>'+
-    (off!==0?'<button class="wn-today" id="wnToday" aria-label="Back to this week">Today</button>':'');
-  function go(v){ weekOffset=Math.max(WEEK_OFFSET_MIN,Math.min(WEEK_OFFSET_MAX,v)); render(); }
-  var bp=document.getElementById('wnPrev'); if(bp) bp.onclick=function(){ go(effWeekOffset()-1); };
-  var bn=document.getElementById('wnNext'); if(bn) bn.onclick=function(){ go(effWeekOffset()+1); };
-  var bt=document.getElementById('wnToday'); if(bt) bt.onclick=function(){ weekOffset=0; render(); };
 }
 
 function setsOf(r){r=String(r);var m=r.match(/^(\d+)/);if(!m)return null;return (/[×x]/.test(r)||/sets/i.test(r))?parseInt(m[1]):null;}
