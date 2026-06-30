@@ -289,6 +289,8 @@
   .exhead .acc{width:4px;align-self:stretch;border-radius:4px;background:var(--c,var(--accent));flex:none;min-height:28px;}
   .exhead .nm{flex:1;min-width:0;font-family:'Oswald',sans-serif;font-weight:600;font-size:.96rem;text-transform:uppercase;}
   .exhead .rp{font-family:'Anton',sans-serif;font-size:1rem;color:var(--c,var(--accent));flex:none;white-space:nowrap;}
+  /* Ticket 20: target weight surfaced onto the collapsed row, inline after sets×reps */
+  .rp-tgt{font-family:'Oswald',sans-serif;font-weight:700;font-size:.74em;color:var(--accent);letter-spacing:.01em;}
   /* Coach note line under each card (Ticket 12) — always visible, wraps, never truncated */
   .blk>.ex-note,.exrow>.ex-note{font-family:'Barlow',sans-serif;font-weight:500;font-size:.8rem;
     line-height:1.45;color:var(--steel);white-space:normal;overflow-wrap:anywhere;}
@@ -651,6 +653,23 @@ function platesFor(name){
     var dp=P[curDay];
     return (dp && typeof dp==='object' && dp[name]) ? String(dp[name]) : null;
   }catch(e){ return null; }
+}
+// Ticket 20: compact target for the COLLAPSED row — the recs number, formatted by load type:
+// plate-loaded → "{n}/side", DB/KB → "{n} lb", stack/cable/other → bare "{n}", bodyweight/no rec → "".
+// Pure display: reuses the recs/plates/library data that already drives the expanded card.
+function collapsedTarget(name){
+  var variant=variantsOf(name)?currentVariant(name):null;
+  var r=recValsFor(name,variant); if(!r || r.w==null) return '';
+  var rec=r.w;
+  if(platesFor(name) || isPlateMode(name,variant)) return rec+'/side';
+  var e=libEntry(name)||(variant?libEntry(variant):null), imp=e&&e.implement;
+  if(imp==='machine_plate'||imp==='barbell'||imp==='ez_bar'||(e&&e.convention==='per_side')) return rec+'/side';
+  if(imp==='db'||imp==='kb') return rec+' lb';
+  return ''+rec;   // machine_stack / cable / fixed_bar / unknown → bare number
+}
+function repsTargetHTML(name,reps){
+  var t=collapsedTarget(name);
+  return '<span class="rp">'+reps+(t?' <span class="rp-tgt">· '+escHtml(t)+'</span>':'')+'</span>';
 }
 /* ---------- alternate-machine variants ----------
    A name containing " / " (e.g. "Incline Machine Press (low) / Cable Fly") is one
@@ -1277,7 +1296,7 @@ function soloBlockHTML(b,bi){
       '<button class="bhead" data-toggle="blk">'+
         '<span class="acc"></span>'+
         '<span class="ttl"><div class="where">'+name+ovBadge(ex)+'</div>'+tagBadges(ex)+collapsedDoneLine(name)+'</span>'+
-        '<span class="rp">'+reps+'</span>'+
+        repsTargetHTML(name,reps)+
         swapBtnHTML(raw[0])+
         '<span class="chev">⌄</span>'+
       '</button>'+
@@ -1292,7 +1311,7 @@ function exRowHTML(raw,c){
     '<button class="exhead" data-toggle="ex">'+
       '<span class="acc"></span>'+
       '<span class="nm">'+name+ovBadge(ex)+'</span>'+tagBadges(ex)+(done?'<span class="tick">✓</span>':'')+
-      '<span class="rp">'+reps+'</span>'+
+      repsTargetHTML(name,reps)+
       swapBtnHTML(raw[0])+
       '<span class="chev">⌄</span>'+
     '</button>'+
