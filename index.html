@@ -426,6 +426,15 @@
   .abt-play{flex:1;max-width:210px;background:var(--accent);color:var(--accent-ink);
     border-color:var(--accent);font-family:'Oswald',sans-serif;font-weight:700;
     letter-spacing:.08em;text-transform:uppercase;font-size:1rem;}
+  /* Ticket 21: total-duration readout + pre-start Randomize */
+  .abt-meta{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;min-height:34px;}
+  .abt-dur{font-family:'Oswald',sans-serif;font-weight:600;font-size:.82rem;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);}
+  .abt-roll{font-family:'Oswald',sans-serif;font-weight:600;font-size:.72rem;letter-spacing:.1em;
+    text-transform:uppercase;height:34px;padding:0 14px;cursor:pointer;-webkit-appearance:none;
+    border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--steel);transition:.15s;}
+  .abt-roll:active{color:var(--ink);border-color:var(--accent);}
+  .abt-roll[hidden]{display:none;}
   .abt-list{margin-top:22px;display:flex;flex-direction:column;gap:4px;max-height:26vh;
     overflow-y:auto;text-align:left;}
   .abt-li{font-family:'Oswald',sans-serif;font-size:.8rem;color:var(--muted);
@@ -498,6 +507,10 @@
         <button class="abt-btn" id="abtPrev" aria-label="previous">⏮</button>
         <button class="abt-btn abt-play" id="abtPlay">Start</button>
         <button class="abt-btn" id="abtSkip" aria-label="skip">⏭</button>
+      </div>
+      <div class="abt-meta">
+        <span class="abt-dur" id="abtDur"></span>
+        <button class="abt-roll" id="abtRoll">⟳ Randomize</button>
       </div>
       <div class="abt-list" id="abtList"></div>
     </div>
@@ -1486,6 +1499,9 @@ async function loadProgram(){
 var CORE_TARGET = 6; // work intervals per circuit — single tunable constant (was 8; trimmed, felt long).
                      // Mon = CORE_TARGET-2 weighted + 2 bodyweight; rests fall at the thirds.
 var AB_LEADIN = 10;  // first-core-timer lead-in ONLY — longer so there's time to get set (Ticket 19). Transitions stay AB_TRANS (5).
+var AB_ROLL   = 0;   // Ticket 21: session-only re-roll counter. 0 = the week's default circuit; each
+                     // Randomize tap bumps it, shifting the shuffle seed. Resets next open (by design —
+                     // the circuit stays deterministic-by-week unless re-rolled in the moment).
 var AB_TRANS  = 5;   // TRANSITION_SECONDS — prep window between exercises (Ticket 10); bump for slower weight swaps
 var AB_POOLS = {
   weightedPool: [
@@ -1543,7 +1559,7 @@ function ab_buildCircuit(){
                && Array.isArray((PROGRAM.corePools.weightedPool)) && Array.isArray((PROGRAM.corePools.bodyweightPool)))
              ? PROGRAM.corePools : AB_POOLS;
   var now=new Date();
-  var seed=ab_isoWeek(now);
+  var seed=ab_isoWeek(now)+AB_ROLL*7919;   // re-roll bump ×prime → a fully different shuffle per tap (T21)
   // Circuit follows the DAY BEING VIEWED (timer only shows Mon/Wed):
   // Monday = weighted-leaning pool, Wednesday = all bodyweight. Weekly seeded shuffle.
   var isWeighted=(curDay==='mon');
@@ -1574,7 +1590,9 @@ function ab_buildCircuit(){
   var seq=[];
   work.forEach(function(it,i){ if(restAt[i]) seq.push({rest:30}); seq.push(it); });
   var dayName=(PROGRAM[curDay]&&PROGRAM[curDay].title)||({mon:'Monday',wed:'Wednesday'}[curDay])||'Core';
-  return { seq:seq, work:work, title:dayName+' Core · Week '+seed };
+  // Title carries NO week number (week-to-week model, T16/T18) — and never the raw seed,
+  // which is meaningless after a re-roll bump. A re-rolled draw is marked so it's visible.
+  return { seq:seq, work:work, title:dayName+' Core'+(AB_ROLL>0?' · re-rolled':'') };
 }
 
 var Ab = (function(){
@@ -1676,7 +1694,18 @@ var Ab = (function(){
       return '<div class="abt-li '+cls+'"><span>'+(i+1)+'. '+it.ex+'</span><span>'+it.sec+'s</span></div>';
     }).join('');
     el('abtPlay').textContent = running ? 'Pause' : (p.kind==='done' ? 'Restart' : (started ? 'Resume' : 'Start'));
+    // Ticket 21: total-duration readout (visual only — never spoken). Pre-start: full circuit
+    // total (lead-in + work + rests + transitions). Running: remaining total. Randomize is
+    // pre-start only — hidden once the circuit has started.
+    el('abtDur').textContent = started
+      ? (p.kind==='done' ? '' : fmtMin(remainingTotal())+' left')
+      : fmtMin(totalSecs())+' total';
+    el('abtRoll').hidden = started;
   }
+  // Sum of every countdown in the circuit (ready lead-in + work + rests + transitions; done=0).
+  function totalSecs(){ var s=0; for(var i=0;i<phases.length;i++) s+=phases[i].sec||0; return s; }
+  function remainingTotal(){ var s=remaining; for(var i=pi+1;i<phases.length;i++) s+=phases[i].sec||0; return s; }
+  function fmtMin(s){ var m=Math.round(s/30)/2; return '~'+(m%1?m.toFixed(1):m)+' min'; }   // nearest half-minute
   function tick(){
     var now=Date.now();
     var r=Math.max(0, Math.round((endAt-now)/1000));
@@ -1733,6 +1762,20 @@ var Ab = (function(){
   document.addEventListener('click',function(ev){
     var t=ev.target; if(t&&t.closest&&t.closest('[data-core-timer]')){ open(); }
   });
+  // Ticket 21: pre-start re-roll — regenerate the circuit from the pools. Guarded against
+  // returning the identical list twice in a row; silent (no beep/announce), pre-start only.
+  function reroll(){
+    if(started) return;
+    var prev=circuitWork.map(function(w){return w.ex;}).join('|');
+    for(var t=0;t<10;t++){
+      AB_ROLL++;
+      buildPhases();
+      if(circuitWork.map(function(w){return w.ex;}).join('|')!==prev) break;
+    }
+    pi=0; remaining=phases[0].sec; lastSec=-1; curAnnounced=false;
+    draw();
+  }
+  el('abtRoll').addEventListener('click',reroll);
   el('abtPlay').addEventListener('click',function(){ running?pause():play(); });
   el('abtSkip').addEventListener('click',function(){ next(false); });
   el('abtPrev').addEventListener('click',function(){ prev(); });
