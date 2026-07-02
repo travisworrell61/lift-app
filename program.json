@@ -1,17 +1,15 @@
 {
   "mon": {
-    "n": 1,
     "title": "Monday",
     "sub": "Chest · Side Delts · Triceps",
-    "type": "pri",
     "warm": "Elliptical + shoulder prehab — band pull-aparts, external rotations, face pulls, light lateral set",
-    "fin": {
-      "core": "~5 min ab work",
-      "cardio": "30 min steady · ~120 bpm"
-    },
     "prog": {
       "c": "#fb7199",
-      "t": "<b>PRIORITY day.</b> Side delts climb toward ~18–20 sets, upper chest climbs. Double-progress the incline press; the +1 set lands on lateral raises over the block."
+      "t": "<b>PRIORITY day · chest emphasis bump.</b> You asked for more chest and the logs back it — incline pressing recovered fully every week with only slight soreness, so we add volume (Pec Deck now permanent for mid-chest) rather than grinding heavier. <b>Aorta note:</b> on the two heavy DB presses you'll see <b>1–2 RIR · exhale through the rep</b> instead of grinding to failure — this protects the aortic root on near-max loads; everything else stays train-to-failure. Side delts hold at 30 (the machine finisher's coming Friday). Straight-bar pushdown on the Hoist stays home."
+    },
+    "fin": {
+      "core": "Optional core finisher",
+      "cardio": "30 min steady · ~120 bpm"
     },
     "A": [
       {
@@ -21,12 +19,12 @@
           [
             "Incline DB Fly",
             "3×12–15",
-            "Pre-exhaust — slow, hard squeeze, FEEL it · DB keeps you off the cables early"
+            "Pre-exhaust — slow, hard squeeze, FEEL it · hold 45 lb dumbbells, train to failure"
           ],
           [
             "Incline DB Press · low 15–30°",
-            "4×10–15",
-            "DB so you each use your own weight — no machine to switch to · moderate, slow eccentric, touch high"
+            "4×10–12",
+            "60 across all 4 last week, solid · push to 65 lb dumbbells this week · ⚠️ AORTA: stop 1–2 reps shy, EXHALE through the press — no grinding, no breath-hold · slow eccentric, touch high"
           ]
         ]
       },
@@ -37,12 +35,23 @@
           [
             "Flat DB / Machine Press",
             "3×10–12",
-            "To form failure"
+            "You press 65 lb dumbbells here (the 62.5 was the prefill bug — fix the log) · ⚠️ AORTA: 1–2 RIR, exhale through the rep · add a rep before nudging to 70"
           ],
           [
             "Close-grip Push-up",
             "AMRAP",
-            "Straight after — no rest"
+            "Straight after — no rest · to failure"
+          ]
+        ]
+      },
+      {
+        "t": "solo",
+        "w": "Mid chest · added volume (NEW)",
+        "e": [
+          [
+            "Pec Deck",
+            "3×12–15",
+            "NOW PERMANENT (you reached for it twice) · 205 last Fri for 3×15 — train to failure, hard squeeze + 1s hold at peak contraction · selectorized, log as-marked · this is the chest-emphasis add"
           ]
         ]
       },
@@ -53,12 +62,12 @@
           [
             "Seated DB Lateral Raise",
             "4×12–15",
-            "Elbows lead · stop at shoulder height"
+            "30 lb dumbbells across all 4 last week — hold, top the reps · elbows lead, stop at shoulder height · train to failure"
           ],
           [
             "Standing DB Lateral · burnout",
             "3×12–15",
-            "Both DB — superset, no station switch"
+            "30 lb dumbbells — superset, no station switch · last set add half-weight top partials to failure"
           ]
         ]
       },
@@ -68,92 +77,34 @@
         "e": [
           [
             "Cable Pushdown",
-            "3×12–15",
-            ""
+            "4×12–15",
+            "STRAIGHT BAR on the HOIST cable = HOME (~1:1, log ~110) · top the reps, nudge up · train to failure · on the Matrix jungle or Versa? Tag it — separate track, NOT a drop"
           ],
           [
             "Overhead Extension",
             "3×12–15",
-            "Straight after"
-          ]
-        ]
-      }
-    ],
-    "B": [
-      {
-        "t": "ss",
-        "w": "Pre-exhaust · upper chest",
-        "e": [
-          [
-            "Incline DB Fly",
-            "3×12–15",
-            "Pre-exhaust — feel it"
-          ],
-          [
-            "Incline DB Press · low · neutral grip",
-            "4×10–15",
-            "DB, own weights, no station switch · shoulder-friendly grip"
-          ]
-        ]
-      },
-      {
-        "t": "solo",
-        "w": "Mid chest",
-        "e": [
-          [
-            "Pec Deck",
-            "3×12–15",
-            "Last set: drop (from Wk2)"
-          ]
-        ]
-      },
-      {
-        "t": "ss",
-        "w": "Side delts · priority",
-        "e": [
-          [
-            "DB Lateral Raise · full + partials",
-            "4×12–15",
-            "Your combo (partials Wk2)"
-          ],
-          [
-            "DB Lean-away Lateral",
-            "3×12–15",
-            "Both DB — no station switch"
-          ]
-        ]
-      },
-      {
-        "t": "ss",
-        "w": "Triceps",
-        "e": [
-          [
-            "Straight-bar Pressdown",
-            "3×12",
-            "Last set: drop (Wk2)"
+            "Rope, straight after, HOIST cable = HOME (~60) · full stretch overhead each rep · to failure · tag the machine if not on the Hoist"
           ],
           [
             "Tricep Kickback",
-            "3×12",
-            "Straight after"
+            "3×12–15",
+            "30 lb dumbbells — controlled, squeeze the top, no swing · to failure"
           ]
         ]
       }
     ]
   },
   "tue": {
-    "n": 2,
     "title": "Tuesday",
     "sub": "Legs · Quads · Glutes · Calves",
-    "type": "pri",
     "warm": "Knee prep — light high-rep leg ext, bodyweight squats, banded terminal-knee-extensions / tibialis raises",
-    "fin": {
-      "core": "Ab wheel · ~5 min",
-      "cardio": "30 min steady · ~120 bpm"
-    },
     "prog": {
       "c": "#fb7199",
-      "t": "<b>PRIORITY day (quads — your sweep).</b> Double-progress the belt/pendulum squat; the +1 set lands on leg extension. Belt/pendulum chosen for the knees."
+      "t": "<b>PRIORITY day (quads) · strong week behind you.</b> Belt squat hit 135/side clean at ~9 reps, knees happy — hold and bank reps. <b>Aorta note:</b> belt squat + leg press get <b>1–2 RIR · exhale</b> (no breath-held grind); everything else stays to failure. The adductor you added came in surprisingly sore — it's working, hold it. Calf press bumps +5 like you called. Knees still lead."
+    },
+    "fin": {
+      "core": "Ab wheel · optional",
+      "cardio": "30 min steady · ~120 bpm (legs are cooked — fine to keep it easy)"
     },
     "A": [
       {
@@ -161,9 +112,9 @@
         "w": "Primary quad · full rest",
         "e": [
           [
-            "Belt / Pendulum Squat",
+            "Belt / Glute Squat",
             "4×8–10",
-            "Knee-friendly · controlled, pain-free depth (leg press / Smith as fallback)"
+            "135/side (3×45) last week, ~9 reps, easy on the knees — hold + bank reps toward 10 across all sets · ⚠️ AORTA: 1–2 RIR, EXHALE on the way up, stand with control · pain-free depth"
           ]
         ]
       },
@@ -174,7 +125,7 @@
           [
             "Bulgarian Split Squat",
             "3×10/leg",
-            "Slight forward torso lean = glute bias, spares the knee · KB drop Wk2"
+            "30 lb kettlebell last 2 rounds, good ROM — hold 30, top the reps · 20\" box, ~2.5 ft stance, forward lean = glute bias, spares the knee · to failure"
           ]
         ]
       },
@@ -184,13 +135,13 @@
         "e": [
           [
             "Leg Extension",
-            "3×12–15",
-            "Controlled · partials Wk2"
+            "4×12–15",
+            "120 last week (~12–13 reps) — top the range then go 125 + lengthened partials on the last set · train to failure · the +1 set lands here"
           ],
           [
             "Hamstring Curl",
             "4×10–12",
-            "Pair the first 3; 4th solo"
+            "135×4 clean — top the range then go 140 · to failure · pair the first 3, 4th solo"
           ]
         ]
       },
@@ -201,97 +152,39 @@
           [
             "Calf Press · heavy",
             "4×10–12",
-            ""
+            "Standing/plate: 115/side last week (2×45 + 25) — bump to 120/side like you called · train to failure, full stretch at the bottom"
           ],
           [
             "Second Calf Angle",
             "2–3×15–20",
-            "Different angle (seated/standing)"
-          ]
-        ]
-      }
-    ],
-    "B": [
-      {
-        "t": "solo",
-        "w": "Hamstring pre-fatigue",
-        "e": [
-          [
-            "Hamstring Curl",
-            "4×10–12",
-            ""
+            "Different angle (seated/standing) · ~115–120/side · to failure"
           ]
         ]
       },
       {
         "t": "solo",
-        "w": "Heavy hinge · full rest",
+        "w": "Hip · added plane",
         "e": [
           [
-            "RDL / Straight-leg Deadlift",
-            "4×8–10",
-            "Drops Wk2"
-          ]
-        ]
-      },
-      {
-        "t": "solo",
-        "w": "Unilateral",
-        "e": [
-          [
-            "Weighted Walking Lunge",
-            "3×~10/leg",
-            "Longer stride / vertical shin = glute, spares the knee"
-          ]
-        ]
-      },
-      {
-        "t": "ss",
-        "w": "Glute + quad",
-        "e": [
-          [
-            "Weighted Hip Thrust",
-            "4×10–12",
-            "Squeeze + pause at top"
-          ],
-          [
-            "Leg Extension",
-            "3×12–15",
-            ""
-          ]
-        ]
-      },
-      {
-        "t": "ss",
-        "w": "Calves",
-        "e": [
-          [
-            "Calf Press",
-            "4×10–12",
-            ""
-          ],
-          [
-            "Second Calf Angle",
-            "2–3×15–20",
-            ""
+            "Adductor Machine",
+            "4×12–15",
+            "80 last week — came in SURPRISINGLY sore (it's working a new plane) · hold 80, top the reps · train to failure · if it's taken, cable/band adduction"
           ]
         ]
       }
     ]
   },
   "wed": {
-    "n": 3,
     "title": "Wednesday",
     "sub": "Back · Rear Delts · Biceps",
-    "type": "main",
     "warm": "Elliptical + band pull-aparts + a few light lat-pulldown activation sets",
-    "fin": {
-      "core": "~5 min ab work",
-      "cardio": "30 min steady · ~120 bpm"
-    },
     "prog": {
       "c": "#fb9a3c",
-      "t": "<b>Maintenance day.</b> Back, rear delts & biceps are strong/covered — load-only progression (top the range → add weight next A-week). <b>No added sets here;</b> the volume goes to your priorities."
+      "t": "<b>Maintenance day · back had no soreness this week.</b> No soreness on a maintenance muscle = room to progress load, so we keep climbing. Two machines jump too coarse — for <b>Lat Pulldown</b> bank all your reps at 145 before the ugly 15-lb jump to 160; for <b>Hammer Row</b> we add a 5-lb microplate so you get 85/side instead of being stuck at 80→90. Pronated grip locked on the row (upper-back thickness — your other back work is neutral). Wide-grip bar curl stays for the outer head."
+    },
+    "fin": {
+      "core": "Optional core finisher",
+      "cardio": "30 min steady · ~120 bpm"
     },
     "A": [
       {
@@ -301,7 +194,7 @@
           [
             "Wide Lat Pulldown",
             "4×10–12",
-            "rest ~90s"
+            "145 clean, then 160 was a stretch (~9–10) — the jump's too big · HOLD 145 and bank all 12 reps on every set first; only jump to 160 once 145×12 is clean across all 4 · train to failure · same machine each week"
           ]
         ]
       },
@@ -312,7 +205,7 @@
           [
             "Hammer Row — Low",
             "4×10",
-            "2 machines = you both row at once · drop Wk2"
+            "Plate/per-side: 80/side last week, pushed 90 (~9–10) — too big a jump · go 85/side (add a 5-lb microplate) this week · PRONATED grip (palms down) = upper-back thickness, since your other rows are neutral · to failure · 2 machines = you both row at once"
           ]
         ]
       },
@@ -322,13 +215,13 @@
         "e": [
           [
             "Single-arm Cable Pulldown",
-            "3×10–12/arm",
-            "Handle on each head — never swapped"
+            "3×10–12",
+            "50 last week (~12, just right) — could nudge +2.5 · HOIST cable, tag it · handle on each head, continuous one-arm-to-next (never swap) · to failure"
           ],
           [
             "Single-arm Cable Rear Fly",
-            "3×15–20/arm",
-            "Each takes a head; rotate for the other side"
+            "3×15–20",
+            "20 last week (~15–18) — go up 2.5 like you flagged · HOIST cable, tag it · continuous through, each takes a head · to failure"
           ]
         ]
       },
@@ -339,129 +232,49 @@
           [
             "Close-grip Cable Row",
             "3×10–12",
-            "Drop Wk2"
+            "130 last week, failed clean in the 12 range every set (you said perfect) — hold or +5 · HOIST cable, tag it · controlled squeeze · to failure"
           ],
           [
             "Single-arm KB Row",
             "3×10–12",
-            "Drag the KB to the row machine"
+            "55 last week (the right hard) — hold, top the reps · to failure"
           ]
         ]
       },
       {
         "t": "ss",
-        "w": "Bicep corner",
+        "w": "Bicep corner · added volume",
         "e": [
           [
             "Preacher Curl",
             "3×10–12",
-            "Slow stretch at the bottom"
+            "Plated EZ bar, logged as total: 65 last week (bar + 2×10/side) — top the reps then +5 · to failure · slow stretch at the bottom"
           ],
           [
             "Incline / Hammer DB Curl",
-            "2–3×10–12",
-            "Lighter — pre-fatigued"
-          ]
-        ]
-      }
-    ],
-    "B": [
-      {
-        "t": "ss",
-        "w": "Pull-up burnout (change grip)",
-        "e": [
-          [
-            "Wide-grip Pull-up",
-            "Burnout",
-            "Assisted as needed"
+            "3×10–12",
+            "20 lb dumbbells last week — hold, pre-fatigued · to failure"
           ],
           [
-            "Neutral-grip Pull-up",
-            "Burnout",
-            "Straight after · assisted drop"
-          ]
-        ]
-      },
-      {
-        "t": "solo",
-        "w": "Thickness",
-        "e": [
-          [
-            "Machine Hammer Row / T-bar",
-            "4×10",
-            ""
-          ]
-        ]
-      },
-      {
-        "t": "solo",
-        "w": "Thickness",
-        "e": [
-          [
-            "Supinated Bent-over / Chest-supported Row",
-            "4×10",
-            ""
-          ]
-        ]
-      },
-      {
-        "t": "solo",
-        "w": "Lat finisher",
-        "e": [
-          [
-            "Straight-arm Cable Pulldown",
+            "Wide Grip Bar Curl",
             "3×12–15",
-            ""
-          ]
-        ]
-      },
-      {
-        "t": "ss",
-        "w": "Rear delt · cable crossover",
-        "e": [
-          [
-            "Face Pull",
-            "4×15–20",
-            "Crossover"
-          ],
-          [
-            "Rear-delt Fly",
-            "4×15–20",
-            "Single-arm if sharing the crossover"
-          ]
-        ]
-      },
-      {
-        "t": "ss",
-        "w": "Biceps",
-        "e": [
-          [
-            "Hanging Preacher Curl (back-ext machine)",
-            "3×10",
-            ""
-          ],
-          [
-            "Double Hammer / Supinated Curl",
-            "2×10–12",
-            ""
+            "Pre-weighted 50-lb bar (outer-head bias) — top the reps then next bar up / barbell+plates · to failure"
           ]
         ]
       }
     ]
   },
   "fri": {
-    "n": 4,
     "title": "Friday",
-    "sub": "Shoulders · Upper Chest · Legs",
-    "type": "pri",
+    "sub": "Shoulders · Upper Chest · Legs · Arms",
     "warm": "Shoulder prehab to start (band work, face pulls, light lateral); quick knee prep before the leg block",
-    "fin": {
-      "core": "Leg raises · ~5 min",
-      "cardio": "30 min steady · ~120 bpm"
-    },
     "prog": {
       "c": "#fb7199",
-      "t": "<b>PRIORITY day — your biggest growth session.</b> Side delts & upper chest climb; quads/glutes climb. Pressing kept shoulder-friendly (neutral grip / machine)."
+      "t": "<b>PRIORITY day — biggest growth session.</b> ★ <b>NEW: Machine Lateral Raise finisher</b> (Aura G3-S21) — heavy drop-sets for side delts, your #1. Machine shoulder press hit 85 clean, incline machine 85 was perfect at 12–13 (#2 priority, driving well). <b>Aorta note:</b> machine press + leg press get <b>1–2 RIR · exhale</b>; the lateral raises, flies, and finisher stay full train-to-failure. Leg Extension here is now tagged <b>(Fri)</b> so it tracks separate from Tuesday's."
+    },
+    "fin": {
+      "core": "Leg-raise burnout — logged in the session ↑",
+      "cardio": "30 min steady · ~120 bpm (trim if the session runs long)"
     },
     "A": [
       {
@@ -470,8 +283,8 @@
         "e": [
           [
             "Neutral-grip DB / Machine Shoulder Press",
-            "3–4×10–12",
-            "Palms-in + comfortable ROM = shoulder-friendly"
+            "4×10–12",
+            "MACHINE = default · plate/per-side: 85/side last week, got 10 but barely — hold 85 + bank reps toward 12, then 90 · ⚠️ AORTA: 1–2 RIR, exhale through the press · less tricep, better target"
           ]
         ]
       },
@@ -481,8 +294,8 @@
         "e": [
           [
             "Incline Machine Press (low) / Cable Fly",
-            "3×12–15",
-            "Feel-focused · moderate load, squeeze"
+            "4×12–15",
+            "Hoist, plate/per-side: 85/side last week, PERFECT at 12–13 every set — that rep quality says push to 90/side · keep the pad LOW (not steep) · #2 priority, drive it · train to failure here (moderate load, supported)"
           ]
         ]
       },
@@ -493,12 +306,23 @@
           [
             "Lateral Raise",
             "4 sets",
-            "Full range, then half-weight top partials (your combo)"
+            "Burnout, no fixed reps · 25 lb dumbbells (~12–15) last week — bank reps + partials to failure; jump to 30 only once 25 is clean"
           ],
           [
             "Rear-delt Fly",
             "3×15–20",
-            "Cable or reverse pec deck"
+            "25 last week (~15, good pump) — hold · cable (tag it) or reverse pec deck · to failure"
+          ]
+        ]
+      },
+      {
+        "t": "solo",
+        "w": "★ Side-delt FINISHER · heavy drop-set (NEW)",
+        "e": [
+          [
+            "Machine Lateral Raise",
+            "3 sets · drop",
+            "★ NEW — Aura G3-S21, selectorized (log as-marked) · pick a weight you hit ~10–12, go to failure, drop the pin ~2 plates, immediately to failure again (1–2 drops per set) · side delts = #1, this is the heavy stack work the DBs can't give · find your starting weight this week and log it"
           ]
         ]
       },
@@ -509,7 +333,7 @@
           [
             "Shrugs · Hammer press machine",
             "3×12–15",
-            "Loaded · hold the squeeze"
+            "Plate/per-side: 135/side, upped last set to 145 (3×45 + 5) — hold 145, squeeze hard / pause at the top · to failure · +5/side if the squeeze holds"
           ]
         ]
       },
@@ -518,89 +342,117 @@
         "w": "Quad finisher · knee-friendly",
         "e": [
           [
-            "Pendulum Squat / Leg Press",
+            "Glute Squat / Leg Press",
             "4×10–12",
-            "Narrow stance, mid-height feet · controlled"
+            "LEG PRESS 185 clean last week — push to 195 · ⚠️ AORTA: 1–2 RIR, exhale, stand with control · controlled, mid-height feet"
           ],
           [
-            "Leg Extension",
+            "Leg Extension (Fri)",
             "3×12–15",
-            "Sweep/teardrop · partials last set"
-          ]
-        ]
-      }
-    ],
-    "B": [
-      {
-        "t": "solo",
-        "w": "Upper chest · fresh",
-        "e": [
-          [
-            "Incline Machine Press / Cable Fly",
-            "3×12–15",
-            "Feel-focused · moderate, squeeze"
+            "Tracks SEPARATE from Tuesday now · 120 last week — match or +5 + lengthened partials on the last set · train to failure · sweep/teardrop (legs pre-fatigued from leg press — that's expected)"
           ]
         ]
       },
       {
         "t": "ss",
-        "w": "Giant set · same rack · delts/traps",
+        "w": "Arm finisher · bi + tri",
         "e": [
           [
-            "Straight-bar Front Raise",
-            "3×10",
-            ""
-          ],
-          [
-            "Wide-grip Upright Row → mid-chest",
-            "4×10–12",
-            "Low pull = shoulder-safe (or cable lateral if a shoulder barks)"
-          ],
-          [
-            "Barbell / DB Shrug",
+            "Dumbbell Curl",
             "3×10–12",
-            ""
-          ]
-        ]
-      },
-      {
-        "t": "ss",
-        "w": "Side + rear delts",
-        "e": [
-          [
-            "Lateral Raise",
-            "4×12–15",
-            ""
+            "35 lb dumbbells last week (you added a 4th set) — hold, top the reps · to failure · controlled, no swing"
           ],
           [
-            "Rear-delt Fly",
-            "4×12–15",
-            "Rear doubles as upper back"
+            "Rope Pushdown",
+            "3×12–15",
+            "HOIST cable = HOME · bumped to 65 on the Versa last week (tagged) — superset with the curls, no rest · to failure · tag the machine"
           ]
         ]
       },
       {
         "t": "solo",
-        "w": "Glute + quad compound",
+        "w": "Core · leg-raise burnout",
         "e": [
           [
-            "Pendulum / Belt Squat",
-            "4×8–10",
-            "Knee-friendly · pick the comfiest that day"
-          ]
-        ]
-      },
-      {
-        "t": "solo",
-        "w": "Glutes",
-        "e": [
-          [
-            "Hip Thrust",
-            "3×10–12",
-            "Squeeze + pause at top"
+            "Vertical Knee Raise (captain's chair)",
+            "3–4 × burnout",
+            "Bodyweight, to failure each set (no weight field) · add a DB between the feet only once bodyweight gets easy"
           ]
         ]
       }
     ]
+  },
+  "recs": {
+    "mon": {
+      "Incline DB Fly": 45,
+      "Incline DB Press · low 15–30°": 65,
+      "Flat DB / Machine Press": 65,
+      "Pec Deck": 205,
+      "Seated DB Lateral Raise": 30,
+      "Standing DB Lateral · burnout": 30,
+      "Cable Pushdown": 110,
+      "Overhead Extension": 60,
+      "Tricep Kickback": 30
+    },
+    "tue": {
+      "Belt / Glute Squat": 135,
+      "Bulgarian Split Squat": 30,
+      "Leg Extension": 125,
+      "Hamstring Curl": 140,
+      "Calf Press · heavy": 120,
+      "Second Calf Angle": 120,
+      "Adductor Machine": 80
+    },
+    "wed": {
+      "Wide Lat Pulldown": 145,
+      "Hammer Row — Low": 85,
+      "Single-arm Cable Pulldown": 50,
+      "Single-arm Cable Rear Fly": 22.5,
+      "Close-grip Cable Row": 130,
+      "Single-arm KB Row": 55,
+      "Preacher Curl": 65,
+      "Incline / Hammer DB Curl": 20,
+      "Wide Grip Bar Curl": 50
+    },
+    "fri": {
+      "Neutral-grip DB / Machine Shoulder Press": 85,
+      "Incline Machine Press (low) / Cable Fly": 90,
+      "Lateral Raise": 25,
+      "Rear-delt Fly": 25,
+      "Machine Lateral Raise": 0,
+      "Shrugs · Hammer press machine": 145,
+      "Glute Squat / Leg Press": 195,
+      "Leg Extension (Fri)": 120,
+      "Dumbbell Curl": 35,
+      "Rope Pushdown": 60
+    }
+  },
+  "plates": {
+    "mon": {
+      "Incline DB Fly": "45 lb dumbbells",
+      "Incline DB Press · low 15–30°": "65 lb dumbbells",
+      "Flat DB / Machine Press": "65 lb dumbbells",
+      "Seated DB Lateral Raise": "30 lb dumbbells",
+      "Standing DB Lateral · burnout": "30 lb dumbbells",
+      "Tricep Kickback": "30 lb dumbbells"
+    },
+    "tue": {
+      "Belt / Glute Squat": "3×45/side",
+      "Bulgarian Split Squat": "30 lb kettlebell",
+      "Calf Press · heavy": "2×45 + 25/side",
+      "Second Calf Angle": "2×45 + 25/side"
+    },
+    "wed": {
+      "Hammer Row — Low": "45 + 35 + 5/side",
+      "Preacher Curl": "EZ bar 25 + 2×10/side",
+      "Incline / Hammer DB Curl": "20 lb dumbbells",
+      "Wide Grip Bar Curl": "50-lb fixed bar"
+    },
+    "fri": {
+      "Neutral-grip DB / Machine Shoulder Press": "45 + 35 + 5/side",
+      "Incline Machine Press (low) / Cable Fly": "45 + 45/side",
+      "Shrugs · Hammer press machine": "3×45/side",
+      "Dumbbell Curl": "35 lb dumbbells"
+    }
   }
 }

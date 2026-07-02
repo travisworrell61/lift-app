@@ -906,12 +906,13 @@ function startWeightFor(name){
    array p, so prefill can re-load the exact plates. */
 function plateSet(){ try{ var ps=(typeof PROGRAM==='object'&&PROGRAM&&PROGRAM.plateSet); return (Array.isArray(ps)&&ps.length)?ps:[45,35,25,10,5,2.5]; }catch(e){ return [45,35,25,10,5,2.5]; } }
 function isPlateMode(name,variant){
+  // Legacy T07 picker — only when the program explicitly ships a plateMode array. The picker
+  // stores w = 2×Σ(per-side), which CONTRADICTS the current per-side convention (w = one side's
+  // number, per recs/plates). So per_side exercises — program AND added — use the numeric box
+  // (one canonical UI); the convention is surfaced via the "/side" label + a per-side hint.
   try{ var pm=(typeof PROGRAM==='object'&&PROGRAM&&PROGRAM.plateMode);
     if(Array.isArray(pm) && (pm.indexOf(name)>=0 || (variant && pm.indexOf(variant)>=0))) return true;
   }catch(e){}
-  // Ticket 17: an ADDED exercise logs per its library convention (per_side → plate picker).
-  // Program exercises keep their existing T13/T14 numeric+label treatment untouched.
-  if(isAddedExercise(name)){ var e=libEntry(name)||(variant?libEntry(variant):null); if(e && e.convention==='per_side') return true; }
   return false;
 }
 function perSideLabel(arr){           // [45,45,25] → "45×2 · 25"
@@ -968,7 +969,11 @@ function buildPanel(name,reps){
   }
   // Last session's logged weights, kept visible as a reference so target + history sit together (Ticket 13).
   var lastRef=(pf&&pf.length)?setsSummary(pf):'';
-  var hint=plate
+  // Per-side (plate-loaded) exercise using the numeric box: state the convention explicitly,
+  // so an on-the-fly add (no rec card / coach note) still gets logged as one side's number.
+  var perSideHint=(!plate && libConvention(name)==='per_side')
+    ? '<div class="panel-hint">Plate-loaded — log <b>one side’s</b> plate weight (bar excluded).</div>' : '';
+  var hint=perSideHint+(plate
     ? '<div class="panel-hint">Tap plates to load <b>one side</b> — the app doubles it for the total.'+(lastRef?' <span class="last-ref">last: '+lastRef+'</span>':'')+'</div>'
     : (loggedToday
       ? '<div class="panel-hint">Logged today — tap a value to retype it, then Save to correct the entry.</div>'
@@ -976,7 +981,7 @@ function buildPanel(name,reps){
         ? '<div class="panel-hint">Target <b>'+rec.w+'</b> filled in — a floor to beat, fully editable.'+(lastRef?' <span class="last-ref">last: '+lastRef+'</span>':'')+'</div>'
         : (pf
           ? '<div class="panel-hint">Prefilled from your last '+(variant?variant:'session')+' — adjust and Save.</div>'
-          : '<div class="panel-hint">Suggested start shown in grey — tap ＋ to use it, then Save.</div>')));
+          : '<div class="panel-hint">Suggested start shown in grey — tap ＋ to use it, then Save.</div>'))));
   var setsCtl='<div class="sets-ctl"><span class="sc-lab">Sets today</span>'+
     '<button class="sstep" data-d="-1" aria-label="fewer sets">−</button>'+
     '<span class="sc-n">'+n+'</span>'+
@@ -1146,17 +1151,20 @@ document.addEventListener('click',function(ev){
     var all=loadLogs(); if(!all[name]) all[name]=[];
     var ts=todayStr();
     var vNow=variantsOf(name)?currentVariant(name):null;
-    // Overwrite only a PRIOR SAVE OF THE SAME SLOT today — scoped by (date, day, variant) — so the
-    // same exercise programmed on two days, or two machines of a " / " exercise, don't clobber each other.
+    var tagNow=needsScaleTag(name)?currentScale(name):null;
+    // Overwrite only a PRIOR SAVE OF THE SAME SLOT today — scoped by (date, day, variant, scale_tag) —
+    // so the same exercise on two days, two machines of a " / " exercise, or two cable STATIONS
+    // (each scale_tag is its own track, Ticket 17) don't clobber each other.
     all[name]=all[name].filter(function(e){
       if(e.date!==ts) return true;
       if((e.day||curDay)!==curDay) return true;                          // different day → keep
       if(vNow && (e.v||variantsOf(name)[0])!==vNow) return true;         // different variant → keep
+      if(tagNow && (e.scale_tag||tagNow)!==tagNow) return true;          // different cable station → keep (own track)
       return false;
     });
     var entry={date:ts, day:curDay, sets:sets};
     if(vNow) entry.v=vNow;                                               // record which machine these weights belong to
-    if(needsScaleTag(name)) entry.scale_tag=currentScale(name);          // Ticket 17: store the cable scale (own track; never converted)
+    if(tagNow) entry.scale_tag=tagNow;                                   // Ticket 17: store the cable scale (own track; never converted)
     all[name].push(entry);
     saveLogs(all);
     liftPushState(); liftSyncLogs();
@@ -1424,7 +1432,7 @@ function normalizeProgram(data){
   // If wrapped as { program:{…}, recs:{…}, … }, fold the sibling top-level keys
   // (recs/alts/exLib/plateMode/plateSet/corePools) onto the program so they aren't dropped.
   if(data && data.program && data!==p){
-    ['recs','alts','exLib','plateMode','plateSet','corePools'].forEach(function(k){
+    ['recs','plates','alts','exLib','plateMode','plateSet','corePools'].forEach(function(k){
       if(data[k]!=null && p[k]==null) p[k]=data[k];
     });
   }
