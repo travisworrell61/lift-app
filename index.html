@@ -1306,6 +1306,18 @@ document.addEventListener('click',function(ev){
     if(tagNow) entry.scale_tag=tagNow;                                   // cable station (tag & store; never converted)
     all[name].push(entry);
     saveLogs(all);
+    // T22-C follow-up: a note typed before the first set is keyed to that earlier date; once the
+    // session's first lift lands (setting noteKey to the lift's date), move the note to match so
+    // it isn't orphaned. Only within this week's slot, and only if the target has no note yet.
+    (function(){
+      var nt=loadNotes(), goal=noteKey(), w=reviewWindow(), moved=false;
+      Object.keys(nt).forEach(function(k){
+        if(k===goal || moved || nt[goal]!=null) return;
+        var p=k.split('|'); if(p[1]!==curDay || p[0]<w[0] || p[0]>w[1]) return;
+        nt[goal]=nt[k]; delete nt[k]; moved=true;
+      });
+      if(moved) saveNotesObj(nt);
+    })();
     liftPushState(); liftSyncLogs();
     openEx=null;                                             // collapse the logged exercise; keep its superset open
     panel.innerHTML='<div class="saved-flash">✓ Saved</div>';
@@ -1486,6 +1498,7 @@ function addedBlockHTML(a){
 function supersetBlockHTML(b,bi,c){
   var effs=b.e.map(effectiveEx);
   var containsOpen=effs.some(function(e){return openEx===enc(e[0]);});
+  if(containsOpen) openBlk[bi]=1;   // a member opened WITHOUT going through the header (day-review backfill) syncs the block-open state, so the first collapse tap works and Save doesn't drop the whole superset
   var open=!!openBlk[bi] || containsOpen;
   var names=effs.map(function(e){return escHtml(e[0]);}).join(' · ');
   var doneCount=effs.filter(function(e){return isLoggedForDay(e[0]);}).length, allDone=(doneCount===b.e.length);
@@ -1747,7 +1760,7 @@ function ab_buildCircuit(){
 
 var Ab = (function(){
   var el = function(id){ return document.getElementById(id); };
-  var phases=[], pi=0, remaining=0, running=false, started=false, timer=null, endAt=0, lastSec=-1, wake=null, actx=null;
+  var phases=[], pi=0, remaining=0, running=false, started=false, timer=null, endAt=0, lastSec=-1, wake=null, wakeWant=false, actx=null;
   var voiceOn=true, curAnnounced=false;
   var circuitWork=[], circuitTitle='';   // this week's generated exercises + label
 
@@ -1914,8 +1927,8 @@ var Ab = (function(){
   }
   function prev(){ if(pi>0){ pi--; remaining=phases[pi].sec; lastSec=-1; curAnnounced=true;
     if(running) endAt=Date.now()+remaining*1000; announcePhase(phases[pi]); draw(); } }
-  function reqWake(){ try{ if('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function(w){wake=w;}).catch(function(){}); }catch(e){} }
-  function relWake(){ try{ wake&&wake.release&&wake.release(); }catch(e){} wake=null; }
+  function reqWake(){ wakeWant=true; try{ if('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function(w){ if(!wakeWant){ try{w.release();}catch(e){} return; } wake=w; }).catch(function(){}); }catch(e){} }
+  function relWake(){ wakeWant=false; try{ wake&&wake.release&&wake.release(); }catch(e){} wake=null; }   // wakeWant guards the async race: a request that resolves AFTER a pause is released immediately
   function openFresh(){ buildPhases(); pi=0; remaining=phases[0].sec; running=false; started=false; lastSec=-1; curAnnounced=false; }
   function open(){ AB_ROLL=0; openFresh(); el('abtimer').hidden=false; liftWake(true); draw(); }   // fresh open → this day's default circuit (re-rolls don't leak to the next day)
   function close(){ running=false; clearInterval(timer); relWake(); liftWake(false);
@@ -2100,12 +2113,15 @@ var Drawer=(function(){
   function pick(name){
     var ov=loadOv();
     if(mode==='swap'){
+      // Retarget openEx ONLY if the card being swapped was the open one — otherwise leave a
+      // different open card (and its unsaved sets) alone instead of collapsing it.
+      var wasOpen = openEx===enc((ov.swaps[swapTarget] && ov.swaps[swapTarget].name) || swapTarget);
       if(name==='__restore'){
         delete ov.swaps[swapTarget];
-        if(openEx) openEx=enc(swapTarget);              // keep the restored card open
+        if(wasOpen) openEx=enc(swapTarget);             // keep the restored card open
       } else {
         ov.swaps[swapTarget]={name:name};
-        if(openEx) openEx=enc(name);                    // keep the swapped card open
+        if(wasOpen) openEx=enc(name);                   // keep the swapped card open
       }
     } else {
       var arr=ov.added[curDay]||(ov.added[curDay]=[]);
