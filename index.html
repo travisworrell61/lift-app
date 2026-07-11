@@ -580,24 +580,30 @@ function applyDayAccent(day){
 }
 
 let curDay=defaultDayKey(), curWk='A';   // Ticket 18: open to today's training day (not a hardcoded day)
+var curDayPinned=false;                  // true once the user taps a specific tab — stops auto re-select on resume
 const ORDER=['mon','tue','wed','fri'];
 var openEx=null;     // encoded name of the single expanded exercise (one log card open at a time)
 var openBlk={};      // block index → 1 (expanded superset showing its exercise rows)
 function rerender(){ var y=window.scrollY; render(); window.scrollTo(0,y); }   // keep scroll on expand/collapse
+// Re-render from an ASYNC source (program/library/catalog fetch) without stomping a live edit:
+// if a log card is open or the user is typing, defer — the update lands on the next natural render.
+function rerenderSafe(){
+  var ae=document.activeElement;
+  if(openEx || (ae && (ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'))) return;
+  render();
+}
 
 const DOW={mon:1,tue:2,wed:3,fri:5};   // weekday index, Mon=1 … Sun=7
 // ── Day-tab dates: pure week-to-week, keyed off today (Ticket 18) ──────────────
 // There is only ever "this week" — no week navigation. The tab dates derive from today's
 // calendar week and roll forward automatically; logging still keys on the real todayStr().
 function anchorMonday(){
-  // This week's Monday — but on Sat/Sun the week's training (Mon/Tue/Wed/Fri) is done, so roll
-  // to next Monday so the tabs (and the default Monday selection) point at the upcoming week.
+  // The CURRENT calendar week's Monday — same window as reviewWindow()/weekEntryFor(). Keeping the
+  // tab dates and the logged-state window on ONE week is what makes weekend review coherent: on
+  // Sat/Sun you still see (and can back-fill) the Mon–Fri you just trained, and a weekend save lands
+  // in that same week instead of silently overwriting last Monday's entry with the wrong date (T22).
   const now=new Date(), dow=now.getDay();                    // 0=Sun … 6=Sat
-  const m=new Date(now);
-  if(dow===0)      m.setDate(now.getDate()+1);               // Sun → next Monday
-  else if(dow===6) m.setDate(now.getDate()+2);               // Sat → next Monday
-  else             m.setDate(now.getDate()-(dow-1));         // Mon–Fri → this week's Monday
-  m.setHours(0,0,0,0); return m;
+  const m=new Date(now); m.setDate(now.getDate()-(dow===0?6:dow-1)); m.setHours(0,0,0,0); return m;
 }
 function dateForWeekday(targetDow){           // targetDow: 1=Mon … 5=Fri, in the current week
   const m=anchorMonday(); m.setDate(m.getDate()+(targetDow-1)); return m;
@@ -669,7 +675,7 @@ function todayMarker(){ var n=new Date(); return ['Sun','Mon','Tue','Wed','Thu',
 function buildNav(){
   const days=document.getElementById('days');
   days.innerHTML=ORDER.filter(d=>PROGRAM[d]&&PROGRAM[d].title).map(d=>`<button class="day-btn ${d===curDay?'on':''}" data-d="${d}" style="--dc:${DAY_ACCENT[d]||'#7dd3fc'}"><span class="db-lab">${PROGRAM[d].title.slice(0,3)}</span><span class="db-date">${mmdd(dateForWeekday(DOW[d]))}</span></button>`).join('');
-  days.querySelectorAll('button').forEach(b=>b.onclick=()=>{curDay=b.dataset.d;openEx=null;openBlk={};render();});
+  days.querySelectorAll('button').forEach(b=>b.onclick=()=>{curDay=b.dataset.d;curDayPinned=true;openEx=null;openBlk={};render();});
 }
 
 function setsOf(r){r=String(r);var m=r.match(/^(\d+)/);if(!m)return null;return (/[×x]/.test(r)||/sets/i.test(r))?parseInt(m[1]):null;}
@@ -807,6 +813,21 @@ function effectiveEx(ex){
   return [ov.name, ex[1], ex[2], ex[3], ex[0]];
 }
 function addedFor(day){ return loadOv().added[day]||[]; }
+// Added exercises for DISPLAY (T22/T06 refinement): this session's adds PLUS any non-program
+// exercise that has a log entry in this week's (day) slot — so a bonus lift logged Monday still
+// shows on Monday's tab after a restart, later that week, or after the daily session-override reset.
+function addedForView(day){
+  var out=addedFor(day).slice(), have={};
+  out.forEach(function(a){ have[a.name]=1; });
+  var prog={}; (((typeof PROGRAM==='object'&&PROGRAM&&PROGRAM[day])||{}).A||[]).forEach(function(b){ (b.e||[]).forEach(function(e){ if(e&&e[0]) prog[e[0]]=1; }); });
+  var w=reviewWindow(), all=loadLogs();
+  for(var name in all){ if(have[name]||prog[name]) continue;
+    var h=all[name]; for(var i=h.length-1;i>=0;i--){ var e=h[i];
+      if(e && e.date>=w[0] && e.date<=w[1] && (e.day||'')===day){ out.push({name:name}); have[name]=1; break; }
+    }
+  }
+  return out;
+}
 // Master exercise library (the coach's curated list — publishable as top-level
 // `exLib` in the program JSON; this bundled set is the fallback).
 var EX_LIB_DEFAULT={
@@ -828,7 +849,7 @@ function exLibData(){
 /* ───────── Ticket 17: master exercise library + equipment catalog (read-only data) ───────── */
 var EXLIB=null, EQUIP=null;   // loaded async from exercise-library.json / equipment-catalog.json
 (function(){
-  function grab(url,set){ fetch(url+'?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){ if(d){ set(d); if(typeof render==='function') render(); } }).catch(function(){}); }
+  function grab(url,set){ fetch(url+'?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){ if(d){ set(d); if(typeof rerenderSafe==='function') rerenderSafe(); } }).catch(function(){}); }
   grab('exercise-library.json', function(d){ EXLIB=d; });
   grab('equipment-catalog.json', function(d){ EQUIP=d; });
 })();
@@ -839,7 +860,7 @@ function libEntry(name){
 }
 function libConvention(name){ var e=libEntry(name); return e?e.convention:null; }
 function libNote(name){ var e=libEntry(name); return e?e.note:null; }
-function isAddedExercise(name){ try{ return addedFor(curDay).some(function(a){return a.name===name;}); }catch(e){ return false; } }
+function isAddedExercise(name){ try{ return addedForView(curDay).some(function(a){return a.name===name;}); }catch(e){ return false; } }
 // Muscle-grouped picker source (Ticket 17): library groups in priority order → [{label,names}].
 function pickerGroups(){
   if(EXLIB && Array.isArray(EXLIB.groups) && EXLIB.groups.length)
@@ -1031,7 +1052,10 @@ function buildPanel(name,reps){
   // Triggered by an AMRAP/burnout rep-spec or a bodyweight name, plus the legacy guess==null case.
   // "+ Add weight" reveals a normal weight row (the VKR note: "add a DB once it's easy") — the existing
   // .btn-add handler appends into .setrows and Save reads it like any weighted set.
-  if(!plate && (isBodyweight(name,reps) || (guess==null && !(rec && rec.w!=null)))){
+  // If THIS WEEK's saved entry carries a real weight (e.g. a VKR logged with a DB), don't fall into
+  // the no-weight "Mark done" card — that would hide the saved load and a re-tap would wipe it (T22).
+  var wkHasWeight = wkEnt && wkEnt.sets && wkEnt.sets.some(function(s){ return s.w!=null; });
+  if(!plate && !wkHasWeight && (isBodyweight(name,reps) || (guess==null && !(rec && rec.w!=null)))){
     return editOrig+'<div class="bw-note">Bodyweight — reps to failure, no weight needed. '+
         'Tap <b>+ Add weight</b> only if you loaded a dumbbell.</div>'+
       '<div class="setrows"></div>'+
@@ -1117,6 +1141,7 @@ document.addEventListener('click',function(ev){
     var hall=loadLogs(), hen=(hall[hnm]||[])[hidx];
     if(hen && hen.scale_tag){
       var opts=scaleOptions().map(function(o){return o.tag;});
+      if(!opts.length) return;                        // catalog not loaded yet → don't corrupt the tag (% 0 = NaN)
       var ni=(opts.indexOf(hen.scale_tag)+1) % opts.length;
       hen.scale_tag=opts[ni];
       saveLogs(hall); liftSyncLogs();
@@ -1296,15 +1321,13 @@ function flattenExercises(d,wk){
     var isSS = b.t==='ss';
     b.e.forEach(function(raw){ var ex=effectiveEx(raw); list.push({name:ex[0], reps:ex[1], ss:isSS, grp:gi}); });
   });
-  addedFor(curDay).forEach(function(a){ list.push({name:a.name, reps:'Bonus', ss:false, grp:-1}); });
+  addedForView(curDay).forEach(function(a){ list.push({name:a.name, reps:'Bonus', ss:false, grp:-1}); });
   return list;
 }
 function currentExerciseIdx(list){
-  var ts=todayStr();
-  for(var i=0;i<list.length;i++){
-    var h=logsFor(list[i].name);
-    if(!(h.length && h[h.length-1].date===ts)) return i;   // first one not logged today
-  }
+  // First exercise not yet logged in THIS WEEK's day slot (T22) — matches the in-app done state,
+  // so editing a past entry no longer regresses the widget to "not started".
+  for(var i=0;i<list.length;i++){ if(!isLoggedForDay(list[i].name)) return i; }
   return list.length;                                        // all done
 }
 function liftPushState(){
@@ -1416,11 +1439,11 @@ function ovBadge(ex){ return (ex.length>4 && ex[4])?'<span class="ov-badge">Swap
 function soloBlockHTML(b,bi){
   var raw=b.e[0], ex=effectiveEx(raw), name=ex[0], reps=ex[1], en=enc(name);
   var done=isLoggedForDay(name), open=(openEx===en);
-  return '<div class="group"><div class="solo-tag">● Solo · '+b.w+'</div>'+
+  return '<div class="group"><div class="solo-tag">● Solo'+(b.w?' · '+escHtml(b.w):'')+'</div>'+
     '<div class="blk exblock'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'" data-bi="'+bi+'" data-kind="solo">'+
       '<button class="bhead" data-toggle="blk">'+
         '<span class="acc"></span>'+
-        '<span class="ttl"><div class="where">'+name+ovBadge(ex)+'</div>'+tagBadges(ex)+collapsedDoneLine(name)+'</span>'+
+        '<span class="ttl"><div class="where">'+escHtml(name)+ovBadge(ex)+'</div>'+tagBadges(ex)+collapsedDoneLine(name)+'</span>'+
         repsTargetHTML(name,reps)+
         swapBtnHTML(raw[0])+
         '<span class="chev">⌄</span>'+
@@ -1435,7 +1458,7 @@ function exRowHTML(raw,c){
   return '<div class="exrow exblock'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'">'+
     '<button class="exhead" data-toggle="ex">'+
       '<span class="acc"></span>'+
-      '<span class="nm">'+name+ovBadge(ex)+'</span>'+tagBadges(ex)+(done?'<span class="tick">✓</span>':'')+
+      '<span class="nm">'+escHtml(name)+ovBadge(ex)+'</span>'+tagBadges(ex)+(done?'<span class="tick">✓</span>':'')+
       repsTargetHTML(name,reps)+
       swapBtnHTML(raw[0])+
       '<span class="chev">⌄</span>'+
@@ -1452,7 +1475,7 @@ function addedBlockHTML(a){
     '<div class="blk exblock added'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'" data-kind="solo" style="--c:#2dd4bf">'+
       '<button class="bhead" data-toggle="blk">'+
         '<span class="acc" style="background:#2dd4bf"></span>'+
-        '<span class="ttl"><div class="where">'+name+'<span class="ov-badge add">Added</span></div>'+promoteFlag(name)+collapsedDoneLine(name)+'</span>'+
+        '<span class="ttl"><div class="where">'+escHtml(name)+'<span class="ov-badge add">Added</span></div>'+promoteFlag(name)+collapsedDoneLine(name)+'</span>'+
         '<span class="rm-added" role="button" data-name="'+en+'" aria-label="remove added exercise">✕</span>'+
         '<span class="chev">⌄</span>'+
       '</button>'+
@@ -1464,7 +1487,7 @@ function supersetBlockHTML(b,bi,c){
   var effs=b.e.map(effectiveEx);
   var containsOpen=effs.some(function(e){return openEx===enc(e[0]);});
   var open=!!openBlk[bi] || containsOpen;
-  var names=effs.map(function(e){return e[0];}).join(' · ');
+  var names=effs.map(function(e){return escHtml(e[0]);}).join(' · ');
   var doneCount=effs.filter(function(e){return isLoggedForDay(e[0]);}).length, allDone=(doneCount===b.e.length);
   var un=unevenNote(effs);
   var rows=(un?'<div class="uneven">⚠ '+un+'</div>':'')+b.e.map(function(ex){return exRowHTML(ex,c);}).join('');
@@ -1503,6 +1526,7 @@ function render(){
       <span class="tag">~55 min + cardio</span>
     </div>
   </header>
+  ${d.warm?`<div class="warm"><div class="lab">Warm-up</div><p>${escHtml(d.warm)}</p></div>`:''}
   <div class="today">
     <div class="today-bar"><span style="width:${pct}%"></span></div>
     <div class="today-lab"><b>${doneEx}</b>/${totalEx} logged</div>
@@ -1512,7 +1536,7 @@ function render(){
   if(doneEx>0 && doneEx<totalEx){
     const missing=flat.filter(function(x){return !isLoggedForDay(x.name);});
     html+='<div class="day-review">⚠ Not logged: '+missing.map(function(x){
-      return '<button class="rv-ex" data-rv="'+enc(x.name)+'">'+x.name+'</button>';
+      return '<button class="rv-ex" data-rv="'+enc(x.name)+'">'+escHtml(x.name)+'</button>';
     }).join('')+'</div>';
   }
 
@@ -1520,7 +1544,7 @@ function render(){
     if(b.t==='solo'){ html+=soloBlockHTML(b,bi); }
     else { var c=SS_COLORS[ssi%SS_COLORS.length]; ssi++; html+=supersetBlockHTML(b,bi,c); }
   });
-  addedFor(curDay).forEach(function(a){ html+=addedBlockHTML(a); });
+  addedForView(curDay).forEach(function(a){ html+=addedBlockHTML(a); });
   html+='<button class="addex">＋ Add exercise</button>';
 
   const fin=d.fin||{core:'—'};                           // defensive: never crash on a sparse day
@@ -1600,7 +1624,7 @@ async function loadProgram(){
   var prog=null;
   try{ prog=await fetchProgram(PROGRAM_API); }catch(e){}     // 1) Vercel (in-app publish)
   if(!prog){ try{ prog=await fetchProgram(PROGRAM_URL); }catch(e){} }   // 2) GitHub
-  if(prog){ PROGRAM=prog; setCachedProgram(prog); render(); }           // 3) else bundled program.js stays
+  if(prog){ PROGRAM=prog; setCachedProgram(prog); rerenderSafe(); }      // 3) else bundled program.js stays (guarded: don't wipe a live edit)
 }
 
 /* ───────── Core / ab interval timer — pool + weekly shuffle (BUILD-QUEUE T03) ─────────
@@ -1725,6 +1749,7 @@ var Ab = (function(){
   }
   function announcePhase(p){
     if(!p) return;
+    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}   // drop any queued/stale line before the new one (rapid skips)
     if(p.kind==='work') say(p.label);
     else if(p.kind==='rest') say('Rest. Next up, '+(p.next||''));
     else if(p.kind==='trans') say('Next up, '+(p.next||''));
@@ -1809,7 +1834,7 @@ var Ab = (function(){
         '<div class="abt-review"><b>'+rvw.logged.length+'/'+rvw.total+'</b> exercises logged'+
         (rvw.missing.length
           ? ' — not logged:</div><div class="abt-review-list">'+rvw.missing.map(function(nm){
-              return '<button class="rv-ex" data-rv="'+enc(nm)+'">'+nm+'</button>';
+              return '<button class="rv-ex" data-rv="'+enc(nm)+'">'+escHtml(nm)+'</button>';
             }).join('')+'</div>'
           : ' — all logged ✓</div>');
     } else {
@@ -1878,7 +1903,7 @@ var Ab = (function(){
   function reqWake(){ try{ if('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function(w){wake=w;}).catch(function(){}); }catch(e){} }
   function relWake(){ try{ wake&&wake.release&&wake.release(); }catch(e){} wake=null; }
   function openFresh(){ buildPhases(); pi=0; remaining=phases[0].sec; running=false; started=false; lastSec=-1; curAnnounced=false; }
-  function open(){ openFresh(); el('abtimer').hidden=false; liftWake(true); draw(); }
+  function open(){ AB_ROLL=0; openFresh(); el('abtimer').hidden=false; liftWake(true); draw(); }   // fresh open → this day's default circuit (re-rolls don't leak to the next day)
   function close(){ running=false; clearInterval(timer); relWake(); liftWake(false);
     try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}
     el('abtimer').hidden=true; }
@@ -1929,10 +1954,16 @@ function programKeyWarnings(prog){
     function known(n){ return !!(names[n]||variants[n]); }
     function q(s){ return '“'+s+'”'; }
     var warns=[];
+    function warnBad(bad,label){ if(bad.length) warns.push(label+' for '+bad.slice(0,3).map(q).join(', ')+(bad.length>3?' +'+(bad.length-3):'')+' (no matching exercise — typo?)'); }
     function checkMap(obj,label){ if(obj && typeof obj==='object' && !Array.isArray(obj)){
-      var bad=Object.keys(obj).filter(function(k){ return !known(k); });
-      if(bad.length) warns.push(label+' for '+bad.slice(0,3).map(q).join(', ')+(bad.length>3?' +'+(bad.length-3):'')+' (no matching exercise — typo?)'); } }
-    checkMap(prog.recs,'recs'); checkMap(prog.alts,'alts');
+      warnBad(Object.keys(obj).filter(function(k){ return !known(k); }), label); } }
+    // recs/plates are DAY-NESTED ({mon:{"Exercise":val}, …}) — the exercise names are the INNER keys.
+    // (The old flat check flagged mon/tue/wed/fri as unknown exercises on every valid publish.)
+    function checkDayNested(obj,label){ if(obj && typeof obj==='object' && !Array.isArray(obj)){
+      var bad=[]; ORDER.forEach(function(dk){ var day=obj[dk];
+        if(day && typeof day==='object' && !Array.isArray(day)) Object.keys(day).forEach(function(k){ if(!known(k)) bad.push(k); }); });
+      warnBad(bad, label); } }
+    checkDayNested(prog.recs,'recs'); checkDayNested(prog.plates,'plates'); checkMap(prog.alts,'alts');
     if(Array.isArray(prog.plateMode)){ var bp=prog.plateMode.filter(function(k){ return !known(k); });
       if(bp.length) warns.push('plateMode '+bp.slice(0,3).map(q).join(', ')+(bp.length>3?' +'+(bp.length-3):'')+' (no matching exercise)'); }
     return warns;
@@ -2037,14 +2068,14 @@ var Drawer=(function(){
       var alts=altsFor(swapTarget).filter(function(a){return a.toLowerCase().indexOf(q)>=0;});
       if(alts.length){
         html+='<div class="grp">Coach\'s alternates</div><div class="alt-chips">'+
-          alts.map(function(a){return '<button class="vchip" data-pick="'+enc(a)+'">'+a+'</button>';}).join('')+'</div>';
+          alts.map(function(a){return '<button class="vchip" data-pick="'+enc(a)+'">'+escHtml(a)+'</button>';}).join('')+'</div>';
       }
     }
     pickerGroups().forEach(function(g){
       var items=(g.names||[]).filter(function(n){return String(n).toLowerCase().indexOf(q)>=0;});
       if(!items.length) return;
       html+='<div class="grp">'+g.label+'</div>'+items.map(function(n){
-        return '<button class="libitem" data-pick="'+enc(n)+'"><span>'+n+'</span><span class="pluss">＋</span></button>';
+        return '<button class="libitem" data-pick="'+enc(n)+'"><span>'+escHtml(n)+'</span><span class="pluss">＋</span></button>';
       }).join('');
     });
     html+='<div class="grp">Custom</div><div class="custom-row">'+
@@ -2107,7 +2138,10 @@ document.addEventListener('visibilitychange', function(){
   // refresh (widget + date rollover) — but never wipe an open log panel OR a field
   // being typed in (notes / weight), which would drop focus + the iOS keyboard.
   var ae=document.activeElement, typing=ae && (ae.tagName==='TEXTAREA'||ae.tagName==='INPUT');
-  if(!typing && !document.querySelector('.log-panel:not([hidden])')) render();
+  if(!typing && !openEx && !document.querySelector('.log-panel:not([hidden])')){
+    if(!curDayPinned) curDay=defaultDayKey();   // resumed on a new day → re-select today's tab (unless pinned)
+    render();
+  }
 });
 </script>
 <script>

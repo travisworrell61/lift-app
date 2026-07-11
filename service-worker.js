@@ -7,7 +7,7 @@
    - Offline: serves the last cached version so the app still opens at the gym.
    NOTE: if you add new files to the app, add them to CORE below. */
 
-const CACHE = 'lift-v4';   // bump purges old caches on activate
+const CACHE = 'lift-v5';   // bump purges old caches on activate
 const CORE = [
   './',
   './index.html',
@@ -40,18 +40,28 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  // Same-origin only: API calls (Vercel / raw GitHub) carry unique cache-buster
-  // params — caching them would grow the cache forever and serve nothing useful.
-  if (new URL(e.request.url).origin !== self.location.origin) return;
+  const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin) return;   // cross-origin (Vercel API) → let the network handle it
+  // Cache key ignores the query string, so the ?t= cache-busters on the JSON fetches map to ONE
+  // stable entry (not a new one per launch that never matches offline and grows forever).
+  const cacheKey = new Request(url.origin + url.pathname);
   e.respondWith(
     // {cache:'reload'} forces a network revalidation, ignoring the HTTP cache — so a push
     // is visible on the next online open instead of waiting out GitHub Pages' max-age=600.
     fetch(e.request, { cache: 'reload' })
       .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+        if (res && res.ok) {   // only cache successful responses — a transient 404/503 must not poison the shell
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(cacheKey, copy)).catch(() => {});
+        }
         return res;
       })
-      .catch(() => caches.match(e.request).then((r) => r || caches.match('./index.html')))
+      .catch(() => caches.match(cacheKey).then((r) => {
+        if (r) return r;
+        // Offline miss with nothing cached: only fall back to the app shell for a NAVIGATION.
+        // (Answering a failed .json/.png with index.html is what silently broke the library offline.)
+        if (e.request.mode === 'navigate') return caches.match('./index.html');
+        return new Response('', { status: 504, statusText: 'offline' });
+      }))
   );
 });
