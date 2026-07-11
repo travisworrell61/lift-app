@@ -26,6 +26,10 @@ struct WebView: UIViewRepresentable {
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .default()          // keeps your logs/history between launches
+        // Enable the service worker in WKWebView (offline caching). Requires the WKAppBoundDomains
+        // array in Info.plist (see project.yml). WKWebView runs SWs ONLY for app-bound domains with
+        // this flag set. Cross-origin data fetches (Vercel API) are unaffected — only navigation is limited.
+        config.limitsNavigationsToAppBoundDomains = true
         let controller = WKUserContentController()
         controller.add(context.coordinator, name: "lift")       // JS → native: widget state
         controller.add(context.coordinator, name: "liftSync")   // JS → native: full log blob → cloud

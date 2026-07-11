@@ -26,12 +26,23 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.travisworrell61.lift
         TARGETED_DEVICE_FAMILY: "1"
-        GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        INFOPLIST_KEY_CFBundleDisplayName: LIFT
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleLightContent
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
+    # Explicit Info.plist (replaces GENERATE_INFOPLIST_FILE) so we can declare WKAppBoundDomains —
+    # the array WKWebView requires to run a service worker (paired with
+    # limitsNavigationsToAppBoundDomains=true in LIFTApp.swift). Lists every domain the web app
+    # navigates to or fetches from. The four keys below reproduce the old INFOPLIST_KEY_* settings.
+    info:
+      path: LIFT-Info.plist
+      properties:
+        CFBundleDisplayName: LIFT
+        UILaunchScreen: {}
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        WKAppBoundDomains:
+          - travisworrell61.github.io
+          - lift-sync-api.vercel.app
+          - raw.githubusercontent.com
     entitlements:
       path: LIFT.entitlements
       properties:
