@@ -435,6 +435,22 @@
     border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--steel);transition:.15s;}
   .abt-roll:active{color:var(--ink);border-color:var(--accent);}
   .abt-roll[hidden]{display:none;}
+  /* Day review — logged vs missed (Ticket 22-B) */
+  .day-review{margin:10px 0 4px;padding:10px 12px;border:1px solid color-mix(in srgb,#fbbf24 35%,var(--line));
+    border-radius:12px;background:color-mix(in srgb,#fbbf24 7%,var(--panel));
+    font-size:.78rem;color:var(--steel);line-height:2;}
+  .rv-ex{font-family:'Oswald',sans-serif;font-weight:600;font-size:.72rem;letter-spacing:.03em;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel2);color:var(--ink);
+    padding:4px 9px;margin:0 4px 0 2px;cursor:pointer;-webkit-appearance:none;}
+  .rv-ex:active{border-color:var(--accent);color:var(--accent);}
+  .hist-tag{font-family:'Oswald',sans-serif;font-weight:600;font-size:.62rem;letter-spacing:.05em;
+    text-transform:uppercase;border:1px solid var(--line);border-radius:6px;background:var(--panel2);
+    color:var(--steel);padding:2px 7px;margin-left:6px;cursor:pointer;-webkit-appearance:none;}
+  .hist-tag:active{border-color:var(--accent);color:var(--accent);}
+  .abt-review{margin-top:18px;text-align:center;font-size:.92rem;color:var(--steel);}
+  .abt-review b{color:var(--ink);}
+  .abt-review-list{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px;}
+  .abt-review-list .rv-ex{font-size:.8rem;padding:8px 12px;}
   .abt-list{margin-top:22px;display:flex;flex-direction:column;gap:4px;max-height:26vh;
     overflow-y:auto;text-align:left;}
   .abt-li{font-family:'Oswald',sans-serif;font-size:.8rem;color:var(--muted);
@@ -598,6 +614,51 @@ function defaultDayKey(){
     default: return 'mon';               // Sat/Sun → next Monday
   }
 }
+
+/* ── Week-scoped day-slots (Ticket 22) ─────────────────────────────────────────
+   A day tab's logged state is the entry for (this training week, that day key) — NOT
+   "logged today". This is what lets a completed day rehydrate after a restart, later in
+   the week, or when a session slid a day (e.g. Tuesday's legs done on Wednesday). The
+   review week runs from the MOST RECENT Monday (so Sat/Sun still review the finished
+   week even though the tab dates have rolled forward per T18). */
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function reviewWindow(){
+  var now=new Date(), dow=now.getDay();
+  var m=new Date(now); m.setDate(now.getDate()-(dow===0?6:dow-1)); m.setHours(0,0,0,0);
+  var e=new Date(m); e.setDate(m.getDate()+6);
+  return [ymd(m), ymd(e)];               // [Mon..Sun], YYYY-MM-DD (string compare is safe)
+}
+// Latest log entry for (exercise, this week's dayKey slot[, variant]) — any real date in the week.
+function weekEntryFor(name, dayKey, variant){
+  var w=reviewWindow(), h=logsFor(name);
+  for(var i=h.length-1;i>=0;i--){ var e=h[i];
+    if(!e || e.date<w[0] || e.date>w[1]) continue;
+    if((e.day||dayKey)!==dayKey) continue;
+    if(variant && (e.v||variantsOf(name)[0])!==variant) continue;
+    return e;
+  }
+  return null;
+}
+function isLoggedForDay(name){ return !!weekEntryFor(name, curDay, null); }
+// The real calendar date this week's curDay session was performed on (null if not yet logged).
+function dayLoggedDate(dayKey){
+  var w=reviewWindow(), all=loadLogs(), best=null;
+  for(var k in all){ var h=all[k]; if(!h) continue;
+    for(var i=h.length-1;i>=0;i--){ var e=h[i];
+      if(!e || e.date<w[0] || e.date>w[1]) continue;
+      if((e.day||'')!==dayKey) continue;
+      if(!best || e.date>best) best=e.date;
+    }
+  }
+  return best;
+}
+// End-of-day review (Ticket 22-B): which of today's exercises are logged vs missed.
+function dayReviewData(){
+  var d=PROGRAM[curDay]; if(!d) return {logged:[],missing:[],total:0};
+  var flat=flattenExercises(d,curWk), logged=[], missing=[];
+  flat.forEach(function(x){ (isLoggedForDay(x.name)?logged:missing).push(x.name); });
+  return {logged:logged, missing:missing, total:flat.length};
+}
 // Kicker label (Ticket 16, revised): weekday ONLY — no "Phase", no week number (autoregulated,
 // week-to-week programming with no running week tally). Never renders the literal "undefined".
 function kickerText(d){
@@ -640,7 +701,6 @@ function dec(s){return decodeURIComponent(s);}
 function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function fmtDate(s){var p=s.split('-');return parseInt(p[1])+'/'+parseInt(p[2]);}
 function logsFor(name){var all=loadLogs();return all[name]||[];}
-function isLoggedToday(name){var h=logsFor(name);return !!(h.length && h[h.length-1].date===todayStr());}
 // Coach recommendation for an exercise (suggested weight/range/cue), published in the program JSON.
 function recFor(name){
   try{
@@ -796,16 +856,23 @@ function scaleOptions(){
 function scaleLabel(tag){ return {hoist_cmj:'Hoist ~1:1', versa:'Versa 1:2', matrix_g3ms53:'Matrix G3MS53'}[tag] || tag; }
 function needsScaleTag(name){ var e=libEntry(name); return !!(e && e.scale_tag_required); }
 function defaultScaleTag(name){
-  var e=libEntry(name), s=String((e&&e.default_equipment)||'')+' '+String((e&&e.note)||'');
-  if(/versa/i.test(s)) return 'versa';
-  if(/g3ms53|matrix/i.test(s)) return 'matrix_g3ms53';
+  // HOME station from default_equipment ONLY — never the note (notes mention fallback
+  // machines, e.g. "Versa = separate track", which made the old heuristic default
+  // Overhead Extension/Rope Pushdown to versa: the actual source of the 6/29–7/6
+  // mistagged entries, T22-D). Hoist checked first; no entry → first catalog line (Hoist).
+  var e=libEntry(name), s=String((e&&e.default_equipment)||'');
   if(/hoist/i.test(s)) return 'hoist_cmj';
+  if(/g3ms53/i.test(s)) return 'matrix_g3ms53';
+  if(/versa/i.test(s)) return 'versa';
   var o=scaleOptions(); return o.length?o[0].tag:null;     // HOME default = first listed (Hoist)
 }
 var selScale={};   // enc(name) → scale_tag chosen this session
 function currentScale(name){
-  var sel=selScale[enc(name)]; if(sel) return sel;
-  var h=logsFor(name); for(var i=h.length-1;i>=0;i--){ if(h[i].scale_tag) return h[i].scale_tag; }
+  var sel=selScale[enc(name)]; if(sel) return sel;                        // explicit pick this session
+  var wk=weekEntryFor(name, curDay, variantsOf(name)?currentVariant(name):null);
+  if(wk && wk.scale_tag) return wk.scale_tag;                             // editing this week's entry → its saved tag
+  // T22-D: default to the exercise's HOME station — never the last-used tag. A one-off Versa
+  // day must not silently retag the following weeks (that skew is in the real synced data).
   return defaultScaleTag(name);
 }
 function scaleSelHTML(name){
@@ -953,8 +1020,11 @@ function buildPanel(name,reps){
   var variant=variantsOf(name)?currentVariant(name):null;
   var plate=isPlateMode(name,variant);
   var ent=lastEntryFor(name,variant);
-  var pf=ent?ent.sets:null;                           // prefill from the last session OF THIS VARIANT
-  var loggedToday=!!(ent && ent.date===todayStr());   // Ticket 15: reopening today's own log → show what was saved (editable)
+  var wkEnt=weekEntryFor(name, curDay, variant);      // this week's slot entry (T22-A: rehydrates after restarts / later days)
+  var loggedToday=!!wkEnt;                            // "logged this session" → editable saved-values view (T15)
+  var pf=wkEnt?wkEnt.sets:(ent?ent.sets:null);        // saved slot first; else last-session prefill
+  // Marker for Save: which entry this panel is editing (keeps its performed date; enables retag, T22-D).
+  var editOrig=wkEnt?('<span class="edit-orig" hidden data-date="'+wkEnt.date+'"'+(wkEnt.scale_tag?(' data-tag="'+wkEnt.scale_tag+'"'):'')+'></span>'):'';
   var rec=recValsFor(name,variant);
   var guess=guessFor(name);                           // null for bodyweight
   // Bodyweight / reps-only → no weight prompt by default, just "Mark done" (never for plate-loaded).
@@ -962,7 +1032,7 @@ function buildPanel(name,reps){
   // "+ Add weight" reveals a normal weight row (the VKR note: "add a DB once it's easy") — the existing
   // .btn-add handler appends into .setrows and Save reads it like any weighted set.
   if(!plate && (isBodyweight(name,reps) || (guess==null && !(rec && rec.w!=null)))){
-    return '<div class="bw-note">Bodyweight — reps to failure, no weight needed. '+
+    return editOrig+'<div class="bw-note">Bodyweight — reps to failure, no weight needed. '+
         'Tap <b>+ Add weight</b> only if you loaded a dumbbell.</div>'+
       '<div class="setrows"></div>'+
       '<div class="panel-actions">'+
@@ -999,7 +1069,7 @@ function buildPanel(name,reps){
     '<button class="sstep" data-d="-1" aria-label="fewer sets">−</button>'+
     '<span class="sc-n">'+n+'</span>'+
     '<button class="sstep" data-d="1" aria-label="more sets">+</button></div>';
-  return hint+setsCtl+'<div class="setrows">'+rows+'</div>'+
+  return editOrig+hint+setsCtl+'<div class="setrows">'+rows+'</div>'+
     '<div class="panel-actions">'+
       '<button class="btn-add">+ Set</button>'+
       '<button class="btn-save">Save</button>'+
@@ -1008,7 +1078,12 @@ function buildPanel(name,reps){
 function buildHistory(name){
   var h=logsFor(name).slice().reverse();
   if(!h.length) return '<div class="hist-item">No history yet.</div><div class="panel-actions"><button class="btn-cancel">Close</button></div>';
-  var items=h.map(function(e){return '<div class="hist-item"><b>'+fmtDate(e.date)+'</b> &nbsp;'+setsSummary(e.sets)+(e.v?' · '+e.v:'')+'</div>';}).join('');
+  var n=h.length;
+  var items=h.map(function(e,i){
+    // T22-D: a saved entry's cable-station tag is correctable — tap the badge to cycle stations.
+    var tag=e.scale_tag?(' <button class="hist-tag" data-hidx="'+(n-1-i)+'" title="Tap to correct the station">'+scaleLabel(e.scale_tag)+'</button>'):'';
+    return '<div class="hist-item"><b>'+fmtDate(e.date)+'</b> &nbsp;'+setsSummary(e.sets)+(e.v?' · '+e.v:'')+tag+'</div>';
+  }).join('');
   return '<div class="hist-list">'+items+'</div><div class="panel-actions"><button class="btn-cancel">Close</button></div>';
 }
 function renumber(rows){var n=rows.querySelectorAll('.setrow .si');for(var i=0;i<n.length;i++){n[i].textContent='SET '+(i+1);}}
@@ -1027,6 +1102,28 @@ document.addEventListener('click',function(ev){
     rerender(); return;
   }
   if(t.closest('.addex')){ Drawer.openAdd(); return; }
+  var rv=t.closest('.rv-ex');                       // day-review backfill (Ticket 22-B)
+  if(rv){
+    if(rv.closest('#abtimer') && typeof Ab!=='undefined') Ab.close();   // tapped from the timer's done screen
+    openEx=rv.dataset.rv; render();
+    var tgt=document.querySelector('[data-ex="'+openEx+'"]');
+    if(tgt) tgt.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  var ht=t.closest('.hist-tag');                    // retag a saved entry's cable station (Ticket 22-D)
+  if(ht){
+    var hbk=ht.closest('.exblock'); if(!hbk) return;
+    var hnm=dec(hbk.dataset.ex), hidx=parseInt(ht.dataset.hidx);
+    var hall=loadLogs(), hen=(hall[hnm]||[])[hidx];
+    if(hen && hen.scale_tag){
+      var opts=scaleOptions().map(function(o){return o.tag;});
+      var ni=(opts.indexOf(hen.scale_tag)+1) % opts.length;
+      hen.scale_tag=opts[ni];
+      saveLogs(hall); liftSyncLogs();
+      ht.textContent=scaleLabel(hen.scale_tag);     // update in place — keep the history list open
+    }
+    return;
+  }
   var ss2=t.closest('.sstep');
   if(ss2){
     var sp=ss2.closest('.log-panel'), sb=sp&&sp.closest('.exblock'); if(!sb) return;
@@ -1165,19 +1262,23 @@ document.addEventListener('click',function(ev){
     var ts=todayStr();
     var vNow=variantsOf(name)?currentVariant(name):null;
     var tagNow=needsScaleTag(name)?currentScale(name):null;
-    // Overwrite only a PRIOR SAVE OF THE SAME SLOT today — scoped by (date, day, variant, scale_tag) —
-    // so the same exercise on two days, two machines of a " / " exercise, or two cable STATIONS
-    // (each scale_tag is its own track, Ticket 17) don't clobber each other.
+    var orig=panel.querySelector('.edit-orig');
+    var origDate=orig?(orig.dataset.date||''):'';
+    // Replace THIS WEEK'S entry for the same slot — scoped by (review week, day, variant) — so a
+    // completed day can be reviewed/corrected any day that week (T22-A/B) without duplicating, while
+    // other weeks' history is never touched. An edit keeps the entry's original performed date.
+    // scale_tag is an EDITABLE ATTRIBUTE of the entry, not part of the slot identity (T22-D):
+    // a same-day station switch is a retag/correction, not a second entry.
+    var w=reviewWindow();
     all[name]=all[name].filter(function(e){
-      if(e.date!==ts) return true;
-      if((e.day||curDay)!==curDay) return true;                          // different day → keep
+      if(!e || e.date<w[0] || e.date>w[1]) return true;                  // other weeks → history, always kept
+      if((e.day||curDay)!==curDay) return true;                          // different day-slot → keep
       if(vNow && (e.v||variantsOf(name)[0])!==vNow) return true;         // different variant → keep
-      if(tagNow && (e.scale_tag||tagNow)!==tagNow) return true;          // different cable station → keep (own track)
-      return false;
+      return false;                                                      // this week's slot → replaced by this save
     });
-    var entry={date:ts, day:curDay, sets:sets};
+    var entry={date:(origDate||ts), day:curDay, sets:sets};
     if(vNow) entry.v=vNow;                                               // record which machine these weights belong to
-    if(tagNow) entry.scale_tag=tagNow;                                   // Ticket 17: store the cable scale (own track; never converted)
+    if(tagNow) entry.scale_tag=tagNow;                                   // cable station (tag & store; never converted)
     all[name].push(entry);
     saveLogs(all);
     liftPushState(); liftSyncLogs();
@@ -1243,9 +1344,12 @@ function liftWake(on){
 function loadNotes(){ try{ var r=localStorage.getItem('lift-notes'); var o=r?JSON.parse(r):{}; return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; } }
 function saveNotesObj(o){ try{ localStorage.setItem('lift-notes', JSON.stringify(o)); }catch(e){} }
 function noteKey(){
-  var dt=dateForWeekday(DOW[curDay]);
-  var k=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
-  return k+'|'+curDay;                    // e.g. "2026-06-12|fri" — lines up with that day's lifts
+  // T22-C: the note must share a date with the session's SET LOGS — not the tab's nominal
+  // date. (Tuesday's legs done on Wednesday logs 07-08; the old tab-date key stamped the
+  // note 07-07|tue, skewing every slid session.) Use the week-slot's real logged date;
+  // before anything is logged, notes key to today (lifts logged later today match).
+  var k=dayLoggedDate(curDay) || todayStr();
+  return k+'|'+curDay;                    // e.g. "2026-07-08|tue" — same date as that session's lifts
 }
 function currentNote(){ return loadNotes()[noteKey()]||''; }
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -1291,7 +1395,7 @@ function vselHTML(name){
 }
 function lastLineFull(name){
   var hh=logsFor(name); if(!hh.length) return '';
-  var done=isLoggedToday(name);
+  var done=isLoggedForDay(name);
   var hist=(hh.length>1)?'<button class="hist-btn">History</button>':'';
   return '<div class="logbar"><span class="last'+(done?' done':'')+'">'+(done?'✓ ':'')+lastLine(name)+'</span><span class="logbtns">'+hist+'</span></div>';
 }
@@ -1299,8 +1403,8 @@ function exerciseBodyHTML(name,reps){
   return vselHTML(name)+scaleSelHTML(name)+recCardHTML(name)+lastLineFull(name)+'<div class="log-panel" data-mode="log">'+buildPanel(name,reps)+'</div>';
 }
 function collapsedDoneLine(name){
-  if(!isLoggedToday(name)) return '';
-  var hh=logsFor(name), e=hh[hh.length-1];
+  var e=weekEntryFor(name, curDay, null);   // this week's slot entry (rehydrates after restart / later days)
+  if(!e) return '';
   return '<div class="done-mini">✓ '+setsSummary(e.sets)+(e.v?' · '+e.v:'')+'</div>';
 }
 // Swap control (⇄) — sits inside the tappable header; handled before the
@@ -1311,7 +1415,7 @@ function swapBtnHTML(origName){
 function ovBadge(ex){ return (ex.length>4 && ex[4])?'<span class="ov-badge">Swapped</span>':''; }
 function soloBlockHTML(b,bi){
   var raw=b.e[0], ex=effectiveEx(raw), name=ex[0], reps=ex[1], en=enc(name);
-  var done=isLoggedToday(name), open=(openEx===en);
+  var done=isLoggedForDay(name), open=(openEx===en);
   return '<div class="group"><div class="solo-tag">● Solo · '+b.w+'</div>'+
     '<div class="blk exblock'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'" data-bi="'+bi+'" data-kind="solo">'+
       '<button class="bhead" data-toggle="blk">'+
@@ -1327,7 +1431,7 @@ function soloBlockHTML(b,bi){
 }
 function exRowHTML(raw,c){
   var ex=effectiveEx(raw), name=ex[0], reps=ex[1], en=enc(name);
-  var done=isLoggedToday(name), open=(openEx===en);
+  var done=isLoggedForDay(name), open=(openEx===en);
   return '<div class="exrow exblock'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'">'+
     '<button class="exhead" data-toggle="ex">'+
       '<span class="acc"></span>'+
@@ -1343,7 +1447,7 @@ function exRowHTML(raw,c){
 // Session-added bonus exercise — its own teal block, loggable like any other.
 function addedBlockHTML(a){
   var name=a.name, en=enc(name), reps='Bonus';
-  var done=isLoggedToday(name), open=(openEx===en);
+  var done=isLoggedForDay(name), open=(openEx===en);
   return '<div class="group"><div class="solo-tag" style="color:#2dd4bf">＋ Added today</div>'+
     '<div class="blk exblock added'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'" data-kind="solo" style="--c:#2dd4bf">'+
       '<button class="bhead" data-toggle="blk">'+
@@ -1361,7 +1465,7 @@ function supersetBlockHTML(b,bi,c){
   var containsOpen=effs.some(function(e){return openEx===enc(e[0]);});
   var open=!!openBlk[bi] || containsOpen;
   var names=effs.map(function(e){return e[0];}).join(' · ');
-  var doneCount=effs.filter(function(e){return isLoggedToday(e[0]);}).length, allDone=(doneCount===b.e.length);
+  var doneCount=effs.filter(function(e){return isLoggedForDay(e[0]);}).length, allDone=(doneCount===b.e.length);
   var un=unevenNote(effs);
   var rows=(un?'<div class="uneven">⚠ '+un+'</div>':'')+b.e.map(function(ex){return exRowHTML(ex,c);}).join('');
   return '<div class="group"><div class="solo-tag" style="color:'+c+'">⛓ Superset</div>'+
@@ -1387,7 +1491,7 @@ function render(){
   let ssi=0;
   const flat=flattenExercises(d,curWk);
   const totalEx=flat.length;
-  const doneEx=flat.filter(function(x){return isLoggedToday(x.name);}).length;
+  const doneEx=flat.filter(function(x){return isLoggedForDay(x.name);}).length;
   const pct=totalEx?Math.round(doneEx/totalEx*100):0;
   let html=`<header class="head">
     <div class="today-marker">${todayMarker()}</div>
@@ -1401,8 +1505,16 @@ function render(){
   </header>
   <div class="today">
     <div class="today-bar"><span style="width:${pct}%"></span></div>
-    <div class="today-lab"><b>${doneEx}</b>/${totalEx} done today</div>
+    <div class="today-lab"><b>${doneEx}</b>/${totalEx} logged</div>
   </div>`;
+  // Day review (Ticket 22-B): once anything is logged, surface what's still missing —
+  // each name tappable to backfill on the spot. Fully-logged days show no list.
+  if(doneEx>0 && doneEx<totalEx){
+    const missing=flat.filter(function(x){return !isLoggedForDay(x.name);});
+    html+='<div class="day-review">⚠ Not logged: '+missing.map(function(x){
+      return '<button class="rv-ex" data-rv="'+enc(x.name)+'">'+x.name+'</button>';
+    }).join('')+'</div>';
+  }
 
   blocks.forEach(function(b,bi){
     if(b.t==='solo'){ html+=soloBlockHTML(b,bi); }
@@ -1689,10 +1801,23 @@ var Ab = (function(){
       var cur=workIndex(pi); var cls = (p.kind==='work'&&i===cur-1)?'cur':(i<cur-1||(p.kind==='done'))?'done':(((p.kind==='rest'||p.kind==='trans')&&i<cur)?'done':'');
       return '<span class="abt-dot '+cls+'"></span>';
     }).join('');
-    el('abtList').innerHTML = circuitWork.map(function(it,i){
-      var cur=workIndex(pi); var cls=(p.kind==='work'&&i===cur-1)?'cur':((i<cur-1||((p.kind==='rest'||p.kind==='trans')&&i<cur))?'done':'');
-      return '<div class="abt-li '+cls+'"><span>'+(i+1)+'. '+it.ex+'</span><span>'+it.sec+'s</span></div>';
-    }).join('');
+    if(p.kind==='done'){
+      // T22-B: the Workout Complete moment doubles as the day review — logged count +
+      // any missed exercises, each tappable to backfill (closes the timer, opens its logger).
+      var rvw=dayReviewData();
+      el('abtList').innerHTML =
+        '<div class="abt-review"><b>'+rvw.logged.length+'/'+rvw.total+'</b> exercises logged'+
+        (rvw.missing.length
+          ? ' — not logged:</div><div class="abt-review-list">'+rvw.missing.map(function(nm){
+              return '<button class="rv-ex" data-rv="'+enc(nm)+'">'+nm+'</button>';
+            }).join('')+'</div>'
+          : ' — all logged ✓</div>');
+    } else {
+      el('abtList').innerHTML = circuitWork.map(function(it,i){
+        var cur=workIndex(pi); var cls=(p.kind==='work'&&i===cur-1)?'cur':((i<cur-1||((p.kind==='rest'||p.kind==='trans')&&i<cur))?'done':'');
+        return '<div class="abt-li '+cls+'"><span>'+(i+1)+'. '+it.ex+'</span><span>'+it.sec+'s</span></div>';
+      }).join('');
+    }
     el('abtPlay').textContent = running ? 'Pause' : (p.kind==='done' ? 'Restart' : (started ? 'Resume' : 'Start'));
     // Ticket 21: total-duration readout (visual only — never spoken). Pre-start: full circuit
     // total (lead-in + work + rests + transitions). Running: remaining total. Randomize is

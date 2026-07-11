@@ -30,7 +30,8 @@
       "exercises": [
         { "name": "Incline DB Fly", "implement": "db", "convention": "as_marked", "in_program": "mon", "note": "Pre-exhaust — slow, hard squeeze." },
         { "name": "Incline DB Press · low 15–30°", "implement": "db", "convention": "as_marked", "in_program": "mon", "note": "Slow eccentric, touch high." },
-        { "name": "Incline Machine Press (low) / Cable Fly", "implement": "machine_plate", "convention": "per_side", "in_program": "fri", "default_equipment": "Hoist", "note": "Keep the pad LOW (not steep) for upper chest. #2 priority." }
+        { "name": "Incline Machine Press (low) / Cable Fly", "implement": "machine_plate", "convention": "per_side", "in_program": "fri", "default_equipment": "Hoist", "note": "Keep the pad LOW (not steep) for upper chest. #2 priority." },
+        { "name": "Incline Cable Fly", "implement": "cable", "convention": "as_marked", "in_program": "fri", "scale_tag_required": true, "note": "Stretch-loaded chest volume (added 7/10). Deep pause in the stretch, 3s eccentric. Tag the cable station." }
       ]
     },
     {
