@@ -97,7 +97,7 @@ Each line: `scale_tag`, `type`, `convention`, `default_equipment`, `ratio`. Cabl
 ## 5. Division of labor (don't try to change these via data — send a ticket)
 - **You (coaching chat) own:** program content, `recs`/`plates`/`alts`/`exLib`/`plateMode`/`corePools`, and the two `*.json` data files. Program swaps happen only when Travis pastes.
 - **Code owns:** rendering, the weight logger, week-slot logging + rehydration, the day review, the picker, machine-aware logging, the scale-tag store, the core timer, sync, and the native shell. You cannot change these through the program JSON — if you want a behavior change, write a ticket (same as 06–22).
-- `w:null` = done/no-load; `p` = per-side plate breakdown on a log entry; `v` = chosen variant; `scale_tag` = cable station.
+- `w:null` = done/no-load; `p` = per-side plate breakdown on a log entry; `v` = chosen variant; `scale_tag` = cable station; `added:1` = a bonus (non-program) lift — it drives the promote-after-3 flag, read it as "athlete chose this on his own".
 
 ---
 
