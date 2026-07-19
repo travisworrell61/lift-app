@@ -2064,6 +2064,22 @@ function programKeyWarnings(prog){
     checkDayNested(prog.recs,'recs'); checkDayNested(prog.plates,'plates'); checkMap(prog.alts,'alts');
     if(Array.isArray(prog.plateMode)){ var bp=prog.plateMode.filter(function(k){ return !known(k); });
       if(bp.length) warns.push('plateMode '+bp.slice(0,3).map(q).join(', ')+(bp.length>3?' +'+(bp.length-3):'')+' (no matching exercise)'); }
+    // Rich text is allowed ONLY in prog.t — everywhere else renders literally (escaped), so a
+    // <b>/<i>/<span> outside prog.t is a paste mistake. Matches markup-SHAPED strings only;
+    // plain "<45°" / "(<60s rest)" prose never warns.
+    var TAG=/<\/?[a-z][^>]*>/i, htmlHits=[];
+    function scanStr(s,where){ if(typeof s==='string' && TAG.test(s)) htmlHits.push(where); }
+    ORDER.forEach(function(dk){ var d=prog[dk]; if(!d||typeof d!=='object') return;
+      scanStr(d.title,dk+'.title'); scanStr(d.sub,dk+'.sub'); scanStr(d.warm,dk+'.warm');
+      if(d.fin){ scanStr(d.fin.core,dk+'.fin.core'); scanStr(d.fin.cardio,dk+'.fin.cardio'); }
+      (Array.isArray(d.A)?d.A:[]).forEach(function(b,bi){ if(!b) return; scanStr(b.w,dk+' block '+(bi+1)+' label');
+        (b.e||[]).forEach(function(ex){ if(!ex) return;
+          scanStr(ex[0],dk+' name '+q(String(ex[0]).slice(0,22)));
+          scanStr(ex[1],dk+' reps of '+q(String(ex[0]).slice(0,22)));
+          scanStr(ex[2],dk+' note of '+q(String(ex[0]).slice(0,22))); }); });
+      var dp=prog.plates&&prog.plates[dk]; if(dp&&typeof dp==='object') Object.keys(dp).forEach(function(k){ scanStr(dp[k],dk+' plates '+q(k)); });
+    });
+    if(htmlHits.length) warns.push('HTML outside prog.t (will show as literal text): '+htmlHits.slice(0,3).join(', ')+(htmlHits.length>3?' +'+(htmlHits.length-3):'')+' — <b> is allowed only in prog.t');
     return warns;
   }catch(e){ return []; }
 }

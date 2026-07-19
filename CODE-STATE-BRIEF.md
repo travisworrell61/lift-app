@@ -57,6 +57,7 @@ Exercise array: `[ name, reps, note, tags? ]`
 - **`" / "` (space-slash-space) is RESERVED** — it triggers the variant selector (two interchangeable machines). Don't use it in a non-alternate name.
 - **`·` and `→` are never split** — safe to use inside a name.
 - Reps set-count is parsed as the number before `×`/`sets`; a **range uses the TOP** (`2–3×…` → 3 rows) so the athlete never under-logs (Ticket 24). Keep `N×…`/`N sets`/`N–M×…` forms.
+- The publish **Check also lints for HTML outside `prog.t`** — a `<b>`/`<span>`-shaped string anywhere else warns (it would render as literal text). Plain `<45°` / `(<60s rest)` prose never warns. `prog.t` remains the only rich-text field.
 - The publish **Check now validates the day-nested `recs`/`plates`** and warns on inner names that don't match a real exercise (and on `plates` too). If it warns, it's a typo — fix it. (It no longer false-warns on `mon`/`tue`/`wed`/`fri`.)
 
 ### 3e. `exercise-library.json` — you own the content; Code bundles + fetches it
