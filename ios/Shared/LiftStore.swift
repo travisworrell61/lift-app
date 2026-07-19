@@ -18,6 +18,18 @@ struct WorkoutSnapshot: Codable {
     var total: Int
     var accent: String?      // day color hex, e.g. "#38bdf8" (optional for back-compat)
     var updated: Date?
+    var done: [Bool]?        // per-exercise logged flags (optional for back-compat) — out-of-order
+                             // backfill logging renders correctly; prefix-index alone cannot
+
+    // Done-state helpers: prefer the per-exercise flags; fall back to the legacy prefix rule.
+    func isDone(_ i: Int) -> Bool {
+        if let d = done, i >= 0, i < d.count { return d[i] }
+        return i < currentIndex
+    }
+    var doneCount: Int {
+        if let d = done { return d.filter { $0 }.count }
+        return Swift.min(currentIndex, total)
+    }
 }
 
 enum LiftStore {

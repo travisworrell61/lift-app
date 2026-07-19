@@ -764,7 +764,7 @@ function collapsedTarget(name){
 }
 function repsTargetHTML(name,reps){
   var t=collapsedTarget(name);
-  return '<span class="rp">'+reps+(t?' <span class="rp-tgt">· '+escHtml(t)+'</span>':'')+'</span>';
+  return '<span class="rp">'+escHtml(reps)+(t?' <span class="rp-tgt">· '+escHtml(t)+'</span>':'')+'</span>';
 }
 /* ---------- alternate-machine variants ----------
    A name containing " / " (e.g. "Incline Machine Press (low) / Cable Fly") is one
@@ -785,11 +785,16 @@ function currentVariant(name){
 }
 // Most recent entry for a variant. Entries logged before variants existed have
 // no v — treat those as belonging to the FIRST variant only.
-function lastEntryFor(name,variant){
-  var h=logsFor(name);
-  if(!variant) return h.length?h[h.length-1]:null;
-  var vs=variantsOf(name)||[];
-  for(var i=h.length-1;i>=0;i--){ if((h[i].v||vs[0])===variant) return h[i]; }
+function lastEntryFor(name,variant,tag){
+  // Optional `tag`: only match entries on the SAME cable station — a Versa (1:2) number must
+  // never prefill a Hoist-tagged save (their scales differ; tag & store, never convert).
+  // Untagged legacy entries count as the HOME station only.
+  var h=logsFor(name), vs=variantsOf(name)||[];
+  for(var i=h.length-1;i>=0;i--){ var e=h[i];
+    if(variant && (e.v||vs[0])!==variant) continue;
+    if(tag && (e.scale_tag||defaultScaleTag(name))!==tag) continue;
+    return e;
+  }
   return null;
 }
 // Rec values for a name+variant. Slashed exercises only take WEIGHTS from a
@@ -835,7 +840,10 @@ function addedFor(day){ return loadOv().added[day]||[]; }
 function addedForView(day){
   var out=addedFor(day).slice(), have={};
   out.forEach(function(a){ have[a.name]=1; });
-  var prog={}; (((typeof PROGRAM==='object'&&PROGRAM&&PROGRAM[day])||{}).A||[]).forEach(function(b){ (b.e||[]).forEach(function(e){ if(e&&e[0]) prog[e[0]]=1; }); });
+  // Program-name map includes SWAPPED-IN names (effectiveEx) — a lift logged under a swap is the
+  // program slot's own log, not a bonus add; without this it spawned a duplicate "Added" block.
+  var prog={}; (((typeof PROGRAM==='object'&&PROGRAM&&PROGRAM[day])||{}).A||[]).forEach(function(b){ (b.e||[]).forEach(function(e){ if(e&&e[0]){ prog[e[0]]=1; try{ prog[effectiveEx(e)[0]]=1; }catch(_){} } }); });
+  out=out.filter(function(a){ return !prog[a.name]; });   // an explicit add of a program exercise is the program card, not a duplicate
   var w=reviewWindow(), all=loadLogs();
   for(var name in all){ if(have[name]||prog[name]) continue;
     var h=all[name]; for(var i=h.length-1;i>=0;i--){ var e=h[i];
@@ -927,7 +935,9 @@ function isProgramExercise(name){
     for(var d=0;d<ord.length;d++){ var bl=(PROGRAM[ord[d]]&&PROGRAM[ord[d]].A)||[]; for(var b=0;b<bl.length;b++){ var es=bl[b].e||[]; for(var x=0;x<es.length;x++){ if(es[x][0]===name) return true; } } }
   }catch(e){} return false;
 }
-function addedSessionCount(name){ var h=logsFor(name), seen={}; for(var i=0;i<h.length;i++){ if(h[i]&&h[i].date) seen[h[i].date]=1; } return Object.keys(seen).length; }
+// Count only sessions logged AS a bonus add (entry.added flag) — otherwise an exercise that lived
+// in a past program counts its whole history and fires the promote flag on its first re-add.
+function addedSessionCount(name){ var h=logsFor(name), seen={}; for(var i=0;i<h.length;i++){ if(h[i]&&h[i].date&&h[i].added) seen[h[i].date]=1; } return Object.keys(seen).length; }
 function promoteFlag(name){
   if(isProgramExercise(name)) return '';
   var c=addedSessionCount(name);
@@ -975,7 +985,7 @@ function lastLine(name){
   var h=logsFor(name); if(!h.length) return '';
   var last=h[h.length-1];
   var label=(last.date===todayStr())?'Today':fmtDate(last.date);
-  return '<b>'+label+':</b> '+setsSummary(last.sets)+(last.v?' · '+last.v:'');
+  return '<b>'+label+':</b> '+setsSummary(last.sets)+(last.v?' · '+escHtml(last.v):'');
 }
 function setRowHTML(i,w,ph,suggested){
   // w = committed value; ph = ghost placeholder (heuristic guess, NOT saved if untouched);
@@ -1056,7 +1066,8 @@ function plateRowHTML(i,pArr){
 function buildPanel(name,reps){
   var variant=variantsOf(name)?currentVariant(name):null;
   var plate=isPlateMode(name,variant);
-  var ent=lastEntryFor(name,variant);
+  var tagSel=needsScaleTag(name)?currentScale(name):null;   // station-aware prefill: never cross scales
+  var ent=lastEntryFor(name,variant,tagSel);
   var wkEnt=weekEntryFor(name, curDay, variant);      // this week's slot entry (T22-A: rehydrates after restarts / later days)
   var loggedToday=!!wkEnt;                            // "logged this session" → editable saved-values view (T15)
   var pf=wkEnt?wkEnt.sets:(ent?ent.sets:null);        // saved slot first; else last-session prefill
@@ -1089,7 +1100,9 @@ function buildPanel(name,reps){
   for(var i=0;i<n;i++){
     var s=(pf&&pf[i])?pf[i]:{};
     if(plate)                          rows+=plateRowHTML(i, (s.p&&s.p.length)?s.p:[]);   // plate picker, prefilled from stored p
-    else if(loggedToday && s.w!=null)  rows+=setRowHTML(i, s.w, null, false);   // Ticket 15: today's own logged value (editable) — so re-Save can't clobber it with the target
+    else if(loggedToday)               rows+=(s.w!=null                          // EDITING a saved entry: show ONLY what was
+                                         ? setRowHTML(i, s.w, null, false)      // actually saved; skipped/extra rows stay EMPTY
+                                         : setRowHTML(i, '', (rec&&rec.w!=null)?rec.w:guess, false));  // (ghost only) — a re-Save must never materialize the coach rec as a performed set
     else if(rec && rec.w!=null)        rows+=setRowHTML(i, rec.w, null, true);  // Ticket 13: coach target first (accent, editable)
     else if(s.w!=null)                 rows+=setRowHTML(i, s.w, null, false);   // else last week's logged value
     else                               rows+=setRowHTML(i, '', guess, false);   // else heuristic ghost placeholder
@@ -1107,7 +1120,7 @@ function buildPanel(name,reps){
       : (rec && rec.w!=null
         ? '<div class="panel-hint">Target <b>'+rec.w+'</b> filled in — a floor to beat, fully editable.'+(lastRef?' <span class="last-ref">last: '+lastRef+'</span>':'')+'</div>'
         : (pf
-          ? '<div class="panel-hint">Prefilled from your last '+(variant?variant:'session')+' — adjust and Save.</div>'
+          ? '<div class="panel-hint">Prefilled from your last '+(variant?escHtml(variant):'session')+' — adjust and Save.</div>'
           : '<div class="panel-hint">Suggested start shown in grey — tap ＋ to use it, then Save.</div>'))));
   var setsCtl='<div class="sets-ctl"><span class="sc-lab">Sets today</span>'+
     '<button class="sstep" data-d="-1" aria-label="fewer sets">−</button>'+
@@ -1126,7 +1139,7 @@ function buildHistory(name){
   var items=h.map(function(e,i){
     // T22-D: a saved entry's cable-station tag is correctable — tap the badge to cycle stations.
     var tag=e.scale_tag?(' <button class="hist-tag" data-hidx="'+(n-1-i)+'" title="Tap to correct the station">'+scaleLabel(e.scale_tag)+'</button>'):'';
-    return '<div class="hist-item"><b>'+fmtDate(e.date)+'</b> &nbsp;'+setsSummary(e.sets)+(e.v?' · '+e.v:'')+tag+'</div>';
+    return '<div class="hist-item"><b>'+fmtDate(e.date)+'</b> &nbsp;'+setsSummary(e.sets)+(e.v?' · '+escHtml(e.v):'')+tag+'</div>';
   }).join('');
   return '<div class="hist-list">'+items+'</div><div class="panel-actions"><button class="btn-cancel">Close</button></div>';
 }
@@ -1177,7 +1190,9 @@ document.addEventListener('click',function(ev){
     var typed=[].map.call(sp.querySelectorAll('.setrow'),function(row){
       return row.classList.contains('plate')?{p:row.dataset.p||''}:{w:((row.querySelector('.in-w')||{}).value||'')};
     });
-    var cur2=parseInt((sp.querySelector('.sc-n')||{}).textContent)||3;
+    // Count from the ACTUAL rows, not the .sc-n label — "+ Set" / "×" mutate rows directly, so the
+    // label can be stale; stepping from it silently dropped freshly-typed extra rows.
+    var cur2=sp.querySelectorAll('.setrow').length || parseInt((sp.querySelector('.sc-n')||{}).textContent) || 3;
     var nv=Math.max(1, Math.min(8, cur2+parseInt(ss2.dataset.d)));
     loadOv().sets[snm]=nv; saveOv();
     sp.innerHTML=buildPanel(snm,srp); sp.dataset.mode='log';
@@ -1188,8 +1203,10 @@ document.addEventListener('click',function(ev){
         var stk=row.querySelector('.pstack'), tot=row.querySelector('.ptotal');
         if(stk) stk.innerHTML=arr.length?perSideLabel(arr):'<span class="pstack-empty">add plates / side</span>';
         if(tot) tot.textContent=arr.length?(plateTotal(arr)+' lb'):'';
-      } else if(tv.w!=null && tv.w!==''){
-        var inp=row.querySelector('.in-w'); if(inp){ inp.value=tv.w; inp.classList.remove('suggested'); }
+      } else if(!row.classList.contains('plate')){
+        // Overlay EXACTLY what was on screen — including empties — so a deleted row's old
+        // prefill can't resurrect and shift a neighbor's weight into its slot.
+        var inp=row.querySelector('.in-w'); if(inp){ inp.value=(tv.w!=null?tv.w:''); inp.classList.remove('suggested'); }
       }
     });
     return;
@@ -1283,10 +1300,14 @@ document.addEventListener('click',function(ev){
     var abk=ap.closest('.exblock'), anm=abk?dec(abk.dataset.ex):'', avar=variantsOf(anm)?currentVariant(anm):null;
     var idx=rows.querySelectorAll('.setrow').length;
     rows.insertAdjacentHTML('beforeend', isPlateMode(anm,avar)?plateRowHTML(idx,[]):setRowHTML(idx,null,null,false));
+    var sc=ap.querySelector('.sc-n'); if(sc) sc.textContent=rows.querySelectorAll('.setrow').length;   // keep "Sets today" honest
     return;
   }
   if(t.classList.contains('rm')){
-    var rr=t.closest('.setrow'), rrs=rr.parentElement; rr.remove(); renumber(rrs); return;
+    var rr=t.closest('.setrow'), rrs=rr.parentElement, rp2=t.closest('.log-panel');
+    rr.remove(); renumber(rrs);
+    var sc2=rp2&&rp2.querySelector('.sc-n'); if(sc2) sc2.textContent=rrs.querySelectorAll('.setrow').length;   // keep "Sets today" honest
+    return;
   }
 
   // ── save ──
@@ -1324,19 +1345,25 @@ document.addEventListener('click',function(ev){
     var entry={date:(origDate||ts), day:curDay, sets:sets};
     if(vNow) entry.v=vNow;                                               // record which machine these weights belong to
     if(tagNow) entry.scale_tag=tagNow;                                   // cable station (tag & store; never converted)
+    if(isAddedExercise(name)) entry.added=1;                             // bonus (non-program) lift — drives the promote-after-3 flag
     all[name].push(entry);
     saveLogs(all);
     // T22-C follow-up: a note typed before the first set is keyed to that earlier date; once the
-    // session's first lift lands (setting noteKey to the lift's date), move the note to match so
-    // it isn't orphaned. Only within this week's slot, and only if the target has no note yet.
+    // session's first lift lands (setting noteKey to the lift's date), move the note to match.
+    // With several orphans for the slot (typed, then retyped a day later) the NEWEST date wins —
+    // the retype is the one the athlete meant; older orphans are dropped, not resurrected.
     (function(){
-      var nt=loadNotes(), goal=noteKey(), w=reviewWindow(), moved=false;
-      Object.keys(nt).forEach(function(k){
-        if(k===goal || moved || nt[goal]!=null) return;
-        var p=k.split('|'); if(p[1]!==curDay || p[0]<w[0] || p[0]>w[1]) return;
-        nt[goal]=nt[k]; delete nt[k]; moved=true;
-      });
-      if(moved) saveNotesObj(nt);
+      var nt=loadNotes(), goal=noteKey(), w=reviewWindow();
+      if(nt[goal]!=null) return;
+      var cands=Object.keys(nt).filter(function(k){
+        if(k===goal) return false;
+        var p=k.split('|'); return p[1]===curDay && p[0]>=w[0] && p[0]<=w[1];
+      }).sort();
+      if(!cands.length) return;
+      var best=cands[cands.length-1];                     // newest date wins
+      nt[goal]=nt[best];
+      cands.forEach(function(k){ delete nt[k]; });
+      saveNotesObj(nt);
     })();
     liftPushState(); liftSyncLogs();
     openEx=null;                                             // collapse the logged exercise; keep its superset open
@@ -1371,7 +1398,8 @@ function liftPushState(){
       day: d.title.slice(0,3).toUpperCase(),
       title: d.title, sub: d.sub, week: curWk,
       accent: DAY_ACCENT[curDay]||'#7dd3fc',
-      exercises: list, currentIndex: currentExerciseIdx(list), total: list.length
+      exercises: list, currentIndex: currentExerciseIdx(list), total: list.length,
+      done: list.map(function(x){ return !!isLoggedForDay(x.name); })   // per-exercise flags — out-of-order/backfill logging renders correctly (prefix-index alone can't)
     }));
   }catch(e){}
 }
@@ -1382,7 +1410,9 @@ function liftSyncLogs(){
     // NEVER upload an empty store — a fresh/cleared local store (reinstall, iOS data eviction)
     // would otherwise overwrite and wipe the server's logged history. Nothing to send → skip.
     if(!Object.keys(lg).length && !Object.keys(nt).length) return;
-    window.webkit.messageHandlers.liftSync.postMessage(JSON.stringify({logs: lg, notes: nt}));
+    // sentAt = capture time. The server refuses writes older than the blob's current sentAt, so a
+    // delayed native RETRY of an old snapshot can't overwrite a newer upload (last-write-wins race).
+    window.webkit.messageHandlers.liftSync.postMessage(JSON.stringify({logs: lg, notes: nt, sentAt: Date.now()}));
   }catch(e){}
 }
 // Ask the native shell to keep the screen awake (the browser wake-lock API is
@@ -1396,8 +1426,17 @@ function liftWake(on){
 
 /* ---------- daily session notes (Ticket 08) ----------
    Per (day, this-week's date) free-text feedback that uploads with the logs. */
-function loadNotes(){ try{ var r=localStorage.getItem('lift-notes'); var o=r?JSON.parse(r):{}; return (o&&typeof o==='object')?o:{}; }catch(e){ return {}; } }
-function saveNotesObj(o){ try{ localStorage.setItem('lift-notes', JSON.stringify(o)); }catch(e){} }
+// Same write-through pattern as loadLogs/saveLogs: the in-memory copy is the source of truth,
+// so a failed setItem (private mode / iOS quota) can't wipe the note on the next re-read.
+var memNotes=null;
+function loadNotes(){
+  if(memNotes===null){
+    memNotes={};
+    try{ var r=localStorage.getItem('lift-notes'); if(r){ var o=JSON.parse(r); if(o&&typeof o==='object') memNotes=o; } }catch(e){}
+  }
+  return memNotes;
+}
+function saveNotesObj(o){ memNotes=o; try{ localStorage.setItem('lift-notes', JSON.stringify(o)); }catch(e){} }
 function noteKey(){
   // T22-C: the note must share a date with the session's SET LOGS — not the tab's nominal
   // date. (Tuesday's legs done on Wednesday logs 07-08; the old tab-date key stamped the
@@ -1406,7 +1445,18 @@ function noteKey(){
   var k=dayLoggedDate(curDay) || todayStr();
   return k+'|'+curDay;                    // e.g. "2026-07-08|tue" — same date as that session's lifts
 }
-function currentNote(){ return loadNotes()[noteKey()]||''; }
+function currentNote(){
+  var nt=loadNotes(), k=noteKey();
+  if(nt[k]!=null) return nt[k];
+  // Fallback: a note typed on an earlier calendar day for this not-yet-trained slot lives under
+  // that day's date — show the NEWEST same-slot orphan from this week instead of a blank box
+  // (the Save-time mover re-keys it onto the session date once the first lift lands).
+  var w=reviewWindow();
+  var cands=Object.keys(nt).filter(function(x){
+    var p=x.split('|'); return p[1]===curDay && p[0]>=w[0] && p[0]<=w[1];
+  }).sort();
+  return cands.length ? nt[cands[cands.length-1]] : '';
+}
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 var SPECIAL_TAGS = {dropset:'DROP SET', partials:'PARTIALS', restpause:'REST-PAUSE', amrap:'AMRAP', failure:'TO FAILURE', tempo:'SLOW TEMPO'};
@@ -1438,7 +1488,7 @@ function recCardHTML(name){
     if(r.lo!=null && r.hi!=null) html+='<div class="meta"><div class="lab">Work range</div><div class="rng">'+r.lo+'–'+r.hi+' lb</div></div>';
     html+='</div>';
   }
-  if(r.cue) html+='<div class="cue"><b>Do this</b>'+r.cue+'</div>';
+  if(r.cue) html+='<div class="cue"><b>Do this</b>'+escHtml(r.cue)+'</div>';
   return html;
 }
 // Variant selector chips ("which machine am I logging?") for slashed exercises.
@@ -1446,7 +1496,7 @@ function vselHTML(name){
   var vs=variantsOf(name); if(!vs) return '';
   var cur=currentVariant(name);
   return '<div class="vsel"><span class="vsel-lab">Logging for</span>'+vs.map(function(v){
-    return '<button class="vchip'+(v===cur?' on':'')+'" data-v="'+enc(v)+'">'+v+'</button>';
+    return '<button class="vchip'+(v===cur?' on':'')+'" data-v="'+enc(v)+'">'+escHtml(v)+'</button>';
   }).join('')+'</div>';
 }
 function lastLineFull(name){
@@ -1461,7 +1511,7 @@ function exerciseBodyHTML(name,reps){
 function collapsedDoneLine(name){
   var e=weekEntryFor(name, curDay, null);   // this week's slot entry (rehydrates after restart / later days)
   if(!e) return '';
-  return '<div class="done-mini">✓ '+setsSummary(e.sets)+(e.v?' · '+e.v:'')+'</div>';
+  return '<div class="done-mini">✓ '+setsSummary(e.sets)+(e.v?' · '+escHtml(e.v):'')+'</div>';
 }
 // Swap control (⇄) — sits inside the tappable header; handled before the
 // expand/collapse branch so it never toggles the row. data-orig = ORIGINAL name.
@@ -1509,7 +1559,7 @@ function addedBlockHTML(a){
       '<button class="bhead" data-toggle="blk">'+
         '<span class="acc" style="background:#2dd4bf"></span>'+
         '<span class="ttl"><div class="where">'+escHtml(name)+'<span class="ov-badge add">Added</span></div>'+promoteFlag(name)+collapsedDoneLine(name)+'</span>'+
-        '<span class="rm-added" role="button" data-name="'+en+'" aria-label="remove added exercise">✕</span>'+
+        (done?'':'<span class="rm-added" role="button" data-name="'+en+'" aria-label="remove added exercise">✕</span>')+   // logged → the log is the record; ✕ would be a dead control (rehydration re-adds it)
         '<span class="chev">⌄</span>'+
       '</button>'+
       (libNote(name)?'<div class="ex-note">'+escHtml(libNote(name))+'</div>':'')+
@@ -1524,7 +1574,7 @@ function supersetBlockHTML(b,bi,c){
   var names=effs.map(function(e){return escHtml(e[0]);}).join(' · ');
   var doneCount=effs.filter(function(e){return isLoggedForDay(e[0]);}).length, allDone=(doneCount===b.e.length);
   var un=unevenNote(effs);
-  var rows=(un?'<div class="uneven">⚠ '+un+'</div>':'')+b.e.map(function(ex){return exRowHTML(ex,c);}).join('');
+  var rows=(un?'<div class="uneven">⚠ '+escHtml(un)+'</div>':'')+b.e.map(function(ex){return exRowHTML(ex,c);}).join('');
   return '<div class="group"><div class="solo-tag" style="color:'+c+'">⛓ Superset</div>'+
     '<div class="blk ss'+(open?' open':'')+'" style="--c:'+c+'" data-bi="'+bi+'" data-kind="ss">'+
       '<button class="bhead" data-toggle="blk">'+
@@ -1553,8 +1603,8 @@ function render(){
   let html=`<header class="head">
     <div class="today-marker">${todayMarker()}</div>
     <div class="kicker">${kickerText(d)}</div>
-    <h1>${d.title}</h1>
-    <div class="sub">${d.sub}</div>
+    <h1>${escHtml(d.title)}</h1>
+    <div class="sub">${escHtml(d.sub||'')}</div>
     <div class="tags">
       <span class="tag ${d.type==='pri'?'pri':'main'}">${d.type==='pri'?'Priority day':'Maintenance day'}</span>
       <span class="tag">~55 min + cardio</span>
@@ -1585,10 +1635,10 @@ function render(){
   const prg=d.prog||{c:'#7dd3fc',t:''};
   const showTimer=(curDay==='mon'||curDay==='wed');     // Mon/Wed = timed ab circuit; Fri abs are a tracked lift; Tue none
   html+=`<div class="fin">
-    <div class="core-block"><div class="lab">Core</div><div class="val">${fin.core}</div></div>
+    <div class="core-block"><div class="lab">Core</div><div class="val">${escHtml(fin.core||'—')}</div></div>
     ${showTimer?'<button class="core-timer-btn" data-core-timer>▶ Core Timer</button>':''}
   </div>
-  <div class="prog" style="--pc:${prg.c}">📌 ${prg.t}</div>
+  <div class="prog" style="--pc:${prg.c}">📌 ${prg.t}</div><!-- prog.t is RICH by contract (coach uses <b> tags) - deliberately not escaped -->
   <div class="notes">
     <div class="notes-lab">Session notes</div>
     <textarea class="notes-ta" id="sessionNotes" placeholder="How did today go? Soreness, energy, anything you changed…">${escHtml(currentNote())}</textarea>
@@ -1864,11 +1914,11 @@ var Ab = (function(){
                               : p.kind==='trans' ? 'Get ready'
                               : 'Rest';
     el('abtName').innerHTML = (p.kind==='work' && p.note)
-      ? (p.label+'<span style="display:block;font-size:.46em;opacity:.7;font-weight:400;margin-top:4px">'+p.note+'</span>')
-      : p.label;
+      ? (escHtml(p.label)+'<span style="display:block;font-size:.46em;opacity:.7;font-weight:400;margin-top:4px">'+escHtml(p.note)+'</span>')
+      : escHtml(p.label);
     el('abtTime').textContent = p.kind==='done' ? '✓' : fmt(remaining);
     // During a transition the big name already shows the upcoming exercise, so don't repeat "Next:".
-    el('abtNext').innerHTML = (p.kind==='trans') ? 'Get ready…' : (p.next ? ('Next: '+p.next) : '&nbsp;');
+    el('abtNext').innerHTML = (p.kind==='trans') ? 'Get ready…' : (p.next ? ('Next: '+escHtml(p.next)) : '&nbsp;');
     // dots = one per exercise
     el('abtDots').innerHTML = circuitWork.map(function(_,i){
       var cur=workIndex(pi); var cls = (p.kind==='work'&&i===cur-1)?'cur':(i<cur-1||(p.kind==='done'))?'done':(((p.kind==='rest'||p.kind==='trans')&&i<cur)?'done':'');
@@ -1888,7 +1938,7 @@ var Ab = (function(){
     } else {
       el('abtList').innerHTML = circuitWork.map(function(it,i){
         var cur=workIndex(pi); var cls=(p.kind==='work'&&i===cur-1)?'cur':((i<cur-1||((p.kind==='rest'||p.kind==='trans')&&i<cur))?'done':'');
-        return '<div class="abt-li '+cls+'"><span>'+(i+1)+'. '+it.ex+'</span><span>'+it.sec+'s</span></div>';
+        return '<div class="abt-li '+cls+'"><span>'+(i+1)+'. '+escHtml(it.ex)+'</span><span>'+it.sec+'s</span></div>';
       }).join('');
     }
     el('abtPlay').textContent = running ? 'Pause' : (p.kind==='done' ? 'Restart' : (started ? 'Resume' : 'Start'));
@@ -2112,7 +2162,7 @@ var Drawer=(function(){
     q=String(q||'').toLowerCase();
     var html='';
     if(mode==='swap'){
-      if(loadOv().swaps[swapTarget]) html+='<button class="libitem restore" data-pick="__restore">↩ Restore original — '+swapTarget+'</button>';
+      if(loadOv().swaps[swapTarget]) html+='<button class="libitem restore" data-pick="__restore">↩ Restore original — '+escHtml(swapTarget)+'</button>';
       var alts=altsFor(swapTarget).filter(function(a){return a.toLowerCase().indexOf(q)>=0;});
       if(alts.length){
         html+='<div class="grp">Coach\'s alternates</div><div class="alt-chips">'+
@@ -2122,7 +2172,7 @@ var Drawer=(function(){
     pickerGroups().forEach(function(g){
       var items=(g.names||[]).filter(function(n){return String(n).toLowerCase().indexOf(q)>=0;});
       if(!items.length) return;
-      html+='<div class="grp">'+g.label+'</div>'+items.map(function(n){
+      html+='<div class="grp">'+escHtml(g.label)+'</div>'+items.map(function(n){
         return '<button class="libitem" data-pick="'+enc(n)+'"><span>'+escHtml(n)+'</span><span class="pluss">＋</span></button>';
       }).join('');
     });
@@ -2145,9 +2195,15 @@ var Drawer=(function(){
         if(wasOpen) openEx=enc(name);                   // keep the swapped card open
       }
     } else {
-      var arr=ov.added[curDay]||(ov.added[curDay]=[]);
-      if(!arr.some(function(a){return a.name===name;})) arr.push({name:name});
-      openEx=enc(name);                                 // open the new bonus card right away
+      // Already in today's program (raw or swapped-in)? Don't create a duplicate linked card —
+      // just open the existing program card.
+      var inProg=false;
+      try{ ((PROGRAM[curDay]||{}).A||[]).forEach(function(b){ (b.e||[]).forEach(function(e){ if(e&&(e[0]===name||effectiveEx(e)[0]===name)) inProg=true; }); }); }catch(_){ }
+      if(!inProg){
+        var arr=ov.added[curDay]||(ov.added[curDay]=[]);
+        if(!arr.some(function(a){return a.name===name;})) arr.push({name:name});
+      }
+      openEx=enc(name);                                 // open the (new or existing) card right away
     }
     saveOv(); close(); rerender();
   }
@@ -2190,7 +2246,10 @@ document.addEventListener('visibilitychange', function(){
   // being typed in (notes / weight), which would drop focus + the iOS keyboard.
   var ae=document.activeElement, typing=ae && (ae.tagName==='TEXTAREA'||ae.tagName==='INPUT');
   if(!typing && !openEx && !document.querySelector('.log-panel:not([hidden])')){
-    if(!curDayPinned) curDay=defaultDayKey();   // resumed on a new day → re-select today's tab (unless pinned)
+    if(!curDayPinned){
+      var nd=defaultDayKey();
+      if(nd!==curDay){ curDay=nd; openEx=null; openBlk={}; }   // day changed → drop stale expand state (openBlk is index-keyed; yesterday's index would pre-expand an unrelated block)
+    }
     render();
   }
 });

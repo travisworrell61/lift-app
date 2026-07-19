@@ -126,7 +126,7 @@ struct LIFTWidgetEntryView: View {
                         .frame(width: compact ? 4 : 5, height: compact ? 16 : 22)
                     Text(s.title).font(compact ? .headline : .largeTitle).bold().lineLimit(1)
                     Spacer(minLength: 0)
-                    Text("\(min(s.currentIndex, s.total))/\(s.total)")
+                    Text("\(s.doneCount)/\(s.total)")
                         .font(compact ? .caption : .title3).bold()
                         .foregroundStyle(liftAccent)
                 }
@@ -136,7 +136,7 @@ struct LIFTWidgetEntryView: View {
                 let range = window(s, max: max)
                 VStack(alignment: .leading, spacing: compact ? 4 : 9) {
                     ForEach(range, id: \.self) { i in
-                        row(s.exercises[i], index: i, current: s.currentIndex,
+                        row(s.exercises[i], index: i, current: s.currentIndex, done: s.isDone(i),
                             prevGrp: i > 0 ? s.exercises[i - 1].grp : nil, compact: compact)
                     }
                 }
@@ -153,9 +153,9 @@ struct LIFTWidgetEntryView: View {
     }
 
     @ViewBuilder
-    private func row(_ ex: WorkoutExercise, index: Int, current: Int, prevGrp: Int?, compact: Bool) -> some View {
+    private func row(_ ex: WorkoutExercise, index: Int, current: Int, done: Bool, prevGrp: Int?, compact: Bool) -> some View {
         let isCurrent = index == current
-        let isDone = index < current
+        let isDone = done
         let inSS = ex.ss ?? false
         let startsSS = inSS && ex.grp != prevGrp   // first row of a superset group
         HStack(spacing: 8) {
