@@ -37,7 +37,7 @@ Exercise array: `[ name, reps, note, tags? ]`
 - `warm` is **required and now shown** — real warm-up text.
 - `note` (3rd element) is **shown on the card** — put target load, plate math, and the technique cue here.
 - `w` (block label) is **shown** ("● Solo · <w>", "SUPERSET · <w>"). Don't leave it undefined.
-- Optional 4th `tags` → amber badges (`dropset`, `partials`, `restpause`, `amrap`, `failure`, `tempo`).
+- Optional 4th `tags` → **amber card highlight + badges** (`dropset`, `partials`, `restpause`, `amrap`, `failure`, `tempo`). The tagged exercise now gets an amber border/tint so the special set in a block stands out at a glance (Ticket 24). Append it as `[name, reps, note, ["dropset"]]`.
 
 ### 3b. `recs` — day-nested target numbers (drives prefill + collapsed-row target)
 ```
@@ -56,6 +56,7 @@ Exercise array: `[ name, reps, note, tags? ]`
 - `recs`, `plates`, `alts`, `exLib`, `plateMode` all key by the **exact** exercise name — it must match the exercise array's `name` byte-for-byte (spaces, `·`, `—`, quotes, parens).
 - **`" / "` (space-slash-space) is RESERVED** — it triggers the variant selector (two interchangeable machines). Don't use it in a non-alternate name.
 - **`·` and `→` are never split** — safe to use inside a name.
+- Reps set-count is parsed as the number before `×`/`sets`; a **range uses the TOP** (`2–3×…` → 3 rows) so the athlete never under-logs (Ticket 24). Keep `N×…`/`N sets`/`N–M×…` forms.
 - The publish **Check now validates the day-nested `recs`/`plates`** and warns on inner names that don't match a real exercise (and on `plates` too). If it warns, it's a typo — fix it. (It no longer false-warns on `mon`/`tue`/`wed`/`fri`.)
 
 ### 3e. `exercise-library.json` — you own the content; Code bundles + fetches it
