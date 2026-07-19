@@ -87,6 +87,11 @@
   .ex-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
   .set-badge{font-family:'Oswald',sans-serif;font-size:.56rem;font-weight:700;letter-spacing:.1em;
     text-transform:uppercase;color:#ffcf5c;border:1px solid rgba(255,207,92,.45);border-radius:6px;padding:2px 7px;}
+  /* Special-set exercise flag (Ticket 24-B): amber border + tint so it stands out in a block,
+     collapsed AND expanded, without reading the note. The set-badge above carries the label. */
+  .exblock.tagged{border-color:color-mix(in srgb,#fbbf24 55%,var(--line))!important;
+    background:color-mix(in srgb,#fbbf24 8%,var(--panel));}
+  .exblock.tagged .acc{background:#fbbf24!important;}
   .uneven{margin-top:9px;border-radius:9px;background:rgba(255,207,92,.12);
     border:1px dashed rgba(255,207,92,.55);color:#ffe2a0;font-family:'Oswald',sans-serif;
     font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
@@ -678,7 +683,18 @@ function buildNav(){
   days.querySelectorAll('button').forEach(b=>b.onclick=()=>{curDay=b.dataset.d;curDayPinned=true;openEx=null;openBlk={};render();});
 }
 
-function setsOf(r){r=String(r);var m=r.match(/^(\d+)/);if(!m)return null;return (/[×x]/.test(r)||/sets/i.test(r))?parseInt(m[1]):null;}
+// Leading set count from a reps string (Ticket 24-A). The count is the number(s) BEFORE "×"/"x"
+// (or before "sets"). For a set-RANGE ("2–3×…","3–4 × burnout") take the TOP so we never render
+// fewer rows than prescribed. Returns null when there's no leading set count (e.g. "AMRAP","Bonus").
+function setsOf(r){
+  r=String(r);
+  var i=r.search(/[×x]/);
+  var head = i>=0 ? r.slice(0,i) : (/sets/i.test(r) ? r.slice(0, r.search(/sets/i)) : null);
+  if(head==null) return null;
+  var nums=head.match(/\d+/g);
+  if(!nums || !nums.length) return null;
+  return Math.max.apply(null, nums.map(Number));
+}
 function unevenNote(exs){
   var c=exs.map(function(e){return {name:e[0].split(/[·→]/)[0].trim(), n:setsOf(e[1])};}).filter(function(x){return x.n!=null;});
   if(c.length<2)return null;
@@ -1064,7 +1080,11 @@ function buildPanel(name,reps){
         '<button class="btn-save">✓ Mark done</button>'+
       '</div>';
   }
-  var n=loadOv().sets[name] || ((pf&&pf.length)?pf.length:(setsOf(reps)||3));   // session set-count override wins
+  // Row count (Ticket 24-A): NEVER fewer than the prescribed set count. Explicit override wins;
+  // otherwise max(prescribed, last-session count) so a prior 3-set log can't shrink a "4×…" below 4
+  // (the under-logging bug) while an extra logged set is still preserved.
+  var prescribed=setsOf(reps)||1;
+  var n=loadOv().sets[name] || Math.max(prescribed, (pf&&pf.length)||0);
   var rows='';
   for(var i=0;i<n;i++){
     var s=(pf&&pf[i])?pf[i]:{};
@@ -1390,6 +1410,7 @@ function currentNote(){ return loadNotes()[noteKey()]||''; }
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 var SPECIAL_TAGS = {dropset:'DROP SET', partials:'PARTIALS', restpause:'REST-PAUSE', amrap:'AMRAP', failure:'TO FAILURE', tempo:'SLOW TEMPO'};
+function hasTags(ex){ return !!(ex && Array.isArray(ex[3]) && ex[3].length); }   // special-set flag (Ticket 24-B)
 function tagBadges(ex){
   var tags = ex[3];                                   // optional 4th element: ["dropset", ...]
   if(!Array.isArray(tags) || !tags.length) return '';
@@ -1452,7 +1473,7 @@ function soloBlockHTML(b,bi){
   var raw=b.e[0], ex=effectiveEx(raw), name=ex[0], reps=ex[1], en=enc(name);
   var done=isLoggedForDay(name), open=(openEx===en);
   return '<div class="group"><div class="solo-tag">● Solo'+(b.w?' · '+escHtml(b.w):'')+'</div>'+
-    '<div class="blk exblock'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'" data-bi="'+bi+'" data-kind="solo">'+
+    '<div class="blk exblock'+(done?' done':'')+(open?' open':'')+(hasTags(ex)?' tagged':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'" data-bi="'+bi+'" data-kind="solo">'+
       '<button class="bhead" data-toggle="blk">'+
         '<span class="acc"></span>'+
         '<span class="ttl"><div class="where">'+escHtml(name)+ovBadge(ex)+'</div>'+tagBadges(ex)+collapsedDoneLine(name)+'</span>'+
@@ -1467,7 +1488,7 @@ function soloBlockHTML(b,bi){
 function exRowHTML(raw,c){
   var ex=effectiveEx(raw), name=ex[0], reps=ex[1], en=enc(name);
   var done=isLoggedForDay(name), open=(openEx===en);
-  return '<div class="exrow exblock'+(done?' done':'')+(open?' open':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'">'+
+  return '<div class="exrow exblock'+(done?' done':'')+(open?' open':'')+(hasTags(ex)?' tagged':'')+'" data-ex="'+en+'" data-reps="'+enc(reps)+'">'+
     '<button class="exhead" data-toggle="ex">'+
       '<span class="acc"></span>'+
       '<span class="nm">'+escHtml(name)+ovBadge(ex)+'</span>'+tagBadges(ex)+(done?'<span class="tick">✓</span>':'')+
