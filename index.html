@@ -108,7 +108,7 @@
   .notes-lab{font-family:'Oswald',sans-serif;font-weight:600;font-size:.66rem;letter-spacing:.12em;
     text-transform:uppercase;color:var(--muted);margin:0 2px 6px;}
   .notes-ta{width:100%;min-height:84px;background:var(--panel);border:1px solid var(--line);border-radius:12px;
-    color:var(--ink);font-size:.92rem;padding:12px;font-family:'Barlow',sans-serif;resize:vertical;
+    color:var(--ink);font-size:1rem;padding:12px;font-family:'Barlow',sans-serif;resize:vertical;   /* 16px: below it iOS force-zooms on focus and never zooms back out */
     line-height:1.45;-webkit-appearance:none;appearance:none;}
   .notes-ta:focus{outline:none;border-color:var(--accent);}
   .notes-ta::placeholder{color:var(--muted);opacity:.65;}
@@ -371,7 +371,7 @@
   .drawer-title{font-family:'Oswald',sans-serif;font-weight:600;font-size:1.02rem;letter-spacing:.02em;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
   .drawer-search{margin:2px 16px 8px;height:40px;flex:none;border-radius:9px;border:1px solid var(--line);
-    background:var(--panel);color:var(--ink);padding:0 13px;font-size:.9rem;font-family:'Barlow',sans-serif;
+    background:var(--panel);color:var(--ink);padding:0 13px;font-size:1rem;font-family:'Barlow',sans-serif;   /* 16px min — see .notes-ta */
     -webkit-appearance:none;appearance:none;}
   .drawer-search:focus{outline:none;border-color:var(--accent);}
   .drawer-search::placeholder{color:var(--muted);}
@@ -387,7 +387,7 @@
   .libitem.restore{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,var(--line));}
   .custom-row{display:flex;gap:8px;margin-top:4px;}
   .custom-row input{flex:1;min-width:0;height:44px;border-radius:9px;border:1px solid var(--line);
-    background:var(--panel);color:var(--ink);padding:0 13px;font-size:.9rem;font-family:'Barlow',sans-serif;
+    background:var(--panel);color:var(--ink);padding:0 13px;font-size:1rem;font-family:'Barlow',sans-serif;   /* 16px min — see .notes-ta */
     -webkit-appearance:none;appearance:none;}
   .custom-row input:focus{outline:none;border-color:var(--accent);}
   .drawer-custom-add{flex:none;height:44px;padding:0 18px;border-radius:9px;border:none;cursor:pointer;
@@ -479,7 +479,7 @@
     color:var(--ink);font-size:1rem;padding:12px;font-family:'Barlow',sans-serif;
     -webkit-appearance:none;appearance:none;}
   .adm-in:focus,.adm-ta:focus{outline:none;border-color:var(--accent);}
-  .adm-ta{min-height:230px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;
+  .adm-ta{min-height:230px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1rem;   /* 16px min — this rule overrides .adm-in,.adm-ta above; below 16 iOS force-zooms on focus */
     line-height:1.4;resize:vertical;white-space:pre;overflow-wrap:normal;overflow-x:auto;}
   .adm-status{min-height:1.3em;font-family:'Oswald',sans-serif;font-size:.8rem;margin:11px 2px;color:var(--muted);}
   .adm-status.ok{color:#7ef0b0;}
