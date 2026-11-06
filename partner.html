@@ -1,0 +1,371 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LIFT — Partner Plan</title><meta name="color-scheme" content="dark">
+<style>
+*{box-sizing:border-box}[hidden]{display:none!important}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:#0e1117;color:#e8ecf2;font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;padding-bottom:40px}
+.wrap{max-width:640px;margin:0 auto;padding:0 14px}
+header{padding:22px 0 6px}
+.brand{font:800 13px/1 -apple-system,sans-serif;letter-spacing:.22em;color:#2dd4bf}
+h1{margin:6px 0 4px;font-size:28px;letter-spacing:-.01em}
+.intro{color:#9aa4b2;font-size:14px;margin:0}
+nav{position:sticky;top:0;z-index:5;background:rgba(14,17,23,.96);border-bottom:1px solid #222a35;margin:14px -14px 0;padding:10px 14px;display:flex;gap:6px}
+nav a{flex:1;text-align:center;text-decoration:none;font-weight:700;font-size:14px;padding:10px 0;border-radius:10px;background:#161b24;color:#e8ecf2;border:1px solid #232b37}
+nav a.m{color:#2dd4bf}nav a.t{color:#f5a524}nav a.w{color:#60a5fa}nav a.f{color:#f87171}nav a.c{color:#c084fc}
+.key{margin:14px 0 0;padding:12px 14px;background:#141922;border:1px solid #222a35;border-radius:12px;font-size:13.5px;color:#aeb7c4}
+.key b{color:#e8ecf2}
+.day{scroll-margin-top:66px;margin-top:26px}
+.day h2{margin:0;font-size:26px;color:var(--c);letter-spacing:-.01em}
+.sub{color:#9aa4b2;font-size:14px;margin:2px 0 12px}
+.warm,.fin{background:#141922;border:1px solid #222a35;border-radius:12px;padding:11px 13px;font-size:14px;color:#c6cdd8;margin:10px 0}
+.warm b,.fin b{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--c);margin-bottom:3px}
+.blk{border:1px solid #232b37;border-left:4px solid var(--c);border-radius:12px;background:#121720;margin:10px 0;padding:10px 12px}
+.lab{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8b95a3;margin-bottom:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ss{color:var(--c);border:1px solid var(--c);border-radius:999px;padding:1px 8px;letter-spacing:.08em}
+.ex+.ex{border-top:1px dashed #263040;margin-top:8px;padding-top:8px}
+.exh{display:flex;gap:8px;align-items:baseline}
+.num{flex:none;width:22px;height:22px;border-radius:50%;background:var(--c);color:#0e1117;font-weight:800;font-size:12px;display:inline-flex;align-items:center;justify-content:center;transform:translateY(-1px)}
+.exn{flex:1;font-weight:700;font-size:16.5px}
+.sr{flex:none;font-weight:800;color:var(--c);font-size:16px;white-space:nowrap}
+.cue{color:#aeb7c4;font-size:14px;margin:3px 0 0 30px}
+.badge{display:inline-block;background:#f5a524;color:#0e1117;font-weight:800;font-size:10.5px;letter-spacing:.08em;border-radius:5px;padding:1px 6px;margin-right:6px;vertical-align:1px}
+.top{display:block;text-align:right;color:#6f7a89;font-size:13px;text-decoration:none;margin-top:6px}
+.wk{margin:18px 0 6px;font-weight:800;font-size:15px;color:#e8ecf2}
+.circ{border:1px solid #232b37;border-left:4px solid var(--c);border-radius:12px;background:#121720;margin:8px 0;padding:8px 12px}
+.ch{display:flex;gap:8px;align-items:baseline;padding:2px 0 6px;border-bottom:1px solid #222a35;margin-bottom:4px}
+.ch b{color:var(--c)}.ch span{color:#9aa4b2;font-size:13.5px}.ch .ct{margin-left:auto}
+.crow{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:15px}
+.crow>span:last-child{font-weight:800;color:var(--c);flex:none}
+.crow em{color:#8b95a3;font-style:normal;font-size:13.5px}
+.cn{display:inline-block;width:20px;color:#6f7a89;font-weight:700}
+.crow.rest{color:#ffb24d;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border-top:1px dashed #3a3220;border-bottom:1px dashed #3a3220}
+.crow.rest>span:last-child{color:#ffb24d}
+html.js .static-core,html.js .nojs{display:none}
+.tcard{background:#121720;border:1px solid #232b37;border-left:4px solid var(--c);border-radius:14px;padding:12px;margin:12px 0}
+.seg{display:flex;background:#0e1117;border:1px solid #232b37;border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;border-radius:8px;padding:10px 0;font:700 15px -apple-system,sans-serif;background:transparent;color:#9aa4b2}
+.seg button.on{background:var(--c);color:#0e1117}
+.wnav{display:flex;align-items:center;justify-content:space-between;margin:10px 0 4px}
+.wnav button{width:44px;height:40px;border-radius:10px;border:1px solid #232b37;background:#161b24;color:#e8ecf2;font-size:22px;line-height:1}
+#wLbl{font-weight:800;font-size:16px;text-align:center}#wLbl small{display:block;font-weight:600;font-size:12.5px;color:#8b95a3}
+.tmeta{display:flex;align-items:center;justify-content:space-between;margin:6px 0 10px;color:#9aa4b2;font-size:14px}
+.ghost{border:1px solid #2c3442;background:transparent;color:#c6cdd8;border-radius:999px;padding:7px 14px;font:600 14px -apple-system,sans-serif}
+.go{width:100%;border:0;border-radius:12px;padding:16px 0;background:var(--c);color:#0e1117;font:800 18px -apple-system,sans-serif}
+.tip{color:#6f7a89;font-size:12.5px;text-align:center;margin-top:8px}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.ov{position:fixed;inset:0;z-index:50;background:#0b0d12;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));--k:#c084fc;transition:background .3s}
+.ov.rest{background:#110e08;--k:#ffb24d}.ov.ready,.ov.trans{--k:#2dd4bf}.ov.done{--k:#2dd4bf}
+.ovtop{display:flex;align-items:center;justify-content:space-between}
+.ic{width:48px;height:48px;border-radius:50%;border:1px solid #2a3240;background:#161b24;color:#e8ecf2;font-size:20px}
+.ostep{color:#8b95a3;font-weight:700;font-size:14px;letter-spacing:.08em}
+.ovmid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}
+.stage{font-weight:800;letter-spacing:.2em;font-size:15px;color:var(--k);border:1.5px solid var(--k);border-radius:999px;padding:4px 14px}
+.oname{font-weight:800;font-size:clamp(26px,8vw,40px);line-height:1.1;margin-top:10px;max-width:100%}
+.onote{color:#9aa4b2;font-size:16px;min-height:1.3em}
+.otime{font:800 clamp(110px,38vw,170px)/1 -apple-system,sans-serif;font-variant-numeric:tabular-nums;color:var(--k);letter-spacing:-.03em}
+.onext{color:#9aa4b2;font-size:16px;min-height:1.3em}.onext b{color:#e8ecf2}
+.obar{height:6px;background:#1c222d;border-radius:9px;overflow:hidden;margin:6px 0}
+#oFill{height:100%;width:0;background:var(--k);transition:width .2s linear}
+.oleft{text-align:center;color:#6f7a89;font-size:13px;margin-bottom:12px;min-height:1.2em}
+.ovbot{display:flex;align-items:center;justify-content:center;gap:22px}
+.ctl{width:68px;height:68px;border-radius:50%;border:1px solid #2a3240;background:#161b24;color:#e8ecf2;font-size:24px}
+.ctl.big{width:96px;height:96px;background:var(--k);color:#0b0d12;border:0;font-weight:800;font-size:19px}
+footer{color:#6f7a89;font-size:12.5px;text-align:center;margin-top:30px}
+</style></head><body><div class="wrap" id="top">
+<header><div class="brand">LIFT</div><h1>4-Day Split</h1><p class="intro">Mon · Tue · Wed · Fri — same lifts each week. Core finisher on Mon &amp; Wed.</p></header>
+<nav><a class="m" href="#mon">MON</a><a class="t" href="#tue">TUE</a><a class="w" href="#wed">WED</a><a class="f" href="#fri">FRI</a><a class="c" href="#core">CORE</a></nav>
+<div class="key"><b>4×10–12</b> = 4 sets of 10–12 reps. <b>Superset</b> = alternate the moves, rest after the pair. <b>Reps in reserve</b> = stop with that many reps left in the tank. Pick weights that land you in the rep range — no numbers listed on purpose.</div>
+<section id="mon" class="day" style="--c:#2dd4bf"><h2>Monday</h2><div class="sub">Chest · Side Delts · Triceps</div>
+  <div class="warm"><b>Warm-up</b> Elliptical 5 min + shoulder prehab — band pull-aparts, external rotations, face pulls. Two light incline press warm-up sets.</div><div class="blk"><div class="lab">Upper chest</div><div class="ex"><div class="exh"><span class="num">1</span><span class="exn">Incline DB Press · low 15–30°</span><span class="sr">4×10–12</span></div><div class="cue">Elbows tucked ~45°, bench low, squeeze the pec. 1–2 reps in reserve, exhale on the press.</div></div></div><div class="blk multi"><div class="lab">Flat<span class="ss">Superset · alternate</span></div><div class="ex"><div class="exh"><span class="num">2</span><span class="exn">Flat DB Press</span><span class="sr">3×10–12</span></div><div class="cue">Elbows tucked. 1–2 reps in reserve.</div></div><div class="ex"><div class="exh"><span class="num">3</span><span class="exn">Close-grip Push-up</span><span class="sr">2×10–15</span></div><div class="cue">Elbows in tight, full depth. To failure.</div></div></div><div class="blk"><div class="lab">Pec deck</div><div class="ex"><div class="exh"><span class="num">4</span><span class="exn">Pec Deck</span><span class="sr">3×12–15</span></div><div class="cue"><span class="badge">DROP SET</span>Moderate range — open only to a stretch, not a pull. 1s squeeze at the top.</div></div></div><div class="blk multi"><div class="lab">Side delts<span class="ss">Superset · alternate</span></div><div class="ex"><div class="exh"><span class="num">5</span><span class="exn">Seated DB Lateral Raise</span><span class="sr">4×12–15</span></div><div class="cue">Elbows lead, stop at shoulder height. To failure.</div></div><div class="ex"><div class="exh"><span class="num">6</span><span class="exn">Standing DB Lateral · burnout</span><span class="sr">3×12–15</span></div><div class="cue"><span class="badge">PARTIALS</span>Last set: half-weight top partials to failure.</div></div></div><div class="blk multi"><div class="lab">Triceps<span class="ss">Tri-set · alternate</span></div><div class="ex"><div class="exh"><span class="num">7</span><span class="exn">Cable Pushdown</span><span class="sr">4×12–15</span></div><div class="cue">Straight bar. To failure.</div></div><div class="ex"><div class="exh"><span class="num">8</span><span class="exn">Overhead Extension</span><span class="sr">3×12–15</span></div><div class="cue">Rope, full stretch overhead. To failure.</div></div><div class="ex"><div class="exh"><span class="num">9</span><span class="exn">EZ-Bar Skull Crusher</span><span class="sr">3×10–12</span></div><div class="cue">Flat bench, elbows pinned and pointing at the ceiling, lower to your forehead / just behind. To failure.</div></div></div>
+  <div class="fin"><b>Finish</b><div>• Core circuit — optional (see Core ↓)</div><div>• Cardio — 30 min steady, easy pace</div></div><a class="top" href="#top">↑ Back to top</a></section><section id="tue" class="day" style="--c:#f5a524"><h2>Tuesday</h2><div class="sub">Legs · Quads · Glutes · Calves</div>
+  <div class="warm"><b>Warm-up</b> Knee prep — light high-rep leg extensions, bodyweight squats, banded TKEs / tibialis raises. Two belt-squat warm-up sets.</div><div class="blk"><div class="lab">Primary quad · full rest</div><div class="ex"><div class="exh"><span class="num">1</span><span class="exn">Belt Squat</span><span class="sr">4×8–10</span></div><div class="cue">1–2 reps in reserve. Exhale up, stand with control, pain-free depth.</div></div></div><div class="blk"><div class="lab">Unilateral</div><div class="ex"><div class="exh"><span class="num">2</span><span class="exn">Bulgarian Split Squat</span><span class="sr">3×10/leg</span></div><div class="cue">Kettlebell. 20" box, ~2.5 ft stance, slight forward lean. To failure.</div></div></div><div class="blk multi"><div class="lab">Tandem — one machine each, swap<span class="ss">Superset · alternate</span></div><div class="ex"><div class="exh"><span class="num">3</span><span class="exn">Leg Extension</span><span class="sr">4×12–15</span></div><div class="cue"><span class="badge">PARTIALS</span>Lengthened partials on the last set. To failure.</div></div><div class="ex"><div class="exh"><span class="num">4</span><span class="exn">Hamstring Curl</span><span class="sr">4×10–12</span></div><div class="cue">Pair the first 3 sets, 4th solo. To failure.</div></div></div><div class="blk multi"><div class="lab">Calves<span class="ss">Superset · alternate</span></div><div class="ex"><div class="exh"><span class="num">5</span><span class="exn">Calf Press · heavy</span><span class="sr">4×12–15</span></div><div class="cue">Full stretch at the bottom, slow. To failure.</div></div><div class="ex"><div class="exh"><span class="num">6</span><span class="exn">Second Calf Angle</span><span class="sr">2–3×15–20</span></div><div class="cue">Different angle (seated / standing). To failure.</div></div></div><div class="blk"><div class="lab">Hip</div><div class="ex"><div class="exh"><span class="num">7</span><span class="exn">Adductor Machine</span><span class="sr">4×12–15</span></div><div class="cue">To failure.</div></div></div>
+  <div class="fin"><b>Finish</b><div>• Ab wheel — optional</div><div>• Cardio — 30 min steady, easy pace</div></div><a class="top" href="#top">↑ Back to top</a></section><section id="wed" class="day" style="--c:#60a5fa"><h2>Wednesday</h2><div class="sub">Back · Rear Delts · Biceps</div>
+  <div class="warm"><b>Warm-up</b> Elliptical + band pull-aparts + 2 light pulldown activation sets with the neutral handle.</div><div class="blk"><div class="lab">Width · full rest</div><div class="ex"><div class="exh"><span class="num">1</span><span class="exn">Lat Pulldown · neutral grip</span><span class="sr">4×10–12</span></div><div class="cue">V-handle, drive elbows down and close. To failure.</div></div></div><div class="blk"><div class="lab">Thickness</div><div class="ex"><div class="exh"><span class="num">2</span><span class="exn">Hammer Row — Low</span><span class="sr">4×10</span></div><div class="cue">Pronated (overhand) grip, elbows stop at your ribs. To failure.</div></div></div><div class="blk multi"><div class="lab">Cable crossover<span class="ss">Superset · alternate</span></div><div class="ex"><div class="exh"><span class="num">3</span><span class="exn">Single-arm Cable Pulldown</span><span class="sr">3×10–12/arm</span></div><div class="cue">Continuous — one arm straight into the other. To failure.</div></div><div class="ex"><div class="exh"><span class="num">4</span><span class="exn">Single-arm Cable Rear Fly</span><span class="sr">3×15–20/arm</span></div><div class="cue">Continuous through. To failure.</div></div></div><div class="blk multi"><div class="lab">Cable-row station<span class="ss">Superset · alternate</span></div><div class="ex"><div class="exh"><span class="num">5</span><span class="exn">Close-grip Cable Row</span><span class="sr">3×10–12</span></div><div class="cue">Controlled squeeze. To failure.</div></div><div class="ex"><div class="exh"><span class="num">6</span><span class="exn">Single-arm KB Row</span><span class="sr">3×10–12</span></div><div class="cue">To failure.</div></div></div><div class="blk multi"><div class="lab">Biceps<span class="ss">Tri-set · alternate</span></div><div class="ex"><div class="exh"><span class="num">7</span><span class="exn">Preacher Curl</span><span class="sr">3×10–12</span></div><div class="cue">EZ bar. Slow stretch at the bottom. To failure.</div></div><div class="ex"><div class="exh"><span class="num">8</span><span class="exn">DB Hammer Curl</span><span class="sr">3×10–12</span></div><div class="cue">Neutral grip, thumbs up, no rotation. To failure.</div></div><div class="ex"><div class="exh"><span class="num">9</span><span class="exn">Wide Grip Bar Curl</span><span class="sr">3×12–15</span></div><div class="cue">Fixed bar, wide grip. To failure.</div></div></div>
+  <div class="fin"><b>Finish</b><div>• Core circuit — optional (see Core ↓)</div><div>• Cardio — 30 min steady, easy pace</div></div><a class="top" href="#top">↑ Back to top</a></section><section id="fri" class="day" style="--c:#f87171"><h2>Friday</h2><div class="sub">Shoulders · Legs · Arms · Chest</div>
+  <div class="warm"><b>Warm-up</b> Shoulder prehab first (band work, face pulls, light laterals). Quick knee prep before the leg press.</div><div class="blk"><div class="lab">Delts · lead fresh</div><div class="ex"><div class="exh"><span class="num">1</span><span class="exn">Machine Shoulder Press</span><span class="sr">4×10–12</span></div><div class="cue">1–2 reps in reserve, exhale.</div></div></div><div class="blk multi"><div class="lab">Side + rear delts<span class="ss">Superset · alternate</span></div><div class="ex"><div class="exh"><span class="num">2</span><span class="exn">Lateral Raise</span><span class="sr">4 sets</span></div><div class="cue"><span class="badge">PARTIALS</span>Burnout — bank reps, then partials to failure.</div></div><div class="ex"><div class="exh"><span class="num">3</span><span class="exn">Rear-delt Fly</span><span class="sr">3×15–20</span></div><div class="cue">Cable or reverse pec deck. To failure.</div></div></div><div class="blk"><div class="lab">Side delt finisher</div><div class="ex"><div class="exh"><span class="num">4</span><span class="exn">Machine Lateral Raise</span><span class="sr">3 sets</span></div><div class="cue"><span class="badge">DROP SET</span>To failure, drop the pin ~2 plates, to failure again.</div></div></div><div class="blk"><div class="lab">Traps</div><div class="ex"><div class="exh"><span class="num">5</span><span class="exn">Shrugs · Hammer press machine</span><span class="sr">3×12–15</span></div><div class="cue">Straight up and down, no rolling. Pause at the top. To failure.</div></div></div><div class="blk"><div class="lab">Quad finisher</div><div class="ex"><div class="exh"><span class="num">6</span><span class="exn">Leg Press</span><span class="sr">4×10–12</span></div><div class="cue">Mid-height feet. 1–2 reps in reserve, stand with control.</div></div></div><div class="blk multi"><div class="lab">Arms<span class="ss">Superset · alternate</span></div><div class="ex"><div class="exh"><span class="num">7</span><span class="exn">Dumbbell Curl</span><span class="sr">4×10–12</span></div><div class="cue">No swing. To failure.</div></div><div class="ex"><div class="exh"><span class="num">8</span><span class="exn">Rope Pushdown</span><span class="sr">4×12–15</span></div><div class="cue">Elbows pinned. To failure.</div></div></div><div class="blk"><div class="lab">Chest · close grip</div><div class="ex"><div class="exh"><span class="num">9</span><span class="exn">Close-grip Machine Press</span><span class="sr">3×12–15</span></div><div class="cue">Hands close, elbows tucked. To failure.</div></div></div><div class="blk"><div class="lab">Core</div><div class="ex"><div class="exh"><span class="num">10</span><span class="exn">Vertical Knee Raise (captain's chair)</span><span class="sr">3–4 × burnout</span></div><div class="cue">Bodyweight, to failure.</div></div></div>
+  <div class="fin"><b>Finish</b><div>• Cardio — 30 min steady, easy pace</div></div><a class="top" href="#top">↑ Back to top</a></section>
+<section id="core" class="day" style="--c:#c084fc"><h2>Core</h2><div class="sub">Mon &amp; Wed finisher · new circuit each week</div>
+<div class="warm"><b>How it runs</b> 10s to get set, then work for the time shown. 5s to switch to the next move. Rest 30s where marked. Moves marked L/R or CW/CCW are done once each side. <span class="nojs">Use any interval-timer app, or just watch a clock.</span></div>
+<div id="tcard" class="tcard" hidden>
+  <div class="seg"><button data-d="mon">Monday</button><button data-d="wed">Wednesday</button></div>
+  <div class="wnav"><button id="wPrev" aria-label="Previous week">‹</button><div id="wLbl"></div><button id="wNext" aria-label="Next week">›</button></div>
+  <div id="tList"></div>
+  <div class="tmeta"><span id="tTot"></span><button id="tShuf" class="ghost">⟳ Shuffle</button></div>
+  <button id="tStart" class="go">▶ Start core timer</button>
+  <div class="tip">Keeps the screen awake while it runs. Turn your volume up — it beeps and calls out each move.</div>
+</div>
+<div class="static-core"><div class="wk">Week of Nov 9</div><div class="circ"><div class="ch"><b>Monday</b> <span>Mon, Nov 9</span><span class="ct">1 light DB · ~6 min</span></div><div class="crow"><span><span class="cn">1</span>Heels to the Heavens</span><span>45s</span></div><div class="crow"><span><span class="cn">2</span>Weighted Russian Twist</span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">3</span>Twisting Toe Taps<em> · alternate sides</em></span><span>45s</span></div><div class="crow"><span><span class="cn">4</span>Handoffs<em> · pass DB hand to hand under legs</em></span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">5</span>Dumbbell Sunrise-to-Sunset</span><span>45s</span></div><div class="crow"><span><span class="cn">6</span>X-Men Crunch</span><span>45s</span></div></div><div class="circ"><div class="ch"><b>Wednesday</b> <span>Wed, Nov 11</span><span class="ct">~6 min</span></div><div class="crow"><span><span class="cn">1</span>Frog Crunches</span><span>45s</span></div><div class="crow"><span><span class="cn">2</span>Cross Hop Planks</span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">3</span>90-90 Crunches</span><span>45s</span></div><div class="crow"><span><span class="cn">4</span>Russian "V" Tuck Twists</span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">5</span>Sprinter Tuck Planks<em> · alternate</em></span><span>45s</span></div><div class="crow"><span><span class="cn">6</span>Twisting Pistons<em> · alternate</em></span><span>45s</span></div></div><div class="wk">Week of Nov 16</div><div class="circ"><div class="ch"><b>Monday</b> <span>Mon, Nov 16</span><span class="ct">1 light DB · ~6 min</span></div><div class="crow"><span><span class="cn">1</span>Figure 8's</span><span>45s</span></div><div class="crow"><span><span class="cn">2</span>McDonald's<em> · trace the M</em></span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">3</span>Recliner Presses</span><span>45s</span></div><div class="crow"><span><span class="cn">4</span>DB Oblique Wipers — L</span><span>45s</span></div><div class="crow"><span><span class="cn">5</span>DB Oblique Wipers — R</span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">6</span>Dumbbell Sunrise-to-Sunset</span><span>45s</span></div></div><div class="circ"><div class="ch"><b>Wednesday</b> <span>Wed, Nov 18</span><span class="ct">~6 min</span></div><div class="crow"><span><span class="cn">1</span>Seated Ab Circles — CW</span><span>50s</span></div><div class="crow"><span><span class="cn">2</span>Seated Ab Circles — CCW</span><span>50s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">3</span>Russian "V" Tuck Twists</span><span>45s</span></div><div class="crow"><span><span class="cn">4</span>Scissor "V" Ups</span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">5</span>Sprinter Tuck Planks<em> · alternate</em></span><span>45s</span></div><div class="crow"><span><span class="cn">6</span>Canoe Crunch</span><span>45s</span></div></div><div class="wk">Week of Nov 23</div><div class="circ"><div class="ch"><b>Monday</b> <span>Mon, Nov 23</span><span class="ct">1 light DB · ~6 min</span></div><div class="crow"><span><span class="cn">1</span>Russian Press</span><span>45s</span></div><div class="crow"><span><span class="cn">2</span>X-Men Crunch</span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">3</span>Plank Reach-Outs<em> · alternate arms</em></span><span>45s</span></div><div class="crow"><span><span class="cn">4</span>Plank Tuck-to-Kickback<em> · alternate legs</em></span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">5</span>DB Oblique Wipers — L</span><span>45s</span></div><div class="crow"><span><span class="cn">6</span>DB Oblique Wipers — R</span><span>45s</span></div></div><div class="circ"><div class="ch"><b>Wednesday</b> <span>Wed, Nov 25</span><span class="ct">~6 min</span></div><div class="crow"><span><span class="cn">1</span>Recliner Elbow-to-Knee Tucks<em> · alternate</em></span><span>45s</span></div><div class="crow"><span><span class="cn">2</span>McDonald's<em> · trace the M</em></span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">3</span>Penguins<em> · side to side</em></span><span>40s</span></div><div class="crow"><span><span class="cn">4</span>One Down Two Ups</span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">5</span>Scissors</span><span>45s</span></div><div class="crow"><span><span class="cn">6</span>Twisting Pistons<em> · alternate</em></span><span>45s</span></div></div><div class="wk">Week of Nov 30</div><div class="circ"><div class="ch"><b>Monday</b> <span>Mon, Nov 30</span><span class="ct">1 light DB · ~6 min</span></div><div class="crow"><span><span class="cn">1</span>Penguins<em> · side to side</em></span><span>40s</span></div><div class="crow"><span><span class="cn">2</span>Recliner Presses</span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">3</span>Statue of Liberty → Thread-the-Needle — L</span><span>50s</span></div><div class="crow"><span><span class="cn">4</span>Statue of Liberty → Thread-the-Needle — R</span><span>50s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">5</span>90-90 Crunches</span><span>45s</span></div><div class="crow"><span><span class="cn">6</span>Twisting Toe Taps<em> · alternate sides</em></span><span>45s</span></div></div><div class="circ"><div class="ch"><b>Wednesday</b> <span>Wed, Dec 2</span><span class="ct">~6 min</span></div><div class="crow"><span><span class="cn">1</span>Recliner Elbow-to-Knee Tucks<em> · alternate</em></span><span>45s</span></div><div class="crow"><span><span class="cn">2</span>Scissors</span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">3</span>Starfish Crunch</span><span>45s</span></div><div class="crow"><span><span class="cn">4</span>X-Men Crunch</span><span>45s</span></div><div class="crow rest"><span>Rest</span><span>30s</span></div><div class="crow"><span><span class="cn">5</span>Figure 8's</span><span>45s</span></div><div class="crow"><span><span class="cn">6</span>One Down Two Ups</span><span>45s</span></div></div></div>
+<div class="fin"><b>Don't know a move?</b><div>Swap in any of these: Russian Twist, Scissors, Starfish Crunch, Penguins (side-to-side heel taps), Marching Planks, Side Crunches.</div></div>
+<div class="fin"><b>Tuesday</b><div>Ab wheel, optional. <b style="display:inline">Friday</b> — captain's chair knee raises are already in the session.</div></div>
+<a class="top" href="#top">↑ Back to top</a></section>
+<footer>LIFT · partner copy</footer></div>
+<div id="ov" class="ov" hidden>
+  <div class="ovtop"><button id="oVoice" class="ic" aria-label="Voice">🔊</button><div id="oStep" class="ostep"></div><button id="oEnd" class="ic" aria-label="End">✕</button></div>
+  <div class="ovmid"><div id="oStage" class="stage"></div><div id="oName" class="oname"></div><div id="oNote" class="onote"></div><div id="oTime" class="otime"></div><div id="oNext" class="onext"></div></div>
+  <div class="obar"><div id="oFill"></div></div>
+  <div id="oLeft" class="oleft"></div>
+  <div class="ovbot"><button id="oBack" class="ctl" aria-label="Back">⏮</button><button id="oPlay" class="ctl big"></button><button id="oSkip" class="ctl" aria-label="Skip">⏭</button></div>
+</div>
+<script>
+var CORE_TARGET = 6; // work intervals per circuit — single tunable constant (was 8; trimmed, felt long).
+                     // Mon = CORE_TARGET-2 weighted + 2 bodyweight; rests fall at the thirds.
+var AB_LEADIN = 10;  // first-core-timer lead-in ONLY — longer so there's time to get set (Ticket 19). Transitions stay AB_TRANS (5).
+var AB_ROLL   = 0;   // Ticket 21: session-only re-roll counter. 0 = the week's default circuit; each
+                     // Randomize tap bumps it, shifting the shuffle seed. Resets next open (by design —
+                     // the circuit stays deterministic-by-week unless re-rolled in the moment).
+var AB_TRANS  = 5;   // TRANSITION_SECONDS — prep window between exercises (Ticket 10); bump for slower weight swaps
+var AB_POOLS = {
+  weightedPool: [
+    { ex:'Single-Arm Otis-Up', sec:50, pair:true },
+    { ex:'DB Oblique Wipers', sec:45, pair:true },
+    { ex:'Statue of Liberty → Thread-the-Needle', sec:50, pair:true },
+    { ex:'Plank Reach-Outs', sec:45, note:'alternate arms' },
+    { ex:'Dumbbell Sunrise-to-Sunset', sec:45 },
+    { ex:'Russian Press', sec:45 },
+    { ex:'Weighted Russian Twist', sec:45 },
+    { ex:'Twisting Toe Taps', sec:45, note:'alternate sides' },
+    { ex:'Recliner Presses', sec:45 },
+    { ex:'Handoffs', sec:45, note:'pass DB hand to hand under legs' }
+  ],
+  bodyweightPool: [
+    { ex:'Single-Single-Double V-Up', sec:45 },
+    { ex:'Starfish Crunch', sec:45 },
+    { ex:'X-Men Crunch', sec:45 },
+    { ex:'Russian Twist (bodyweight)', sec:45 },
+    { ex:'Penguins', sec:40, note:'side to side' },
+    { ex:'Seated Ab Circles', sec:50, pair:true, pairLabels:['CW','CCW'] },
+    { ex:'Plank Tuck-to-Kickback', sec:45, note:'alternate legs' },
+    { ex:'Frog Crunches', sec:45 },
+    { ex:'McDonald\'s', sec:45, note:'trace the M' },
+    { ex:'Rainbows', sec:45, note:'arc side to side' },
+    { ex:'Dragon Thrusts', sec:45 },
+    { ex:'90-90 Crunches', sec:45 },
+    { ex:'Canoe Crunch', sec:45 },
+    { ex:'Hands Back Raises', sec:45 },
+    { ex:'Recliner Elbow-to-Knee Tucks', sec:45, note:'alternate' },
+    { ex:'"21" Crunch', sec:45 },
+    { ex:'Figure 8\'s', sec:45 },
+    { ex:'Tuck Planks (Same Side)', sec:45 },
+    { ex:'Walk the Plank', sec:45, note:'alternate' },
+    { ex:'Sprinter Tuck Planks', sec:45, note:'alternate' },
+    { ex:'Heels to the Heavens', sec:45 },
+    { ex:'Marching Planks', sec:45, note:'alternate' },
+    { ex:'Scissor "V" Ups', sec:45 },
+    { ex:'One Down Two Ups', sec:45 },
+    { ex:'Twisting Pistons', sec:45, note:'alternate' },
+    { ex:'Cross Hop Planks', sec:45 },
+    { ex:'Prayer Crunch', sec:45 },
+    { ex:'Scissors', sec:45 },
+    { ex:'Side Crunches', sec:50, pair:true },
+    { ex:'Russian "V" Tuck Twists', sec:45 }
+  ]
+};
+function ab_mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function ab_shuffle(arr,seed){var r=ab_mulberry32(seed);var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+// Pick moves from `pool` (already shuffled) until they fill exactly `target` work INTERVALS —
+// counting a paired move as 2 intervals — so a pair can't overshoot the budget and starve the
+// other pool. Returns the selected moves (still expanded to L/R by the caller).
+function ab_fillIntervals(pool,target){
+  var out=[], count=0;
+  for(var i=0;i<pool.length && count<target;i++){
+    var w=pool[i].pair?2:1;
+    if(count+w<=target){ out.push(pool[i]); count+=w; }
+  }
+  return out;
+}
+function ab_isoWeek(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);var ys=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-ys)/86400000)+1)/7);}
+// Build this week's circuit (CORE_TARGET work intervals + two 30s rests) deterministically from the day + ISO week.
+function ab_buildCircuit(){
+  // pools are publishable: if the live program JSON carries a `corePools` key, use it; else the bundled pools.
+  var pools = (typeof PROGRAM==='object' && PROGRAM && PROGRAM.corePools
+               && Array.isArray((PROGRAM.corePools.weightedPool)) && Array.isArray((PROGRAM.corePools.bodyweightPool)))
+             ? PROGRAM.corePools : AB_POOLS;
+  var now=AB_NOW;
+  var seed=ab_isoWeek(now)+AB_ROLL*7919;   // re-roll bump ×prime → a fully different shuffle per tap (T21)
+  // Circuit follows the DAY BEING VIEWED (timer only shows Mon/Wed):
+  // Monday = weighted-leaning pool, Wednesday = all bodyweight. Weekly seeded shuffle.
+  var isWeighted=(curDay==='mon');
+  var candidates;
+  if(isWeighted){
+    // Monday = (CORE_TARGET-2) weighted intervals + 2 bodyweight intervals. Select by INTERVAL
+    // count (pairs = 2) so the 2 bodyweight moves are always guaranteed, then shuffle the order.
+    var w=ab_shuffle(pools.weightedPool, seed);
+    var b=ab_shuffle(pools.bodyweightPool, seed+101);
+    var wsel=ab_fillIntervals(w, CORE_TARGET-2), bsel=ab_fillIntervals(b, 2);
+    candidates=ab_shuffle(wsel.concat(bsel), seed+777);
+  } else {
+    candidates=ab_shuffle(pools.bodyweightPool, seed);
+  }
+  var TARGET=CORE_TARGET, work=[], pairStart=[];
+  for(var k=0;k<candidates.length && work.length<TARGET;k++){
+    var ex=candidates[k];
+    if(ex.pair){
+      if(work.length<=TARGET-2){                       // only if both sides fit (never truncate a pair)
+        var lbl=ex.pairLabels||['L','R'];
+        pairStart.push(work.length);
+        work.push({ex:ex.ex+' — '+lbl[0], sec:ex.sec, note:ex.note});
+        work.push({ex:ex.ex+' — '+lbl[1], sec:ex.sec, note:ex.note});
+      }
+    } else {
+      work.push({ex:ex.ex, sec:ex.sec, note:ex.note});
+    }
+  }
+  function restSlot(i){ return pairStart.indexOf(i-1)>=0 ? i+1 : i; }   // don't split a pair
+  var restAt={}; [restSlot(Math.round(CORE_TARGET/3)),restSlot(Math.round(CORE_TARGET*2/3))].forEach(function(i){ if(i>0 && i<work.length) restAt[i]=1; });
+  var seq=[];
+  work.forEach(function(it,i){ if(restAt[i]) seq.push({rest:30}); seq.push(it); });
+  var dayName=(PROGRAM[curDay]&&PROGRAM[curDay].title)||({mon:'Monday',wed:'Wednesday'}[curDay])||'Core';
+  // Title carries NO week number (week-to-week model, T16/T18) — and never the raw seed,
+  // which is meaningless after a re-roll bump. A re-rolled draw is marked so it's visible.
+  return { seq:seq, work:work, title:dayName+' Core'+(AB_ROLL>0?' · re-rolled':'') };
+}
+
+/* Partner core timer — same circuit generator + phase order as the LIFT app (ab_buildCircuit above). */
+document.documentElement.className+=' js';
+var AB_NOW=new Date(), curDay='mon', PROGRAM={mon:{title:'Monday'},wed:{title:'Wednesday'}};
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function addDays(d,n){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate()+n,12);return x;}
+function mondayOf(d){var dow=d.getDay();return addDays(d,dow===0?-6:1-dow);}
+// Default: Mon → Monday, Tue/Wed → Wednesday, Thu–Sun → next Monday.
+var today=new Date(), tdow=today.getDay();
+var sel={ wk: tdow>=4||tdow===0 ? addDays(mondayOf(today),7) : mondayOf(today), day: (tdow===2||tdow===3)?'wed':'mon', roll:0 };
+function selDate(){return addDays(sel.wk, sel.day==='mon'?0:2);}
+function circuit(){ curDay=sel.day; AB_ROLL=sel.roll; AB_NOW=selDate(); return ab_buildCircuit(); }
+function fmtMin(s){var m=Math.round(s/30)/2;return '~'+(m%1?m.toFixed(1):m)+' min';}
+function mmss(s){var m=Math.floor(s/60),r=s%60;return m?m+':'+(r<10?'0':'')+r:String(r);}
+
+/* ---------- card (pre-start) ---------- */
+var phases=[];
+function buildPhases(gen){
+  var seq=gen.seq, first=''; for(var f=0;f<seq.length;f++){ if(!seq[f].rest){first=seq[f].ex;break;} }
+  var P=[{kind:'ready',label:'Get set',sec:AB_LEADIN,next:first}];
+  for(var i=0;i<seq.length;i++){ var it=seq[i];
+    if(it.rest){ var nx=''; for(var j=i+1;j<seq.length;j++){ if(!seq[j].rest){nx=seq[j].ex;break;} }
+      P.push({kind:'rest',label:'Rest',sec:it.rest,next:nx}); }
+    else { P.push({kind:'work',label:it.ex,sec:it.sec,note:it.note});
+      var n2=seq[i+1]; if(n2&&!n2.rest) P.push({kind:'trans',label:'Switch',sec:AB_TRANS,next:n2.ex}); } }
+  P.push({kind:'done',label:'Done',sec:0});
+  return P;
+}
+function totalSecs(P){var s=0;P.forEach(function(p){s+=p.sec||0;});return s;}
+function renderCard(){
+  var gen=circuit(); phases=buildPhases(gen);
+  [].forEach.call(document.querySelectorAll('.seg button'),function(b){b.className=b.dataset.d===sel.day?'on':'';});
+  var d=selDate(), thisMon=mondayOf(new Date()), diff=Math.round((sel.wk-thisMon)/864e5/7);
+  var rel=diff===0?'This week':diff===1?'Next week':diff===-1?'Last week':'';
+  $('wLbl').innerHTML=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})+(rel?'<small>'+rel+(sel.roll?' · shuffled':'')+'</small>':(sel.roll?'<small>shuffled</small>':''));
+  var n=0;
+  $('tList').innerHTML=gen.seq.map(function(s){ return s.rest
+    ? '<div class="crow rest"><span>Rest</span><span>30s</span></div>'
+    : '<div class="crow"><span><span class="cn">'+(++n)+'</span>'+esc(s.ex)+(s.note?'<em> · '+esc(s.note)+'</em>':'')+'</span><span>'+s.sec+'s</span></div>'; }).join('');
+  $('tTot').textContent=(sel.day==='mon'?'1 light dumbbell · ':'Bodyweight · ')+fmtMin(totalSecs(phases));
+  $('tShuf').textContent=sel.roll?'↺ Original':'⟳ Shuffle';
+}
+document.addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.d){ sel.day=b.dataset.d; sel.roll=0; renderCard(); }
+  else if(b.id==='wPrev'){ sel.wk=addDays(sel.wk,-7); sel.roll=0; renderCard(); }
+  else if(b.id==='wNext'){ sel.wk=addDays(sel.wk,7); sel.roll=0; renderCard(); }
+  else if(b.id==='tShuf'){ sel.roll=sel.roll?0:sel.roll+1+Math.floor(Math.random()*50); renderCard(); }
+  else if(b.id==='tStart'){ T.open(); }
+  else if(b.id==='oPlay'){ T.running?T.pause():T.play(); }
+  else if(b.id==='oSkip'){ T.go(T.pi+1); }
+  else if(b.id==='oBack'){ T.back(); }
+  else if(b.id==='oVoice'){ T.voice=!T.voice; if(!T.voice) try{speechSynthesis.cancel();}catch(_){} T.draw(); }
+  else if(b.id==='oEnd'){ if(!T.started || T.phases[T.pi].kind==='done' || confirm('End the core circuit?')) T.close(); }
+});
+
+/* ---------- timer engine (timestamp-based, catches up after backgrounding) ---------- */
+var T={phases:[],pi:0,running:false,started:false,endAt:0,remMs:0,lastSec:-1,iv:null,wake:null,wakeWant:false,actx:null,voice:true,
+  open:function(){ this.phases=phases; this.pi=0; this.remMs=this.phases[0].sec*1000; this.running=false; this.started=false; this.lastSec=-1;
+    $('ov').hidden=false; document.body.style.overflow='hidden'; this.draw(); this.play(); },
+  close:function(){ this.stop(); $('ov').hidden=true; document.body.style.overflow=''; try{speechSynthesis.cancel();}catch(_){}
+    try{ if(navigator.audioSession) navigator.audioSession.type='auto'; }catch(_){} },
+  stop:function(){ this.running=false; clearInterval(this.iv); this.relWake(); },
+  unlockAudio:function(){
+    try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(_){}   // play through the silent switch (Safari 17+)
+    try{ if(!this.actx) this.actx=new (window.AudioContext||window.webkitAudioContext)(); if(this.actx.state!=='running') this.actx.resume(); }catch(_){}
+  },
+  play:function(){
+    if(this.phases[this.pi].kind==='done'){ this.pi=0; this.remMs=this.phases[0].sec*1000; this.started=false; }
+    this.unlockAudio();
+    var first=!this.started; this.started=true; this.running=true;
+    this.endAt=Date.now()+this.remMs; this.lastSec=-1;
+    if(first) this.announce(this.phases[this.pi]);
+    this.reqWake(); clearInterval(this.iv); var self=this; this.iv=setInterval(function(){self.tick();},120); this.tick();
+  },
+  pause:function(){ this.remMs=Math.max(0,this.endAt-Date.now()); this.stop(); try{speechSynthesis.cancel();}catch(_){} this.draw(); },
+  tick:function(){
+    var now=Date.now(), guard=0;
+    while(this.running && now>=this.endAt && guard++<100) this.advance(this.endAt, now-this.endAt>1500);   // chain from the true end time
+    if(!this.running) return;
+    var r=Math.ceil((this.endAt-now)/1000);
+    if(r!==this.lastSec){ this.lastSec=r; this.callout(this.phases[this.pi],r); this.draw(); }
+    else this.drawBar();
+  },
+  advance:function(base,quiet){
+    if(this.pi>=this.phases.length-2){ this.finish(quiet); return; }
+    this.pi++; var p=this.phases[this.pi];
+    this.endAt=base+p.sec*1000; this.remMs=p.sec*1000; this.lastSec=-1;
+    if(!quiet){ if(p.kind==='work') this.beep(1046,.18,.3); else this.beep(523,.16,.22); this.announce(p); }
+    this.draw();
+  },
+  go:function(i){
+    if(i>=this.phases.length-1){ this.finish(true); return; }
+    this.pi=Math.max(0,i); var p=this.phases[this.pi];
+    this.remMs=p.sec*1000; this.lastSec=-1; if(this.running) this.endAt=Date.now()+this.remMs;
+    this.announce(p); this.draw();
+  },
+  back:function(){ var p=this.phases[this.pi];
+    var elapsed=p.sec*1000-(this.running?this.endAt-Date.now():this.remMs);
+    this.go(elapsed>2500||this.pi===0?this.pi:this.pi-1); },          // first tap restarts the move, second goes back
+  finish:function(quiet){ this.stop(); this.pi=this.phases.length-1; this.remMs=0;
+    if(!quiet){ this.beep(660,.5,.3); } this.announce(this.phases[this.pi]); this.draw(); },
+  callout:function(p,r){ if(!p) return;
+    if(p.kind==='work'){ if(r===20&&p.sec>=40) this.say('20 seconds'); else if(r===10) this.say('10 seconds left'); else if(r<=3&&r>0) this.beep(900,.12,.25); }
+    else if(p.kind!=='done' && r<=3 && r>0){ var busy=false; try{busy=speechSynthesis.speaking;}catch(_){} if(busy||!this.voice) this.beep(740,.1,.22); else this.say(String(r),true); }
+  },
+  announce:function(p){ if(!p) return; try{speechSynthesis.cancel();}catch(_){}
+    if(p.kind==='work') this.say(p.label.replace(/ — L$/,', left side').replace(/ — R$/,', right side').replace(/ — CW$/,', clockwise').replace(/ — CCW$/,', counter clockwise'));
+    else if(p.kind==='rest') this.say('Rest. Next up, '+p.next);
+    else if(p.kind==='trans') this.say('Next up, '+p.next);
+    else if(p.kind==='ready') this.say('Get ready. First up, '+p.next);
+    else if(p.kind==='done') this.say('Workout complete. Great work.');
+  },
+  say:function(t,keep){ if(!this.voice||!t) return; try{ if(!('speechSynthesis' in window)) return;
+    var u=new SpeechSynthesisUtterance(t.replace(/[→·"]/g,' ')); u.lang='en-US'; u.rate=1; speechSynthesis.speak(u); }catch(_){} },
+  beep:function(f,d,v){ try{ var a=this.actx; if(!a) return; var o=a.createOscillator(),g=a.createGain();
+    o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(a.destination);
+    g.gain.setValueAtTime(.0001,a.currentTime); g.gain.exponentialRampToValueAtTime(v,a.currentTime+.01); g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+d);
+    o.start(); o.stop(a.currentTime+d+.02); }catch(_){} },
+  reqWake:function(){ this.wakeWant=true; var self=this;
+    try{ if('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function(w){ if(!self.wakeWant){try{w.release();}catch(_){}return;} self.wake=w; }).catch(function(){}); }catch(_){} },
+  relWake:function(){ this.wakeWant=false; try{ this.wake&&this.wake.release(); }catch(_){} this.wake=null; },
+  workNo:function(){ var n=0,t=0; for(var i=0;i<this.phases.length;i++){ if(this.phases[i].kind==='work'){ t++; if(i<=this.pi) n=t; } } return [n,t]; },
+  secs:function(){ return Math.max(0,Math.ceil((this.running?this.endAt-Date.now():this.remMs)/1000)); },
+  drawBar:function(){ var p=this.phases[this.pi]; var f=p.sec? 1-(this.running?this.endAt-Date.now():this.remMs)/(p.sec*1000) : 1;
+    $('oFill').style.width=Math.max(0,Math.min(1,f))*100+'%'; },
+  draw:function(){
+    var p=this.phases[this.pi], ov=$('ov'); ov.className='ov '+p.kind;
+    var STAGE={ready:'GET SET',work:'WORK',trans:'SWITCH',rest:'REST',done:'DONE'};
+    $('oStage').textContent=STAGE[p.kind];
+    $('oName').textContent= p.kind==='work'?p.label : p.kind==='done'?'Circuit complete 🔥' : p.kind==='rest'?'Rest' : p.next;
+    $('oNote').textContent= p.kind==='work'&&p.note?p.note : (p.kind==='trans'||p.kind==='ready')?'up next — get into position':'';
+    $('oTime').textContent= p.kind==='done'?'✓':this.secs();
+    var nxt=''; if(p.kind==='work'||p.kind==='rest'){ for(var i=this.pi+1;i<this.phases.length;i++){ if(this.phases[i].kind==='work'){ nxt=this.phases[i].label; break; } } }
+    $('oNext').innerHTML= p.kind==='rest'&&p.next ? 'Next: <b>'+esc(p.next)+'</b>' : nxt ? 'Then: <b>'+esc(nxt)+'</b>' : '';
+    var w=this.workNo(); $('oStep').textContent= p.kind==='done'?'':(w[0]?'MOVE '+w[0]+' / '+w[1]:'MOVE 1 / '+w[1]);
+    var left=this.secs(); for(var k=this.pi+1;k<this.phases.length;k++) left+=this.phases[k].sec||0;
+    $('oLeft').textContent= p.kind==='done'?'':mmss(left)+' left in circuit';
+    $('oPlay').textContent= this.running?'Pause':(p.kind==='done'?'Again':'Go');
+    $('oVoice').textContent= this.voice?'🔊':'🔇';
+    this.drawBar();
+  }
+};
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible' && T.running){ T.tick(); T.reqWake(); }   // catch up + re-take the wake lock iOS dropped
+});
+$('tcard').hidden=false;
+renderCard();
+
+</script></body></html>
