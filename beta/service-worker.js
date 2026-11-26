@@ -12,7 +12,7 @@
 
 const SCOPE = new URL(self.registration.scope).pathname;     // '/lift-app/' (live) or '/lift-app/beta/' (beta)
 const SUFFIX = '@' + SCOPE;
-const CACHE = 'lift-r2' + SUFFIX;                             // bump r2 -> r3 to purge this scope's old cache
+const CACHE = 'lift-r3' + SUFFIX;                             // bump r3 -> r4 to purge this scope's old cache
 const NET_MS = 3000;
 const CORE = [
   './',

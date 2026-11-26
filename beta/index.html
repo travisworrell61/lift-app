@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07090d">
-<meta name="lift-build" content="r2">
+<meta name="lift-build" content="r3">
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -29,6 +29,7 @@
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.25 var(--sys);
   overscroll-behavior:none;-webkit-text-size-adjust:100%;color-scheme:dark}
 html{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+#app,#sheet{touch-action:pan-x pan-y}   /* no pinch-zoom (H-8) */
 input,textarea,.note-ta,.sh-p,.daynote,.adm-in,.adm-ta{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;
   touch-action:manipulation;-webkit-appearance:none;appearance:none}
@@ -85,14 +86,16 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .row .rt{min-width:0}
 .rn{display:block;font-size:15px;font-weight:600;line-height:1.15;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
-.rs{display:block;font-size:11.5px;line-height:1.2;color:var(--muted);white-space:nowrap;
+.rs{display:block;font-size:13px;line-height:1.2;color:var(--muted);white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
 .rs:empty{display:none}
 .row.dn .rn,.row.sk .rn{color:var(--steel);font-weight:500}
-.row.dn .rs{color:#7fd9a0}
+.row.pn .rn{color:var(--muted);font-weight:500}   /* plan rows that are neither now nor next recede (M-4) */
+.row.dn .rs{color:var(--ink)}
 .row.cur{background:color-mix(in srgb,var(--accent) 15%,var(--s1));
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 55%,transparent)}
 .row.cur .rs{color:var(--steel)}
+.row.part .rs,.row.part.cur .rs{color:var(--accent)}   /* what he LIFTED reads ink/accent; plans stay muted (M-9) */
 .row.sw .rn::after{content:' ⇄';color:var(--warn);font-weight:700}
 .rr{display:flex;align-items:center;gap:8px}
 .tg{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--tagc);
@@ -109,17 +112,16 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 
 /* ── CSS 4. player ── */
 #player{flex:none;position:relative;z-index:5;display:flex;flex-direction:column;gap:4px;
-  padding:4px 12px calc(8px + env(safe-area-inset-bottom));
+  padding:4px 8px calc(8px + env(safe-area-inset-bottom));
   background:linear-gradient(180deg,#1a212d,#10141b 70%);
   border-radius:22px 22px 0 0;border-top:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));
-  box-shadow:0 -14px 34px rgba(0,0,0,.55)}
+  box-shadow:0 -8px 20px rgba(0,0,0,.35)}
 #plId{display:flex;flex-direction:column;gap:4px}
 .pl-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:2px;
   touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-.pl-name{font-size:21px;font-weight:700;letter-spacing:-.01em;line-height:1.15;min-height:44px;
+.pl-name{font-size:26px;font-weight:700;letter-spacing:-.015em;line-height:1.05;height:54px;
   display:flex;align-items:center;min-width:0;overflow:hidden}
 .pl-name span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-.pl-name.sm{font-size:16px;line-height:1.12}
 .pl-btns{display:flex;align-items:center}
 .pb{min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;
   border-radius:12px;color:var(--steel);font-size:12px;font-weight:700;padding:0 4px}
@@ -152,15 +154,20 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
   color:var(--muted);line-height:1.3;white-space:nowrap}
 .pl-tl #plTv,.pl-tl #plLv{display:block;font-size:18px;font-weight:650;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;line-height:1.2;color:var(--ink)}
-.pl-tl #plLv{color:var(--steel);font-weight:500;font-size:16px}
+.pl-tl #plLv{color:var(--steel);font-weight:500;font-size:15px;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.15}
 .pl-tl small #plPl{display:inline;margin-left:6px;font-size:13px;font-weight:500;letter-spacing:0;
   text-transform:none;color:var(--muted)}
-.pl-tl #plLast{border-left:1px solid var(--line);height:44px;margin:-5px 0;padding:0 0 0 10px;border-radius:0;
+.pl-tl small #plLd{margin-left:6px;font-weight:600;letter-spacing:0;color:var(--steel)}
+.pl-tl #plLast{border-left:1px solid var(--line);min-height:44px;margin:-5px 0;padding:0 0 0 10px;border-radius:0;
   display:flex;flex-direction:column;justify-content:center}
-.pl-sets{flex:1;min-width:0;display:flex;gap:6px;height:44px;overflow-x:auto;scrollbar-width:none}
+.pl-sets{flex:1;min-width:0;display:flex;gap:4px;height:44px;overflow-x:auto;scrollbar-width:none}
 .pl-sets::-webkit-scrollbar{display:none}
-.sp{flex:1 0 52px;max-width:92px;height:44px;border-radius:12px;background:var(--s2);
-  border:1px solid var(--line);font-size:14px;font-weight:700;color:var(--steel);display:flex;
+.ub{flex:none;width:58px;height:44px;border-radius:12px;font-size:14px;font-weight:800;letter-spacing:.02em;
+  border:1px solid color-mix(in srgb,var(--accent) 55%,var(--line));background:var(--s2);color:var(--ink)}
+.ub:disabled{opacity:.32;border-color:var(--line);color:var(--muted);pointer-events:none}
+.ub:active{background:var(--s3)}
+.sp{flex:1 0 44px;max-width:92px;height:44px;border-radius:12px;background:var(--s2);
+  border:1px solid var(--line);font-size:13px;letter-spacing:-.02em;font-weight:700;color:var(--steel);display:flex;
   align-items:center;justify-content:center;white-space:nowrap;font-variant-numeric:tabular-nums}
 .sp.dn{background:color-mix(in srgb,var(--ok) 14%,var(--s2));
   border-color:color-mix(in srgb,var(--ok) 38%,var(--line));color:var(--ink)}
@@ -168,7 +175,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .sp.ed{border:2px solid var(--warn);color:var(--warn);background:transparent}
 .sp.pe{color:var(--muted);border-style:dashed}
 #plEntry{display:flex;flex-direction:column;gap:12px}   /* >= 12pt between weight row, rep strip and LOG */
-.pl-w{display:flex;align-items:flex-end;gap:3px;height:56px}
+.pl-w{display:flex;align-items:flex-end;gap:2px;height:56px}
 .ws{flex:none;width:44px;height:44px;border-radius:11px;background:var(--s2);border:1px solid var(--line);
   font-size:13.5px;font-weight:700;color:var(--steel);font-variant-numeric:tabular-nums;padding:0}
 .ws.sm{font-size:12.5px}
@@ -178,10 +185,12 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 #plW{width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:0;
   font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--ink);
   font-variant-numeric:tabular-nums;border-radius:12px}
-#plW.long{font-size:32px}
+#plW.long{font-size:36px;letter-spacing:-.05em}
 #plW.typing{box-shadow:0 0 0 2px var(--accent);background:var(--s1)}
-#plW.fresh{color:var(--steel)}
+#plW.fresh,#plW.pre{color:var(--steel)}   /* prefilled, not touched yet (M-9) */
 #plW.bad{animation:shake .3s}
+#plReps.shake{animation:shake .3s}
+#plReps.flash{box-shadow:0 0 0 2px var(--warn);border-radius:12px}
 @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .wcap{position:absolute;top:0;left:-30px;right:-30px;text-align:center;pointer-events:none;font-size:13px;
   font-weight:800;letter-spacing:.07em;white-space:nowrap;text-transform:uppercase;line-height:1;color:var(--muted)}
@@ -198,6 +207,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .ch{flex:0 0 46px;height:44px;border-radius:12px;background:var(--s3);font-size:18px;font-weight:700;
   color:var(--steel);font-variant-numeric:tabular-nums}
 .ch.rg{color:var(--ink);background:#2a3447}
+.ch.hn{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
 .ch.on{background:transparent;box-shadow:inset 0 0 0 2px var(--accent);color:var(--accent)}
 .ed-on .ch.on{box-shadow:inset 0 0 0 2px var(--warn);color:var(--warn)}
 .ch:active{background:var(--accent);color:var(--accent-ink)}
@@ -206,7 +216,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 #logRow.nar #logBtn .lrow{gap:8px}
 #logSide{display:flex;gap:8px;flex:none}
 #logSide:empty{display:none}
-.sb{width:84px;height:56px;border-radius:16px;background:var(--s2);border:1px solid var(--line);
+.sb{width:84px;height:52px;border-radius:16px;background:var(--s2);border:1px solid var(--line);
   color:var(--steel);display:flex;flex-direction:column;align-items:center;justify-content:center;
   font-size:15px;font-weight:800;line-height:1.1;padding:0 4px}
 .sb small{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;max-width:100%;overflow:hidden;
@@ -216,7 +226,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .sb.rm.sure{background:var(--bad);color:#1a0509;border-color:var(--bad)}
 .sb.rm.sure small{color:#1a0509}
 .sb.un{color:var(--ink)}
-#logBtn{flex:1;min-width:0;height:56px;border-radius:16px;background:var(--accent);color:var(--accent-ink);display:flex;
+#logBtn{flex:1;min-width:0;height:52px;border-radius:16px;background:var(--accent);color:var(--accent-ink);display:flex;
   flex-direction:column;align-items:center;justify-content:center;gap:1px;font-weight:800;
   box-shadow:0 6px 18px color-mix(in srgb,var(--accent) 30%,transparent)}
 #logBtn .lrow{display:flex;align-items:baseline;gap:12px}
@@ -226,6 +236,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 #logBtn:active{filter:brightness(.88);transform:scale(.995)}
 #logBtn.ed{background:var(--warn)}
 #logBtn.dis{background:var(--s3);color:var(--muted);box-shadow:none}
+#logBtn.xtra .l2{font-size:24px}
 #logBtn.xtra{background:var(--s2);color:var(--steel);box-shadow:none;border:1px solid var(--line)}
 #logBtn.xtra .l1{opacity:1;font-size:16px;letter-spacing:.04em}
 #plFin{height:108px;border-radius:14px;border:1px dashed var(--line);display:flex;flex-direction:column;
@@ -246,7 +257,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .pl-done .bt.pr1{background:var(--accent);color:var(--accent-ink)}
 
 /* ── CSS 5. sheets ── */
-#scrim{position:fixed;inset:0;z-index:90;background:rgba(2,4,8,.6)}
+#scrim{position:fixed;inset:0;z-index:90;background:rgba(2,4,8,.6);cursor:pointer}
 #sheet{position:fixed;z-index:100;left:8px;right:8px;top:max(8px,env(safe-area-inset-top));
   max-height:calc(100% - 16px - env(safe-area-inset-top));display:flex;flex-direction:column;
   background:#10151d;border:1px solid var(--line);border-radius:20px;overflow:hidden;
@@ -417,7 +428,7 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
       <span class="tx num" id="prTx"></span>
       <span class="bar"><b id="prBar"></b></span>
       <span class="beta" id="betaTag" hidden>BETA · demo data</span>
-      <button class="lk" data-act="daynote" id="lkDay">Day note</button>
+      <button class="lk" data-act="daynote" id="lkDay">Coach notes</button>
       <button class="lk" data-core-timer data-act="closeSheet" id="lkCore" hidden>▶ Core</button>
     </div>
   </header>
@@ -452,11 +463,12 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
         <div class="pl-setrow">
           <div class="pl-set" id="plSet"></div>
           <div class="pl-sets" id="plSets"></div>
+          <button class="ub" id="plUndo" aria-disabled="true" disabled>Undo</button>
         </div>
       </div>
       <div class="pl-tl">
         <div data-probe="target" id="plTarget"><small>Target<span id="plBdg" style="display:inline"></span><span id="plPl"></span></small><span id="plTv"></span></div>
-        <button id="plLast" data-probe="last" data-act="history"><small>Last time</small><span id="plLv"></span></button>
+        <button id="plLast" data-probe="last" data-act="history"><small>Last time<span id="plLd"></span></small><span id="plLv"></span></button>
       </div>
       <div id="plEntry">
         <div class="pl-w" id="plWrow">
@@ -549,7 +561,7 @@ var PFX = (location.pathname.indexOf('/beta/') >= 0) ? 'liftbeta-' : 'lift-';   
 var IS_BETA = (PFX === 'liftbeta-');
 var K = {
   logs:PFX+'logs', notes:PFX+'notes', prog:PFX+'program-cache',
-  ov:PFX+'overrides', tok:PFX+'pub-token', draft:PFX+'drafts'
+  ov:PFX+'overrides', tok:PFX+'pub-token', draft:PFX+'drafts', hw:PFX+'hw'
 };
 var ORDER = ['mon','tue','wed','fri'];
 var DAY_ACCENT = { mon:'#fb7185', tue:'#fbbf24', wed:'#a78bfa', fri:'#38bdf8' };
@@ -607,15 +619,33 @@ function cleanLogs(o){                    // a malformed entry (no sets array) m
   });
   return o;
 }
+function countEntries(o){
+  var n=0; try{ Object.keys(o).forEach(function(k){ if(Array.isArray(o[k])) n+=o[k].length; }); }catch(e){}
+  return n;
+}
+function readHw(){ try{ return parseInt(localStorage.getItem(K.hw),10)||0; }catch(e){ return 0; } }
 function loadLogs(){
   if(memStore===null){
     memStore={};
-    try{ var r=localStorage.getItem(K.logs);
-      if(r){ var p=JSON.parse(r); if(p && typeof p==='object' && !Array.isArray(p)) memStore=cleanLogs(p); } }catch(e){}
+    var r=null;
+    try{ r=localStorage.getItem(K.logs); }catch(e){}
+    if(r){
+      var ok=false;
+      try{ var p=JSON.parse(r); if(p && typeof p==='object' && !Array.isArray(p)){ memStore=cleanLogs(p); ok=true; } }catch(e){}
+      if(!ok){                              // unreadable blob: keep the raw text before anything can overwrite it (B-2)
+        try{ localStorage.setItem(PFX+'logs-corrupt-'+Date.now(), r); }catch(e){}
+      }
+    }
   }
   return memStore;
 }
-function saveLogs(o){ memStore=o; try{ localStorage.setItem(K.logs, JSON.stringify(o)); }catch(e){} }
+/* High-water mark: the most entries this device has ever held. A store with far fewer entries than that
+   (evicted / corrupt / reset) must NEVER be uploaded over the cloud copy (B-2). Local data is never deleted. */
+function saveLogs(o){
+  memStore=o;
+  try{ localStorage.setItem(K.logs, JSON.stringify(o)); }catch(e){}
+  try{ var n=countEntries(o); if(n>readHw()) localStorage.setItem(K.hw, String(n)); }catch(e){}
+}
 function loadNotes(){
   if(memNotes===null){
     memNotes={};
@@ -640,7 +670,7 @@ var S = {
   typing:null,       // {key, buf, fresh} while the in-app number pad is open
   padOff:null,       // key of a slot whose auto-opened pad he dismissed
   work:{},           // typed/stepped weight drafts  { day|name|variant|tag : number|null }
-  skipped:{}, variant:{}, tag:{}, bw:{},
+  skipped:{}, variant:{}, tag:{}, bw:{}, nov:{},   // nov = "finish with N sets" targets { day|key : n } (M-3)
   undo:null,         // one-shot undo token for the last write (see section 13)
   boot:true, model:null, ctx:null, sheetMode:null, sheetFor:null
 };
@@ -648,7 +678,7 @@ function loadDrafts(){
   try{
     var o=JSON.parse(localStorage.getItem(K.draft)||'null');
     if(o && o.wk===reviewWindow()[0]){
-      S.work=o.work||{}; S.skipped=o.skipped||{}; S.bw=o.bw||{};
+      S.work=o.work||{}; S.skipped=o.skipped||{}; S.bw=o.bw||{}; S.nov=o.nov||{};
       if(o.selDay===S.day){ S.sel=o.sel||null; S.manual=o.manual||null; }   // resume on the same lift (H5)
     }
   }catch(e){}
@@ -656,7 +686,7 @@ function loadDrafts(){
 }
 function saveDrafts(){
   try{ localStorage.setItem(K.draft,
-    JSON.stringify({wk:reviewWindow()[0], work:S.work, skipped:S.skipped, bw:S.bw,
+    JSON.stringify({wk:reviewWindow()[0], work:S.work, skipped:S.skipped, bw:S.bw, nov:S.nov,
       sel:S.sel, manual:S.manual, selDay:S.day})); }catch(e){}
 }
 /* swaps/adds are WEEK-scoped (old midnight-expiry bug B2). Once a swapped lift has logged sets,
@@ -815,7 +845,7 @@ function effName(day, orig){
   var ov=loadOv(), sw=ov.swaps[day] && ov.swaps[day][orig]; if(sw) return sw;
   var w=reviewWindow(), all=loadLogs();
   for(var n in all){
-    var h=all[n];
+    var h=all[n]; if(!Array.isArray(h)) continue;
     for(var i=0;i<h.length;i++){
       var e=h[i];
       if(e && e.swapFor===orig && e.day===day && inWeek(e,w)) return n;
@@ -826,7 +856,7 @@ function effName(day, orig){
 function dayLoggedDate(dayKey){          // real performed date of the day's session
   var w=reviewWindow(), all=loadLogs(), best=null;
   for(var k in all){
-    var h=all[k]; if(!h) continue;
+    var h=all[k]; if(!Array.isArray(h)) continue;
     for(var i=h.length-1;i>=0;i--){
       var e=h[i]; if(!inWeek(e,w)) continue;
       if((e.day||'')!==dayKey) continue;
@@ -952,11 +982,23 @@ function liftSyncLogs(){                  // never in beta, never an empty store
     if(IS_BETA) return; var b=bridge('liftSync'); if(!b) return;
     var lg=loadLogs(), nt=loadNotes();
     if(!Object.keys(lg).length && !Object.keys(nt).length) return;
+    var hw=readHw();
+    if(hw>=4 && countEntries(lg)<hw*0.5){      // history looks reset: refuse to overwrite the cloud copy
+      toast('History looks reset — not syncing', {ms:30000}); return;
+    }
     b.postMessage(JSON.stringify({logs:lg, notes:nt, sentAt:Date.now()}));
   }catch(e){}
 }
 var noteSyncT=null;
 function liftSyncSoon(){ clearTimeout(noteSyncT); noteSyncT=setTimeout(liftSyncLogs,1500); }
+var LIFT_ACTX=null;                       // the core timer's AudioContext, captured so it can be resumed after an interruption (M-8)
+(function(){
+  try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
+  try{
+    var AC=window.AudioContext||window.webkitAudioContext;
+    if(AC){ window.AudioContext=function(o){ var c=new AC(o); LIFT_ACTX=c; return c; }; window.AudioContext.prototype=AC.prototype; }
+  }catch(e){}
+})();
 function liftWake(on){ try{ var b=bridge('liftWake'); if(b) b.postMessage(on?'1':'0'); }catch(e){} }
 function flattenExercises(slots){
   return slots.map(function(s){
@@ -991,7 +1033,7 @@ function addedForView(day){
   var w=reviewWindow(), all=loadLogs();
   for(var n in all){                       // rehydrate adds (and legacy swaps with no swapFor) from logs
     if(have[n] || prog[n]) continue;
-    var h=all[n];
+    var h=all[n]; if(!Array.isArray(h)) continue;
     for(var i=h.length-1;i>=0;i--){
       var e=h[i];
       if(e && inWeek(e,w) && (e.day||'')===day){
@@ -1039,6 +1081,8 @@ function mkSlot(ex, bi, ss, label, added){
   s.sets=s.entry ? s.entry.sets : [];
   var prescribed=setsOf(s.reps)||3, lastE=lastEntry(s);
   s.n=Math.max(prescribed, s.sets.length, lastE ? lastE.sets.length : 0);   // never under-log (F37)
+  var nv=S.nov[S.day+'|'+s.key];            // "Finish with N sets": a per-slot target, never below what is logged (M-3)
+  if(nv && nv<s.n) s.n=Math.max(nv, s.sets.length);
   s.logged=!!s.entry;                      // "logged" = any entry this week for the slot (F06)
   s.complete=s.sets.length>=s.n;
   s.skipped=!!S.skipped[S.day+'|'+s.key];
@@ -1108,6 +1152,10 @@ function setTxt(x){
 }
 function fmtSets(sets){
   if(!sets || !sets.length) return '';
+  if(sets.every(function(x){ return x.r==null; })){      // legacy weight-only entry: say so, it must not read as reps (H-5)
+    var ws=sets.filter(function(x){ return x.w!=null; });
+    return ws.length ? 'wt '+ws.map(function(x){ return fmtW(x.w); }).join('·')+' lb' : sets.length+(sets.length===1 ? ' set' : ' sets');
+  }
   var same=sets.length>1 && sets.every(function(x){ return x.w===sets[0].w && x.r!=null; });
   if(same && sets[0].w!=null) return fmtW(sets[0].w)+'×'+sets.map(function(x){ return x.r; }).join('·');
   return sets.map(setTxt).join('·');
@@ -1136,9 +1184,9 @@ function tvText(s){
 }
 function lvText(s){
   var le=lastEntry(s);
-  return le ? '<b style="font-weight:700;color:var(--ink)">'+fmtDate(le.date)+'</b> '+escHtml(fmtSets(le.sets))
-            : 'first time';
+  return le ? escHtml(fmtSets(le.sets)) : 'first time';
 }
+function lvDate(s){ var le=lastEntry(s); return le ? fmtDate(le.date) : ''; }
 /* weight shown for the NEXT set, and where it came from (drives the PLAN / SAME caption) */
 function weightFor(s, idx){
   if(editOf(s)) return {v:S.editW, src:'edit'};
@@ -1154,11 +1202,14 @@ function weightFor(s, idx){
 function repInfo(s, idx){
   var ed=editOf(s);
   if(ed){ var cs=s.sets[ed.idx]; return {r:(cs && cs.r!=null) ? cs.r : null, src:'edit'}; }
-  var prev=idx>0 ? s.sets[idx-1] : null;
-  if(prev && prev.r!=null) return {r:prev.r, src:'prev'};
-  if(s.bw && !S.bw[s.key]) return {r:null, src:'none'};            // bodyweight: he counts, we don't guess
-  if(s.spec.hi!=null) return {r:s.spec.hi, src:'plan'};
-  return {r:null, src:'none'};                                      // drop / burnout / failure / AMRAP / no target
+  var prev=idx>0 ? s.sets[idx-1] : null, pr=(prev && prev.r!=null) ? prev.r : null;
+  /* no rep target to lean on (drop / burnout / failure / AMRAP / bodyweight / "N sets"): LOG stays disabled
+     EVERY set. The previous reps are only a hint chip — one tap either way (H-3). */
+  if(s.spec.hi==null || (s.bw && !S.bw[s.key])) return {r:null, src:'none', hint:pr};
+  if(pr!=null) return {r:pr, src:'prev'};
+  var le=lastEntry(s), lx=le && le.sets[idx];              // first set: last time's reps for this set if they fit the range (M-1)
+  if(lx && lx.r!=null && lx.r>=s.spec.lo && lx.r<=s.spec.hi) return {r:lx.r, src:'last'};
+  return {r:s.spec.hi, src:'plan'};
 }
 function repCenter(s, idx, base){         // where the strip is scrolled (not a value)
   if(base!=null) return base;
@@ -1173,13 +1224,16 @@ function matchesPlan(s, w, r){
   var rOk = s.spec.lo==null || (r>=s.spec.lo && r<=s.spec.hi);
   return wOk && rOk;
 }
-function logSubText(s, idx, w, r, showW){
+function logSubText(s, idx, w, r, showW, hint, src){
   var ed=editOf(s);
   if(ed){ var cs=s.sets[ed.idx]; return 'was '+(cs ? setTxt(cs) : '—'); }
-  if(r==null) return 'tap your reps below';
+  if(r==null) return hint!=null ? 'last set was '+hint+' · tap reps' : 'tap your reps below';
   if(showW && w==null) return 'set the weight first';
   if(idx>=s.n) return 'extra set';
-  if(hasPlan(s)) return matchesPlan(s,w,r) ? 'as planned' : 'adjusted';
+  if(hasPlan(s)){
+    if(!matchesPlan(s,w,r)) return 'adjusted';
+    return (src==='plan' && s.spec.lo!==s.spec.hi) ? 'top of range' : (src==='last' ? 'same as last time' : 'as planned');   // a range is not a single plan (M-1)
+  }
   var prev=idx>0 ? s.sets[idx-1] : null;
   if(prev) return (prev.w===w && prev.r===r) ? 'same as last set' : 'adjusted';
   var le=lastEntry(s), x=le && le.sets[idx];
@@ -1217,17 +1271,15 @@ function rowHTML(s, ctx, nextKey, m, actKey){
   var cur=ctx.slot===s, st=s.complete ? 'dn' : (s.skipped ? 'sk' : (s.sets.length ? 'part' : ''));
   var sub = s.sets.length ? fmtSets(s.sets) : (s.skipped ? 'skipped' : (s.reps || s.label || ''));
   if(s.swapped && !s.sets.length) sub='swapped for '+s.orig;
-  if(!(s.sets.length || s.skipped || s.swapped || cur || nextKey===s.key)) sub='';   // calm: plans only where eyes are
-  var cls='row '+st+(cur?' cur':'')+(s.swapped?' sw':''), style='';
+  if(s.added && !s.sets.length) sub='';
+  var cls='row '+st+(cur?' cur':'')+(s.swapped?' sw':'')+((!st && !cur && nextKey!==s.key) ? ' pn' : ''), style='';
   if(s.ss){
     var grp=m.filter(function(k){ return k.bi===s.bi; }), ix=grp.indexOf(s);
     cls+=' ssm'+(ix===0?' ssf':'')+(ix===grp.length-1?' ssl':'');
     style=' style="--rc:'+SS_COLORS[s.bi%SS_COLORS.length]+';--pc:'+Math.round(100*s.sets.length/s.n)+'%"';
   } else if(st==='part'){ style=' style="--pc:'+Math.round(100*s.sets.length/s.n)+'%"'; }
   var tg=s.tags.length ? '<span class="tg">'+escHtml(tagText(s.tags[0],TAG_SHORT))+'</span>' : '';
-  var right;
-  if(actKey===s.key && !S.edit && S.undo) right='<span class="act un" data-act="undo">Undo</span>';
-  else right=tg;
+  var right=tg;
   return '<button class="'+cls+'" data-act="row" data-row="'+escA(s.key)+'"'+style
     +(nextKey===s.key ? ' data-probe="next"' : '')
     +'><span class="gl"></span><span class="rt"><span class="rn">'+escHtml(s.name)
@@ -1236,7 +1288,7 @@ function rowHTML(s, ctx, nextKey, m, actKey){
 function drawList(){
   var m=S.model, ctx=S.ctx, L=$('list'), st=L.scrollTop;
   if(!m){ L.innerHTML='<div class="boot">Could not load the program.</div>'; return; }
-  var nx=nextSlot(m, ctx.slot), nk=nx ? nx.key : null, ak=undoRowKey(nk, ctx, m);
+  var nx=nextSlot(m, ctx.slot), nk=nx ? nx.key : null, ak=null;
   L.innerHTML=m.map(function(s){ return rowHTML(s,ctx,nk,m,ak); }).join('');
   L.scrollTop=st;
   ensureVisible();
@@ -1256,17 +1308,17 @@ function chipsBuild(){
   var h=''; for(var i=1;i<=60;i++) h+='<button class="ch" data-act="rep" data-r="'+i+'">'+i+'</button>';
   $('plReps').innerHTML=h;
 }
-function centerReps(center, base, rng){
+function centerReps(center, base, rng, hint){
   var st=$('plReps'), kids=st.children;
   for(var i=0;i<kids.length;i++){
     var r=i+1;
-    kids[i].className='ch'+(rng && rng[0]!=null && r>=rng[0] && r<=rng[1] ? ' rg' : '')+(base!=null && r===base ? ' on' : '');
+    kids[i].className='ch'+(rng && rng[0]!=null && r>=rng[0] && r<=rng[1] ? ' rg' : '')+(base!=null && r===base ? ' on' : '')+(hint!=null && base==null && r===hint ? ' hn' : '');
   }
   var c=kids[Math.min(Math.max(center,1),60)-1];
   if(c) st.scrollLeft=c.offsetLeft-(st.clientWidth-c.offsetWidth)/2;
 }
 var CAPS = {plan:'PLAN', same:'SAME', last:'LAST TIME', typed:'CHANGED', none:'SET WEIGHT', edit:'EDIT'};
-function logSide(s, ed){                   // buttons LEFT of LOG, in thumb reach: Undo (after a save) / Cancel + Remove (edit)
+function logSide(s, ed){                   // buttons LEFT of LOG, edit mode only: Cancel + Remove. Undo lives in the player head (H-1), so LOG never moves
   if(ed){
     var h='<button class="sb" data-act="cancel">Cancel</button>';
     if(s.entry && ed.idx===s.sets.length-1){
@@ -1275,7 +1327,6 @@ function logSide(s, ed){                   // buttons LEFT of LOG, in thumb reac
     }
     return h;
   }
-  if(S.undo) return '<button class="sb un" data-act="undo">Undo<small>'+escHtml(S.undo.txt||'')+'</small></button>';
   return '';
 }
 function drawPlayer(){
@@ -1292,9 +1343,9 @@ function drawPlayer(){
   var typing=!!(S.typing && S.typing.key===s.key && showW && !fin);
   $('player').classList.toggle('ed-on', !!ed);
   /* exercise + big SET n OF M numeral */
-  $('plName').textContent=s.name; $('plNameBox').className='pl-name'+(s.name.length>16?' sm':'');
+  $('plName').textContent=s.name; 
   var sl, se=$('plSet');
-  if(ed) sl='<small>Edit set</small><b>'+(ed.idx+1)+'</b><small>of '+np+'</small>';
+  if(ed) sl='<small>Edit</small><b>'+(ed.idx+1)+'</b><small>of '+np+'</small>';
   else if(fin) sl='<small>Done</small><b>'+s.sets.length+'</b><small>of '+s.n+'</small>';
   else if(extra) sl='<small>Extra set</small><b>'+(idx+1)+'</b>';
   else sl='<small>Set</small><b>'+(idx+1)+'</b><small>of '+s.n+'</small>';
@@ -1321,7 +1372,7 @@ function drawPlayer(){
   /* target (coach) and last time (what he lifted) live in different cells — never mixed */
   $('plTv').textContent=tvText(s);
   $('plPl').textContent=platesLine(s);
-  $('plLv').innerHTML=lvText(s);
+  $('plLv').innerHTML=lvText(s); $('plLd').textContent=lvDate(s);
   /* set pills = progress + edit entry points */
   var ph='';
   for(var i=0;i<np;i++){
@@ -1331,6 +1382,9 @@ function drawPlayer(){
       +(lg ? escHtml(setTxt(s.sets[i])) : (i+1))+'</button>';
   }
   $('plSets').innerHTML=ph;
+  var pv=$('plSets'), pk=pv.querySelector('.sp.ed')||pv.querySelector('.sp.cu');      // keep the live pill inside the strip
+  if(pk){ var pl0=pk.offsetLeft-pv.offsetLeft, pr0=pl0+pk.offsetWidth;
+    if(pr0>pv.scrollLeft+pv.clientWidth) pv.scrollLeft=pr0-pv.clientWidth; else if(pl0<pv.scrollLeft) pv.scrollLeft=pl0; }
   /* entry area: weight row + rep strip, or (finished lift) a calm "done" panel of the same height */
   $('plWrow').hidden=fin || !showW; $('plBwRow').hidden=fin || showW; $('plReps').hidden=fin;
   $('plFin').hidden=!fin;
@@ -1339,7 +1393,7 @@ function drawPlayer(){
   var txt = typing ? (S.typing.fresh ? (w==null?'—':fmtW(w)) : (S.typing.buf===''?'—':S.typing.buf))
                    : (w==null ? '—' : fmtW(w));
   we.textContent=txt;
-  we.className=(typing?'typing':'')+(typing && S.typing.fresh?' fresh':'')+(txt.length>4?' long':'');
+  we.className=(typing?'typing':'')+(typing && S.typing.fresh?' fresh':'')+(txt.length>4?' long':'')+(!typing && (wv.src==='plan'||wv.src==='same'||wv.src==='last') ? ' pre' : '');
   var cap=$('plWc'); cap.textContent=(CAPS[wv.src]||'')+' · '+unitOf(s);
   cap.className='wcap '+(wv.src==='plan'?'plan':(wv.src==='same'?'same':(wv.src==='edit'?'edit':'')));
   $('pad').hidden=!typing; $('list').classList.toggle('padpad', typing);
@@ -1348,17 +1402,22 @@ function drawPlayer(){
   var side=logSide(s,ed); $('logSide').innerHTML=side;
   $('logRow').className=(side.split('<button').length>2) ? 'nar' : '';
   if(fin){
-    lb.className='xtra'; lb.dataset.act='extra'; lb.setAttribute('aria-disabled','false');
-    lb.querySelector('.l1').textContent='Add extra set'; $('logTx').textContent=''; $('logSub').textContent='';
+    var xi=repInfo(s,s.sets.length), xw=weightFor(s,s.sets.length).v, one=(xi.r!=null && (!showW || (xw!=null && xw>0)));
+    lb.className='xtra'; lb.dataset.act='extra'; lb.setAttribute('aria-disabled','false'); lb.dataset.one=one ? '1' : '';
+    lb.querySelector('.l1').textContent=one ? 'Log extra' : 'Add extra set';
+    $('logTx').textContent=one ? (showW ? fmtW(xw)+' × ' : '')+xi.r : ''; $('logSub').textContent=one ? 'one more set' : '';
   } else {
     lb.dataset.act='log';
     lb.className=need ? 'dis' : (ed ? 'ed' : '');
     lb.setAttribute('aria-disabled', need ? 'true' : 'false');
     lb.querySelector('.l1').textContent=ed ? 'Save' : (extra ? 'Log extra' : 'Log');
     $('logTx').textContent=(showW ? (w==null ? '—' : fmtW(w))+' × ' : '')+(r==null ? '?' : r);
-    $('logSub').textContent=logSubText(s,idx,w,r,showW);
+    $('logSub').textContent=logSubText(s,idx,w,r,showW,ri.hint,ri.src);
   }
-  if(!fin) centerReps(repCenter(s,idx,r), r, s.spec.lo!=null ? [s.spec.lo,s.spec.hi] : null);
+  if(!fin) centerReps(repCenter(s,idx,r!=null ? r : ri.hint), r, s.spec.lo!=null ? [s.spec.lo,s.spec.hi] : null, ri.hint);
+  var ub=$('plUndo'), uo=!!(S.undo && !ed);          // Undo has its OWN fixed slot in the set row: LOG never moves (H-1)
+  ub.disabled=!uo; ub.setAttribute('aria-disabled', uo ? 'false' : 'true'); if(uo) ub.dataset.act='undo'; else ub.removeAttribute('data-act');
+  ub.setAttribute('aria-label', uo ? 'Undo '+(S.undo.txt||'') : 'Nothing to undo');
   $('plId').dataset.exercise=s.name;
 }
 function drawDone(){
@@ -1367,6 +1426,7 @@ function drawDone(){
   var miss=m.length-logged, core=(S.day==='mon' || S.day==='wed');
   $('plDone').innerHTML='<h2>'+(miss ? 'Nothing left to log' : 'Session complete')+'</h2><p class="num">'
     +logged+' of '+m.length+' exercises · '+sets+' sets logged'+(miss ? ' · '+miss+' skipped' : '')+'.</p>'
+    +(S.undo ? '<button class="bt" data-act="undo">Undo '+escHtml(S.undo.txt||'')+'</button>' : '')
     +'<button class="bt pr1" data-act="review">Day review</button>'
     +(core ? '<button class="bt" data-core-timer data-act="closeSheet">▶ Core timer</button>' : '')
     +'<button class="bt" data-act="note">Session note</button>'
@@ -1447,7 +1507,8 @@ function appendSet(s, w, r){               // returns the undo token for exactly
 function updateSet(s, idx, w, r){          // explicit SAVE in edit mode; same slot, original date kept
   var e=s.entry; if(!e || !e.sets[idx]) return null;
   var st=e.sets[idx];
-  var tok={kind:'edit', key:s.key, set:st, pw:st.w, pr:st.r, hadR:has(st,'r')};
+  var tok={kind:'edit', key:s.key, set:st, pw:st.w, pr:st.r, hadR:has(st,'r'), pp:st.p, hadP:has(st,'p')};
+  if(st.w!==w) delete st.p;                // a stale plate breakdown must not survive a weight change (M-6)
   st.w=w; st.r=r; saveLogs(loadLogs());
   return tok;
 }
@@ -1461,6 +1522,7 @@ function doUndo(){
   var all=loadLogs(), ok=true;
   if(u.kind==='edit'){
     u.set.w=u.pw; if(u.hadR) u.set.r=u.pr; else delete u.set.r;
+    if(u.hadP) u.set.p=u.pp;
   } else if(u.kind==='rmset'){
     if(u.only){                            // put the very same entry object back where it was
       var h2=Array.isArray(all[u.name]) ? all[u.name] : (all[u.name]=[]);
@@ -1481,6 +1543,11 @@ function doUndo(){
   render();
 }
 function shakeW(){ var w=$('plW'); w.classList.remove('bad'); void w.offsetWidth; w.classList.add('bad'); }
+var shakeRT=null;
+function shakeReps(){                      // a greyed LOG that is tapped must answer: shake + flash the rep strip (H-2)
+  var e=$('plReps'); e.classList.remove('shake'); void e.offsetWidth; e.classList.add('shake','flash');
+  clearTimeout(shakeRT); shakeRT=setTimeout(function(){ e.classList.remove('shake','flash'); }, 600);
+}
 var lastLogAt=0;
 function doLog(r){
   var c=S.ctx; if(!c || !c.slot) return;
@@ -1529,6 +1596,15 @@ function removeLastSet(){
   saveLogs(all); S.edit=null; S.editW=null; S.sel=s.key; S.manual=s.key;
   armUndo(tok); afterSave(); render();
 }
+function finishWithN(){                    // "Finish with N sets": lowers this lift's target only, logged data is never touched (M-3)
+  var c=cur(); if(!c || !c.sets.length || c.complete) return;
+  S.nov[S.day+'|'+c.key]=c.sets.length; saveDrafts();
+  closeSheetQuiet();
+  var slots=buildModel(), s2=null; slots.forEach(function(k){ if(k.key===c.key) s2=k; });
+  var nx=s2 ? nextSlot(slots,s2) : null;
+  S.sel=nx ? nx.key : null; S.manual=null; S.edit=null; S.typing=null; S.extraOn=null;
+  render(); toast(c.name+': finished with '+c.sets.length+(c.sets.length===1 ? ' set' : ' sets'));
+}
 function skipCurrent(){
   var c=S.ctx; if(!c || !c.slot) return;
   S.skipped[S.day+'|'+c.slot.key]=true; saveDrafts(); S.sel=null; S.edit=null; S.typing=null;
@@ -1570,13 +1646,14 @@ function padKey(k){
 }
 
 /* ═══ 14. sheets ═══════════════════════════════════════════════════════════ */
+var sheetAt=0;
 function openSheet(html, focusSel){
-  var sh=$('sheet'); sh.innerHTML=html; sh.hidden=false; $('scrim').hidden=false;
+  sheetAt=Date.now(); var sh=$('sheet'); sh.innerHTML=html; sh.hidden=false; $('scrim').hidden=false;
   if(focusSel){ var f=sh.querySelector(focusSel); if(f) f.focus(); }
 }
 function closeSheetQuiet(){ $('sheet').hidden=true; $('scrim').hidden=true; S.sheetMode=null; endKbs(); }
 function closeSheet(){
-  var wasNote=(S.sheetMode==='note');
+  var wasNote=(S.sheetMode==='note' || S.sheetMode==='day');
   closeSheetQuiet();
   try{ document.activeElement && document.activeElement.blur && document.activeElement.blur(); }catch(e){}
   if(wasNote) liftSyncSoon();
@@ -1610,18 +1687,26 @@ function openCoach(){
     +(s.swapped ? '<div class="sh-k">Swapped</div><div class="sh-p">Replaces <b>'+escHtml(s.orig)
         +'</b>. Logs under the new name; the slot counts as done all week.</div>' : '')
     +(n>=3 ? '<div class="sh-k">★ Added '+n+'×</div><div class="sh-p">Ask the coach to bake it into the program.</div>' : '')
+    +'<div class="sh-k">This exercise</div>'
+    +(s.sets.length && !s.complete ? '<button class="li" data-act="finishn"><span>Finish with '+s.sets.length+(s.sets.length===1 ? ' set' : ' sets')
+        +'</span><small>of '+s.n+' planned</small></button>' : '')
+    +(!s.sets.length ? '<button class="li" data-act="skip"><span>Skip this exercise</span><small>or swipe the name left</small></button>' : '')
+    +(s.added && !s.logged ? '<button class="li" data-act="remove"><span>✕ Remove this added lift</span></button>' : '')
+    +(!s.added && !s.logged ? '<button class="li" data-act="swap"><span>⇄ Swap — machine taken</span></button>' : '')
     +'</div>';
   S.sheetMode='coach'; openSheet(h);
 }
 function openDayNote(){
   var d=PROGRAM[S.day]||{}, p=d.prog||{c:'#38bdf8',t:''};
   S.sheetMode='day';
-  openSheet(shHead((d.title||'')+' · day notes')+'<div class="sh-b"><div class="sh-k">Warm-up</div><div class="sh-p">'
+  openSheet(shHead((d.title||'')+' · coach notes')+'<div class="sh-b"><div class="sh-k">Warm-up</div><div class="sh-p">'
     +escHtml(d.warm||'')+'</div>'
     +'<div class="sh-k">From the coach</div><div class="daynote" style="--pc:'+escA(p.c)+'">'
     +p.t+'</div>'                       /* prog.t is the ONLY rich-text field by contract */
     +(d.fin ? '<div class="sh-k">Finish</div><div class="sh-p">'+escHtml(d.fin.core||'')+'\n'
-        +escHtml(d.fin.cardio||'')+'</div>' : '')+'</div>');
+        +escHtml(d.fin.cardio||'')+'</div>' : '')
+    +'<div class="sh-k">Your note for today</div><textarea class="note-ta" id="shNote" style="min-height:96px;margin-top:2px" placeholder="Write a note — saved as you type"></textarea></div>');
+  $('shNote').value=currentNote();
 }
 function openHistory(){
   var s=cur(); if(!s) return;
@@ -1664,14 +1749,14 @@ function openMenu(){
   var h=shHead('LIFT')+'<div class="sh-b">'
    +'<button class="li" data-act="add"><span>＋ Add exercise</span><small>from library</small></button>'
    +'<button class="li" data-act="review"><span>Day review</span><small>'+r.logged.length+'/'+r.total+' logged</small></button>'
-   +'<button class="li" data-act="daynote"><span>Warm-up &amp; coach day note</span></button>'
+   +'<button class="li" data-act="daynote"><span>Coach notes &amp; warm-up</span><small>write a note</small></button>'
    +(core ? '<button class="li" data-core-timer data-act="closeSheet"><span>▶ Core timer</span><small>interval circuit</small></button>' : '')
    +'<button class="li" data-act="history"><span>History · current exercise</span></button>'
    +'<button class="li" data-act="refreshprog"><span>Refresh program</span></button>'
    +(IS_BETA
       ? '<div class="sh-k">Beta</div><button class="li off"><span>Update program</span><small>disabled in beta</small></button>'
         +'<button class="li" data-act="demo"><span>Load demo history</span><small>replaces beta data</small></button>'
-      : '<button class="li" data-act="admin"><span>⚙ Update program</span><small>publish</small></button>')
+      : '<div class="sh-k" style="padding-top:22px">Coach admin</div><button class="li" data-act="admin" style="min-height:44px;font-size:14px;color:var(--muted)"><span>Update program (publish)</span></button>')
    +'</div>';
   S.sheetMode='menu'; openSheet(h);
 }
@@ -1833,6 +1918,7 @@ document.addEventListener('click', function(ev){
     (S.model||[]).forEach(function(s){ if(s.name===nm || s.orig===nm) S.sel=s.key; });
     render(); return;
   }
+  if(tg.closest && tg.closest('#abtPlay')) liftWake(true);      // timer Start/Resume: screen stays awake (B-1)
   if(!t) return;
   var a=t.dataset.act, c;
   if(a==='tab'){
@@ -1849,10 +1935,10 @@ document.addEventListener('click', function(ev){
   else if(a==='cancel'){ S.edit=null; S.editW=null; S.typing=null; S.rmArm=null; render(); }
   else if(a==='undo'){ doUndo(); }
   else if(a==='rmset'){ removeLastSet(); }
-  else if(a==='extra'){ c=cur(); if(c){ S.extraOn=c.key; S.typing=null; render(); } }
+  else if(a==='extra'){ c=cur(); if(c){ var one=t.dataset.one==='1'; S.extraOn=c.key; S.typing=null; render(); if(one) doLog(null); } }
   else if(a==='reload'){ location.reload(); }
   else if(a==='rep'){ if(Date.now()<repBlock) return; doLog(+t.dataset.r); }
-  else if(a==='log'){ if($('logBtn').getAttribute('aria-disabled')==='true') return; doLog(null); }
+  else if(a==='log'){ if($('logBtn').getAttribute('aria-disabled')==='true'){ shakeReps(); toast('Pick your reps'); return; } doLog(null); }
   else if(a==='wstep'){ adjW(+t.dataset.d); }
   else if(a==='wtype'){ if(S.typing) closePad(); else openPad(); }
   else if(a==='key'){ padKey(t.dataset.k); }
@@ -1869,10 +1955,11 @@ document.addEventListener('click', function(ev){
   else if(a==='review'){ closeSheetQuiet(); openReview(); }
   else if(a==='daynote'){ closeSheetQuiet(); openDayNote(); }
   else if(a==='goto'){ S.sel=t.dataset.key; S.edit=null; S.typing=null; S.manual=null; closeSheet(); }
-  else if(a==='close' || a==='closeSheet'){ closeSheet(); }
+  else if(a==='close' || a==='closeSheet'){ if(a==='close' && Date.now()-sheetAt<400) return; closeSheet(); }   // a ghost click after a long-press must not close the sheet that long-press opened (H-7)
   else if(a==='pickname'){ pickName(t.dataset.name); }
   else if(a==='remove'){ removeAdded(); }
   else if(a==='skip'){ closeSheetQuiet(); skipCurrent(); }
+  else if(a==='finishn'){ finishWithN(); }
   else if(a==='refreshprog'){ closeSheet(); loadProgram(true); toast('Checking for a new program…'); }
   else if(a==='admin'){ closeSheet(); if(!IS_BETA) Admin.open(); }
   else if(a==='demo'){ demoLoad(t); }
@@ -1927,6 +2014,7 @@ document.addEventListener('focusin', function(ev){
   if(id==='shNote' || id==='shQ'){
     document.documentElement.style.setProperty('--kb', kbHeight()+'px');
     document.body.classList.add('kbs');
+    if(id==='shNote' && S.sheetMode==='day'){ var te=ev.target; setTimeout(function(){ try{ te.scrollIntoView({block:'end'}); }catch(e){} }, 80); }   // the note field sits under the coach text: bring it above the keyboard
   }
 });
 document.addEventListener('focusout', function(ev){
@@ -1965,11 +2053,13 @@ try{
 })();
 /* resume / background */
 document.addEventListener('visibilitychange', function(){
-  if(document.visibilityState!=='visible'){ liftSyncLogs(); liftWake(false); return; }
+  if(document.visibilityState!=='visible'){ liftSyncLogs(); return; }     // keep-awake is NOT released on hide (B-1)
   liftSyncLogs(); loadProgram(false);
+  if(!$('abtimer').hidden) liftWake(true);                              // timer still open: re-assert after the app returns
+  try{ if(LIFT_ACTX && LIFT_ACTX.state!=='running') LIFT_ACTX.resume(); }catch(e){}   // beeps after an interruption (M-8)
   var wk=reviewWindow()[0];
   if(S.wk!==wk){                           // a new Mon-Sun week began while the app was asleep: drop last week's drafts (H10)
-    S.wk=wk; S.work={}; S.skipped={}; S.bw={}; S.sel=null; S.manual=null; S.edit=null; S.editW=null;
+    S.wk=wk; S.work={}; S.skipped={}; S.bw={}; S.nov={}; S.sel=null; S.manual=null; S.edit=null; S.editW=null;
     S.typing=null; S.extraOn=null; S.rmArm=null; clearUndo(); saveDrafts();
   }
   var ae=document.activeElement, typing=ae && (ae.tagName==='TEXTAREA' || ae.tagName==='INPUT');
@@ -1996,8 +2086,8 @@ function checkBuild(){
   }catch(e){}
 }
 window.addEventListener('resize', function(){
-  var s=cur(); if(!s) return; var idx=editOf(s) ? S.edit.idx : s.sets.length, r=repInfo(s,idx).r;
-  centerReps(repCenter(s,idx,r), r, s.spec.lo!=null ? [s.spec.lo,s.spec.hi] : null);
+  var s=cur(); if(!s) return; var idx=editOf(s) ? S.edit.idx : s.sets.length, ri2=repInfo(s,idx), r=ri2.r;
+  centerReps(repCenter(s,idx,r!=null ? r : ri2.hint), r, s.spec.lo!=null ? [s.spec.lo,s.spec.hi] : null, ri2.hint);
 });
 
 /* ═══ 16. core interval timer (VERBATIM — circuits must stay identical) ═════ */
