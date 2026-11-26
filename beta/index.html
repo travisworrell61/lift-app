@@ -29,7 +29,7 @@
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.25 var(--sys);
   overscroll-behavior:none;-webkit-text-size-adjust:100%;color-scheme:dark}
 html{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
-#app,#sheet{touch-action:pan-x pan-y}   /* no pinch-zoom (H-8) */
+#app,#sheet,#scrim,.abt,.adm,#toast{touch-action:pan-x pan-y}   /* no pinch-zoom (H-8), also over the scrim, the core timer, the publish screen and toasts (R5 F19) */
 input,textarea,.note-ta,.sh-p,.daynote,.adm-in,.adm-ta{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;
   touch-action:manipulation;-webkit-appearance:none;appearance:none}
@@ -55,7 +55,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .hbtn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;
   color:var(--steel);border-radius:12px}
 .hbtn:active{background:var(--s2)}
-.pr{grid-column:1/-1;display:flex;align-items:center;gap:8px;height:30px;padding:0 0 0 4px;
+.pr{grid-column:1/-1;display:flex;align-items:center;gap:8px;height:26px;padding:0 0 0 4px;
   font-size:13px;color:var(--muted)}
 .pr .lk{flex:none;position:relative;height:28px;padding:0 9px;border-radius:9px;font-size:13px;font-weight:700;
   color:var(--steel);border:1px solid var(--line);white-space:nowrap}
@@ -112,15 +112,16 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 
 /* ── CSS 4. player ── */
 #player{flex:none;position:relative;z-index:5;display:flex;flex-direction:column;gap:4px;
-  padding:4px 8px calc(8px + env(safe-area-inset-bottom));
+  padding:3px 8px calc(6px + env(safe-area-inset-bottom));
   background:linear-gradient(180deg,#1a212d,#10141b 70%);
   border-radius:22px 22px 0 0;border-top:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));
   box-shadow:0 -8px 20px rgba(0,0,0,.35)}
 #plId{display:flex;flex-direction:column;gap:4px}
 .pl-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:2px;
   touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-.pl-name{font-size:26px;font-weight:700;letter-spacing:-.015em;line-height:1.05;height:54px;
+.pl-name{font-size:26px;font-weight:700;letter-spacing:-.015em;line-height:1.05;height:46px;
   display:flex;align-items:center;min-width:0;overflow:hidden}
+.pl-name.lg{font-size:21px;line-height:1.04}   /* a name too long for one line at 26px steps down to 21px on two lines (keeps the player short) */
 .pl-name span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .pl-btns{display:flex;align-items:center}
 .pb{min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;
@@ -165,10 +166,11 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .pl-sets::-webkit-scrollbar{display:none}
 .pl-sets.fade{-webkit-mask-image:linear-gradient(90deg,transparent,#000 var(--fl,0px),#000 calc(100% - var(--fr,0px)),transparent);
   mask-image:linear-gradient(90deg,transparent,#000 var(--fl,0px),#000 calc(100% - var(--fr,0px)),transparent)}   /* soft edge on the side that has more pills */
-.ub{flex:none;width:58px;height:44px;border-radius:12px;font-size:14px;font-weight:800;letter-spacing:.02em;
+.ub{flex:none;width:62px;margin-left:8px;height:44px;border-radius:12px;font-size:13px;font-weight:800;letter-spacing:.02em;overflow:hidden;padding:0 3px;
   border:1px solid color-mix(in srgb,var(--accent) 55%,var(--line));background:var(--s2);color:var(--ink);
   display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
-.ub small{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0;white-space:nowrap}
+.ub small{font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:0;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;line-height:1.08}
+.ub small+small{color:var(--steel);font-weight:700}
 .ub:disabled{opacity:.32;border-color:var(--line);color:var(--muted);pointer-events:none}
 .ub:active{background:var(--s3)}
 .sp{flex:1 0 44px;max-width:64px;height:44px;border-radius:12px;background:var(--s2);padding:0;
@@ -182,6 +184,8 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .sp.cu{border:2px solid var(--accent);color:var(--accent);background:transparent}
 .sp.ed{border:2px solid var(--warn);color:var(--warn);background:transparent}
 .sp.pe{color:var(--muted);border-style:dashed}
+#plNext{height:15px;font-size:13px;line-height:15px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px;margin-top:-2px}
+#plNext b{color:var(--steel);font-weight:700}
 #plEntry{display:flex;flex-direction:column;gap:12px}   /* >= 12pt between weight row, rep strip and LOG */
 .pl-w{display:flex;align-items:flex-end;gap:2px;height:56px}
 .ws{flex:none;width:44px;height:44px;border-radius:11px;background:var(--s2);border:1px solid var(--line);
@@ -196,16 +200,17 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 #plW{padding:0 6px}
 #plW.long{font-size:36px;letter-spacing:-.05em}
 #plW.typing{box-shadow:inset 0 -3px 0 var(--accent);background:var(--s1)}   /* an underline, not a ring: nothing can strike the caption above it (H8) */
-#plW.fresh,#plW.pre{color:var(--steel)}   /* prefilled, not touched yet (M-9) */
+#plW.fresh,#plW.pre{color:var(--steel)}
+#plW.pre.planw{color:var(--ink)}   /* the coach's planned weight reads white (R5 F21) */   /* prefilled, not touched yet (M-9) */
 #plW.bad{animation:shake .3s}
 #plReps.shake{animation:shake .3s}
 #plReps.flash{box-shadow:0 0 0 2px var(--warn);border-radius:12px}
 @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-.wcap{position:absolute;top:4px;left:-30px;right:-30px;text-align:center;pointer-events:none;font-size:13px;
+.wcap{position:absolute;top:4px;left:-30px;right:-30px;text-align:center;pointer-events:none;font-size:14px;
   font-weight:800;letter-spacing:.07em;white-space:nowrap;text-transform:uppercase;line-height:1;color:var(--muted)}
 .wcap.plan{color:var(--accent)}
 .wcap.same{color:var(--ink)}
-.wcap.edit{color:var(--warn)}
+.wcap.edit,.wcap.drop{color:var(--warn)}
 .pl-bw{flex:1;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 6px;
   color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .pl-bw button{height:44px;padding:0 14px;border:1px solid var(--line);border-radius:12px;
@@ -217,8 +222,8 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
   color:var(--steel);font-variant-numeric:tabular-nums}
 .ch.rg{color:var(--ink);background:#2a3447}
 .ch.hn{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--accent) 55%,transparent);color:var(--ink)}
-.ch.on{background:transparent;box-shadow:inset 0 0 0 2px var(--accent);color:var(--accent)}
-.ed-on .ch.on{box-shadow:inset 0 0 0 2px var(--warn);color:var(--warn)}
+.ch.on{background:var(--accent);box-shadow:none;color:var(--accent-ink);font-size:26px;font-weight:800}   /* the chosen number: solid and bigger, readable from arm's length (R5 F15) */
+.ed-on .ch.on{background:var(--warn);color:var(--accent-ink)}
 .ch:active{background:var(--accent);color:var(--accent-ink)}
 #logRow{display:flex;gap:8px;margin-top:8px}
 #logRow.nar #logBtn .l2{font-size:24px}
@@ -252,7 +257,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
   align-items:center;justify-content:center;gap:4px;text-align:center;color:var(--steel);font-size:15px}
 #plFin b{font-size:22px;color:var(--ok)}
 .fin-b{height:44px;padding:0 16px;border-radius:12px;background:var(--s3);color:var(--steel);font-size:14px;font-weight:700}
-#offBn{flex:none;margin:0 10px 6px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+#offBn{flex:none;margin:0 10px 6px;height:28px;width:calc(100% - 20px);border-radius:9px;display:flex;align-items:center;justify-content:center;
   font-size:13px;font-weight:700;letter-spacing:.03em;color:var(--warn);
   background:color-mix(in srgb,var(--warn) 12%,transparent);border:1px solid color-mix(in srgb,var(--warn) 45%,transparent)}
 /* in-app numeric pad: floats just above the player so the player never moves or hides */
@@ -325,6 +330,11 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
 .daynote{border-left:3px solid var(--pc,var(--accent));padding:2px 0 2px 12px;margin:8px 16px 12px;
   color:var(--steel);font-size:14.5px;line-height:1.45}
 .daynote b{color:var(--ink)}
+#syncBn{flex:none;margin:0 10px 6px;display:flex;align-items:center;gap:6px;border-radius:10px;padding:2px 4px 2px 12px;
+  font-size:13px;font-weight:700;line-height:1.25;color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,var(--bg,#0b0f16));
+  border:1px solid color-mix(in srgb,var(--warn) 45%,transparent)}
+#syncBn span{flex:1;min-width:0}
+#syncBn button{flex:none;height:44px;min-width:44px;padding:0 10px;border-radius:9px;background:var(--s2);color:var(--ink);font-size:13px;font-weight:800;border:1px solid var(--line)}
 .toast[data-act]{min-height:44px;display:flex;align-items:center;cursor:pointer}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 60px);
   z-index:120;background:#e9edf5;color:#0b0f16;border-radius:12px;padding:10px 16px;font-weight:600;
@@ -332,7 +342,7 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
 
   .abt{position:fixed;inset:0;z-index:200;background:rgba(8,10,14,.975);
     -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-    display:flex;align-items:center;justify-content:center;
+    display:flex;align-items:safe center;justify-content:center;overflow-y:auto;
     padding:max(20px,env(safe-area-inset-top)) 22px max(24px,env(safe-area-inset-bottom));}
   .abt[hidden]{display:none;}
   .abt.rest{background:rgba(10,9,7,.975);}
@@ -445,8 +455,9 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
       <button class="lk" data-core-timer data-act="closeSheet" id="lkCore" hidden>▶ Core</button>
     </div>
   </header>
+  <div id="syncBn" hidden><span id="syncTx"></span><button id="syncGo" data-act="syncforce">Sync anyway</button><button data-act="syncdismiss" aria-label="Dismiss">✕</button></div>
   <main id="list"></main>
-  <div id="offBn" hidden></div>
+  <button id="offBn" data-act="offdate" hidden></button>
   <section id="player" aria-label="Current set">
     <div id="pad" hidden>
       <button class="k" data-act="key" data-k="1">1</button>
@@ -484,6 +495,7 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
         <div data-probe="target" id="plTarget"><small>Target<span id="plBdg" style="display:inline"></span><span id="plPl"></span></small><span id="plTv"></span></div>
         <button id="plLast" data-probe="last" data-act="history"><small>Last time<span id="plLd"></span></small><span id="plLv"></span></button>
       </div>
+      <div id="plNext"></div>
       <div id="plEntry">
         <div class="pl-w" id="plWrow">
           <button class="ws" data-act="wstep" data-d="-10">−10</button>
@@ -637,7 +649,34 @@ function countEntries(o){
   var n=0; try{ Object.keys(o).forEach(function(k){ if(Array.isArray(o[k])) n+=o[k].length; }); }catch(e){}
   return n;
 }
-function readHw(){ try{ return parseInt(localStorage.getItem(K.hw),10)||0; }catch(e){ return 0; } }
+/* High-water mark, kept in THREE places that a storage wipe rarely clears together: localStorage, a cookie, IndexedDB (R5 F2).
+   readHw() = the largest surviving mark. A real fix needs the native app or the server to remember it (see report). */
+var hwIdb=0;
+function readCookieHw(){ try{ var m=document.cookie.match(new RegExp('(?:^|; )'+K.hw+'=(\\d+)')); return m ? (parseInt(m[1],10)||0) : 0; }catch(e){ return 0; } }
+function readHw(){
+  var a=0; try{ a=parseInt(localStorage.getItem(K.hw),10)||0; }catch(e){}
+  return Math.max(a, readCookieHw(), hwIdb);
+}
+function idbHw(put){                       // IndexedDB copy: async, best effort; the answer lands in hwIdb
+  try{
+    var rq=indexedDB.open('lift-meta-'+PFX, 1);
+    rq.onupgradeneeded=function(){ try{ rq.result.createObjectStore('kv'); }catch(e){} };
+    rq.onsuccess=function(){
+      try{
+        var tx=rq.result.transaction('kv', put==null ? 'readonly' : 'readwrite'), st=tx.objectStore('kv');
+        if(put==null){ var g=st.get('hw'); g.onsuccess=function(){ var v=parseInt(g.result,10)||0; if(v>hwIdb) hwIdb=v; }; }
+        else st.put(put,'hw');
+      }catch(e){}
+    };
+  }catch(e){}
+}
+function writeHw(n, force){                // never lowers the mark unless force (the deliberate "sync anyway")
+  if(!force && n<=readHw()) return;
+  try{ localStorage.setItem(K.hw, String(n)); }catch(e){}
+  try{ document.cookie=K.hw+'='+n+'; max-age=315360000; path=/; SameSite=Lax'; }catch(e){}
+  hwIdb=n; idbHw(n);
+}
+idbHw(null);
 function loadLogs(){
   if(memStore===null){
     memStore={};
@@ -652,7 +691,7 @@ function loadLogs(){
     }
     /* arm the high-water mark at BOOT, not only at the first save: an upgraded device that already holds
        history is protected from its very first LOG (R3 B1). Also ask iOS not to evict this origin's storage. */
-    try{ var n0=countEntries(memStore); if(n0>readHw()) localStorage.setItem(K.hw, String(n0)); }catch(e){}
+    try{ writeHw(countEntries(memStore)); }catch(e){}
     try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
   }
   return memStore;
@@ -662,7 +701,7 @@ function loadLogs(){
 function saveLogs(o){                       // returns false when the phone refused the write (M9)
   memStore=o; var ok=true;
   try{ localStorage.setItem(K.logs, JSON.stringify(o)); }catch(e){ ok=false; }
-  try{ var n=countEntries(o); if(n>readHw()) localStorage.setItem(K.hw, String(n)); }catch(e){}
+  try{ writeHw(countEntries(o)); }catch(e){}
   if(!ok) toast('Not saved on this phone — storage is full or blocked', {ms:60000});
   return ok;
 }
@@ -741,6 +780,11 @@ function setsOf(r){
   var nums=head.match(/\d+/g);
   if(!nums || !nums.length) return null;
   return Math.max.apply(null, nums.map(Number));
+}
+function setsLo(r){                       // "3–4 × burnout": the LOWER count completes the lift; the 4th is an "Extra set" (R5 F22)
+  r=String(r); var i=r.search(/[×x]/); if(i<0) return null;
+  var nums=r.slice(0,i).match(/\d+/g); if(!nums || nums.length<2) return null;
+  return Math.min.apply(null, nums.map(Number));
 }
 function unevenNote(exs){
   var c=exs.map(function(e){return {name:e[0].split(/[·→]/)[0].trim(), n:setsOf(e[1])};}).filter(function(x){return x.n!=null;});
@@ -845,6 +889,9 @@ function isBodyweight(name, reps){
 /* ═══ 7. week-slot lookups ═════════════════════════════════════════════════
    Slot identity = (exact name, day, variant) inside the Mon-Sun week.
    scale_tag is an ATTRIBUTE of the entry, not part of the key (retag in place). */
+function mondayOf(ds){                    // 'YYYY-MM-DD' -> the Monday (same format) of its Mon–Sun week
+  var p=String(ds).split('-'), d=new Date(+p[0], +p[1]-1, +p[2]); d.setDate(d.getDate()-((d.getDay()+6)%7)); return ymd(d);
+}
 function inWeek(e, w){ return !!e && e.date>=w[0] && e.date<=w[1]; }
 function entryAny(name, day){
   var w=reviewWindow(), h=logsFor(name);
@@ -1032,10 +1079,19 @@ function syncBlock(lg){
   if(n<4) return 'This phone has almost no history ('+n+(n===1 ? ' entry' : ' entries')+')';
   return null;
 }
+var syncArm=false, syncArmT=null;
+function holdBanner(why){                  // an in-flow strip (not a floating toast): list rows stay tappable; ✕ dismisses; "sync anyway" needs a 2nd tap (R5 F17)
+  $('syncTx').textContent=why+' — not syncing to the cloud'; $('syncGo').textContent='Sync anyway'; syncArm=false; $('syncBn').hidden=false;
+}
+function syncForceTap(){
+  if(!syncArm){ syncArm=true; $('syncGo').textContent='Sure? Tap again'; clearTimeout(syncArmT);
+    syncArmT=setTimeout(function(){ syncArm=false; $('syncGo').textContent='Sync anyway'; }, 5000); return; }
+  syncArm=false; $('syncBn').hidden=true; syncForce(); toast('Syncing this phone’s history');
+}
 function syncForce(){
   syncOk=true;
-  try{ localStorage.setItem(K.hw, String(countEntries(loadLogs()))); }catch(e){}
-  $('toast').hidden=true; liftSyncLogs();
+  try{ writeHw(countEntries(loadLogs()), true); }catch(e){}
+  $('toast').hidden=true; $('syncBn').hidden=true; liftSyncLogs();
 }
 function liftSyncLogs(){                  // never in beta, never an empty store
   try{
@@ -1044,9 +1100,9 @@ function liftSyncLogs(){                  // never in beta, never an empty store
     if(!Object.keys(lg).length && !Object.keys(nt).length) return;
     var why=syncBlock(lg);
     if(why){                                   // refuse to overwrite the cloud copy; one tap lets him through (R3 B1)
-      toast(why+' — not syncing. Tap here to sync anyway', {act:'syncforce', ms:60000}); return;
+      holdBanner(why); return;
     }
-    b.postMessage(JSON.stringify({logs:lg, notes:nt, sentAt:Date.now()}));
+    b.postMessage(JSON.stringify({logs:lg, notes:nt, sentAt:Date.now(), count:countEntries(lg), hw:readHw()}));   // count + hw let the server refuse a wiped phone (R5 F2)
   }catch(e){}
 }
 var noteSyncT=null;
@@ -1078,8 +1134,9 @@ function liftPushState(){                 // widget snapshot — exact shape in 
     if(IS_BETA) return;                   // would overwrite the real widget with demo data
     var b=bridge('lift'); if(!b) return;
     var d=PROGRAM && PROGRAM[S.day]; if(!d || !S.model) return;
-    var list=flattenExercises(S.model);
-    var done=S.model.map(function(s){ return !!s.logged; });
+    var wm=S.model.filter(function(s){ return !s.swapOf; });     // a late swap's substitute is not a 2nd exercise: the original row already counts for it (R5 F8)
+    var list=flattenExercises(wm);
+    var done=wm.map(function(s){ return !!s.logged; });
     var ci=done.indexOf(false); if(ci<0) ci=list.length;
     b.postMessage(JSON.stringify({
       day:String(d.title||'').slice(0,3).toUpperCase(), title:String(d.title||''), sub:String(d.sub||''),
@@ -1140,6 +1197,7 @@ function lastEntry(s){                    // most recent OTHER entry, same varia
   }
   return null;
 }
+var SEQ=new WeakMap(), seqN=0;            // write order of sets made this session (side map: never stored). Older sets sort first (R5 F6)
 function mkSlot(ex, bi, ss, label, added){
   var orig=ex[0], name=added ? orig : effName(S.day,orig);
   var s={ key:orig, orig:orig, name:name, reps:ex[1]||'', note:ex[2]||'',
@@ -1155,10 +1213,13 @@ function mkSlot(ex, bi, ss, label, added){
   s.entry=s.needsTag ? entryForTag(s.ents,name,s.tag) : last0;     // where the NEXT set is written
   s.bw=isBodyweight(name, s.reps);
   s.spec=repsSpec(s.reps);
-  s.sets = s.ents.length===0 ? [] : (s.ents.length===1 ? s.ents[0].sets
-    : s.ents.reduce(function(a,e){ return a.concat(e.sets); },[]));   // all stations, in log order
-  var prescribed=setsOf(s.reps)||3, lastE=lastEntry(s);
-  s.n=Math.max(prescribed, s.sets.length, lastE ? lastE.sets.length : 0);   // never under-log (F37)
+  var flat=[];                             // every set of the slot in the order it was performed: {e:entry, i:index in entry, st:set}
+  s.ents.forEach(function(e,ei){ (e.sets||[]).forEach(function(st,i){ flat.push({e:e, i:i, st:st, ei:ei}); }); });
+  if(s.ents.length>1) flat.sort(function(a,b){ return ((SEQ.get(a.st)||0)-(SEQ.get(b.st)||0)) || (a.ei-b.ei) || (a.i-b.i); });
+  s.flat=flat;
+  s.sets = s.ents.length===0 ? [] : (s.ents.length===1 ? s.ents[0].sets : flat.map(function(f){ return f.st; }));
+  var lo=setsLo(s.reps), prescribed=lo || setsOf(s.reps) || 3, lastE=lastEntry(s);
+  s.n=Math.max(prescribed, s.sets.length, (lastE && !lo) ? lastE.sets.length : 0);   // never under-log (F37); a "3–4" range stops at 3 (R5 F22)
   var nv=S.nov[S.day+'|'+s.key];            // "Finish with N sets": a per-slot target, never below what is logged (M-3)
   if(nv && nv<s.n) s.n=Math.max(nv, s.sets.length);
   s.logged=s.ents.length>0;                // "logged" = any entry this week for the slot (F06)
@@ -1269,7 +1330,9 @@ function recText(s){                      // coach target, display only
   var k=unitKind(s);
   return k==='side' ? fmtW(n)+'/side' : (k==='each' ? fmtW(n)+' each' : fmtW(n));
 }
-function platesLine(s){ return (s.swapped || s.added) ? '' : (platesFor(s.orig) || ''); }
+function platesLine(s){                    // display only: "45 + 35 + 5/side" is shown tight as "45+35+5/side" (fewer words on a calm screen)
+  return (s.swapped || s.added) ? '' : String(platesFor(s.orig) || '').replace(/\s+\+\s+/g,'+');
+}
 function tvText(s){
   var rt=recText(s), rl=s.spec.label;
   return (rt ? rt+(rl ? ' × ' : '') : '') + (rl||'') || (s.reps || (s.added ? 'added · no target' : '—'));
@@ -1284,10 +1347,21 @@ function weightFor(s, idx){
   if(editOf(s)) return {v:S.editW, src:'edit'};
   var k=wkey(s); if(has(S.work,k)) return {v:S.work[k], src:'typed'};
   if(!showWeight(s)) return {v:null, src:'bw'};
-  var prev=idx>0 ? s.sets[idx-1] : null; if(prev && prev.w!=null) return {v:prev.w, src:'same'};
+  var prev=idx>0 ? s.sets[idx-1] : null;
+  if(s.needsTag && s.flat && s.flat.length){        // A,B,A: the weight comes from the last set at THIS station (R5 F6)
+    prev=null;
+    for(var q=Math.min(idx,s.flat.length)-1;q>=0;q--){ var fe=s.flat[q].e; if((fe.scale_tag||homeTag(s.name))===s.tag){ prev=s.flat[q].st; break; } }
+  }
+  if(prev && prev.w!=null) return {v:prev.w, src:'same'};
   if(planOk(s)){ var rc=recNum(s.orig); if(rc!=null) return {v:rc, src:'plan'}; }
   var le=lastEntry(s);
   if(le){ var x=le.sets[idx] || le.sets[le.sets.length-1]; if(x && x.w!=null) return {v:x.w, src:'last'}; }
+  if(s.needsTag && !s.swapped && !s.added){            // a station with no history: show the number from the other station, marked CHECK; the pad stays shut (R5 F10)
+    var ow=null;
+    for(var z=Math.min(idx,s.sets.length)-1;z>=0;z--){ if(s.sets[z].w!=null){ ow=s.sets[z].w; break; } }
+    if(ow==null){ var rh=recNum(s.orig); if(rh!=null) ow=rh; }
+    if(ow!=null) return {v:ow, src:'check'};
+  }
   return {v:null, src:'none'};
 }
 /* reps shown on LOG. NEVER INVENT: no number to show -> r:null -> LOG is disabled ("tap reps"). */
@@ -1315,8 +1389,11 @@ function repCenter(s, idx, base){         // where the strip is scrolled (not a 
     return c;
   }
   if(base!=null) return base;
+  var pv=s.sets.length ? s.sets[s.sets.length-1] : null;            // no number to show: centre where he just was, else where last time started (R5 F18)
+  if(pv && pv.r!=null) return pv.r;
   var le=lastEntry(s);
   if(le && le.sets[idx] && le.sets[idx].r!=null) return le.sets[idx].r;
+  if(le && le.sets[0] && le.sets[0].r!=null) return le.sets[0].r;
   return 12;
 }
 function hasPlan(s){ return (planOk(s) && recNum(s.orig)!=null) || s.spec.lo!=null; }
@@ -1326,14 +1403,17 @@ function matchesPlan(s, w, r){
   var rOk = s.spec.lo==null || (r>=s.spec.lo && r<=s.spec.hi);
   return wOk && rOk;
 }
+function isDrop(s){ return (s.tags||[]).indexOf('dropset')>=0; }
 function logSubText(s, idx, w, r, showW, hint, src){
   var ed=editOf(s);
   if(ed){ var cs=s.sets[ed.idx]; return 'was '+(cs ? setTxt(cs) : '—'); }
   if(r==null) return 'pick your reps below';          // the message lives ON the button (H3)
   if(showW && w==null) return 'set the weight first';
   if(idx>=s.n) return 'extra set';
-  if(hasPlan(s)){
+  if(isDrop(s) && idx>0) return 'same weight · drop it';   // R5 F5: a drop set repeats the weight only as a reminder to take it down
+  if(s.spec.hi!=null && hasPlan(s)){
     if(!matchesPlan(s,w,r)) return 'adjusted';
+    if(src==='prev') return 'same as last set';              // reps carried from the set before are not "the plan" (R5 F5)
     return (src==='plan' && s.spec.lo!==s.spec.hi) ? 'top of '+s.spec.lo+'–'+s.spec.hi : (src==='last' ? 'same as last time' : 'as planned');   // a range is not a single plan (M-1)
   }
   var prev=idx>0 ? s.sets[idx-1] : null;
@@ -1362,7 +1442,13 @@ function drawHeader(){
   $('betaTag').hidden=!IS_BETA;
   var ob=$('offBn'), od=offDay() && P[S.day] && P[S.day].title;     // not today's tab: say so, always (H1)
   ob.hidden=!od;
-  if(od) ob.textContent=(S.offOk===S.day ? 'Logging to ' : '')+P[S.day].title.slice(0,3)+' · not today';
+  if(od){
+    var bd0=backDate(), t3=P[S.day].title.slice(0,3);
+    if(S.offOk===S.day){                       // armed: say which DATE the sets will carry, and let him flip it (R5 F11)
+      ob.textContent=bd0 ? (S.offDate ? 'Saving as '+t3+' '+fmtDate(S.offDate)+' · tap for today' : 'Saving as today · tap for '+t3+' '+fmtDate(bd0)) : 'Saving as today';
+      ob.style.height=bd0 ? '44px' : ''; ob.disabled=!bd0;
+    } else { ob.textContent=t3+' · not today'; ob.style.height=''; ob.disabled=true; }
+  }
   $('lkCore').hidden=!(S.day==='mon' || S.day==='wed');
 }
 function undoRowKey(nextKey, ctx, m){      // where Undo / Cancel is drawn: the NEXT row, where the eyes are
@@ -1422,7 +1508,7 @@ function centerReps(center, base, rng, hint){
   var c=kids[Math.min(Math.max(center,1),60)-1];
   if(c) st.scrollLeft=c.offsetLeft-(st.clientWidth-c.offsetWidth)/2;
 }
-var CAPS = {plan:'PLAN', same:'SAME', last:'LAST TIME', typed:'CHANGED', none:'SET WEIGHT', edit:'EDIT'};
+var CAPS = {plan:'PLAN', same:'SAME', last:'LAST TIME', typed:'CHANGED', none:'SET WEIGHT', edit:'EDIT', check:'CHECK'};
 function canRemove(e){ return !!e && e.date===todayStr(); }   // an older session's entry is history: it can be fixed, never deleted from here (M7)
 function logSide(s, ed){                   // buttons LEFT of LOG, edit mode only: Cancel + Remove. Undo lives in the player head (H-1), so LOG never moves
   if(ed){
@@ -1457,7 +1543,8 @@ function drawPlayer(){
   var typing=!!(S.typing && S.typing.key===s.key && showW && !fin);
   $('player').classList.toggle('ed-on', !!ed);
   /* exercise + big SET n OF M numeral */
-  $('plName').textContent=s.name; 
+  var pnb=$('plNameBox'); $('plName').textContent=s.name; pnb.classList.remove('lg');
+  if(pnb.scrollHeight>pnb.clientHeight+1 || $('plName').scrollHeight>pnb.clientHeight+1) pnb.classList.add('lg');
   var sl, se=$('plSet');
   var of=function(n){ return n>=5 ? '/'+n : 'of '+n; };     // 5+ sets: "3/5" keeps room for every set pill (H2)
   if(ed) sl='<small>Edit</small><b>'+(ed.idx+1)+'</b><small>'+of(np)+'</small>';
@@ -1500,7 +1587,7 @@ function drawPlayer(){
   var pv=$('plSets'), pk=pv.querySelector('.sp.ed')||pv.querySelector('.sp.cu');      // keep the live pill inside the strip
   if(pk){ var pl0=pk.offsetLeft-pv.offsetLeft, pr0=pl0+pk.offsetWidth;
     if(pr0>pv.scrollLeft+pv.clientWidth) pv.scrollLeft=pr0-pv.clientWidth; else if(pl0<pv.scrollLeft) pv.scrollLeft=pl0; }
-  else if(fin) pv.scrollLeft=pv.scrollWidth;                 // finished: the newest sets are the ones he may fix
+  else if(fin) pv.scrollLeft=0;                              // finished: pill 1 sits whole at the left edge, the soft edge on the right says more follow (R5 F21)
   fadeSets();
   /* entry area: weight row + rep strip, or (finished lift) a calm "done" panel of the same height */
   $('plWrow').hidden=fin || !showW; $('plBwRow').hidden=fin || showW; $('plReps').hidden=fin;
@@ -1511,9 +1598,9 @@ function drawPlayer(){
   var txt = typing ? (S.typing.fresh ? (w==null?'—':fmtW(w)) : (S.typing.buf===''?'—':S.typing.buf))
                    : (w==null ? '—' : fmtW(w));
   we.textContent=txt;
-  we.className=(typing?'typing':'')+(typing && S.typing.fresh?' fresh':'')+(txt.length>4?' long':'')+(!typing && (wv.src==='plan'||wv.src==='same'||wv.src==='last') ? ' pre' : '');
+  we.className=(typing?'typing':'')+(typing && S.typing.fresh?' fresh':'')+(txt.length>4?' long':'')+(!typing && (wv.src==='plan'||wv.src==='same'||wv.src==='last'||wv.src==='check') ? ' pre' : '')+(!typing && wv.src==='plan' ? ' planw' : '');
   var cap=$('plWc'); cap.textContent=(CAPS[wv.src]||'')+' · '+unitOf(s);
-  cap.className='wcap '+(wv.src==='plan'?'plan':(wv.src==='same'?'same':(wv.src==='edit'?'edit':'')));
+  cap.className='wcap '+(wv.src==='plan'?'plan':(wv.src==='same'?'same':(wv.src==='edit'?'edit':(wv.src==='check'?'drop':''))))+((!ed && isDrop(s) && idx>0 && wv.src==='same') ? ' drop' : '');
   $('pad').hidden=!typing; $('list').classList.toggle('padpad', typing);
   /* LOG row: never shows a rep count that was invented */
   var ri=repInfo(s,idx), r=ri.r, lb=$('logBtn'), need=(r==null) && !fin;
@@ -1537,7 +1624,10 @@ function drawPlayer(){
   var ub=$('plUndo'), uo=!!(S.undo && !ed);          // Undo has its OWN fixed slot in the set row: LOG never moves (H-1)
   ub.disabled=!uo; ub.setAttribute('aria-disabled', uo ? 'false' : 'true'); if(uo) ub.dataset.act='undo'; else ub.removeAttribute('data-act');
   ub.setAttribute('aria-label', uo ? 'Undo '+(S.undo.txt||'') : 'Nothing to undo');
-  ub.innerHTML= (uo && S.undo.txt && (S.undo.kind==='log' || S.undo.kind==='edit')) ? 'Undo<small>'+escHtml(S.undo.txt)+'</small>' : 'Undo';
+  ub.setAttribute('aria-label', uo ? 'Undo '+undoName(S.undo)+' '+(S.undo.txt||'') : 'Nothing to undo');
+  ub.innerHTML= (uo && S.undo.txt && (S.undo.kind==='log' || S.undo.kind==='edit')) ? 'Undo<small>'+escHtml(undoTiny(undoName(S.undo)))+'</small><small>'+escHtml(S.undo.txt)+'</small>' : 'Undo';
+  var nxs=(!fin && !ed) ? nextSlot(m, s) : null;        // one quiet line: what comes after this set's lift (R5 F16)
+  $('plNext').innerHTML=nxs ? 'Next · <b>'+escHtml(shortName(nxs.name))+'</b>' : '';
   $('plId').dataset.exercise=s.name;
 }
 function drawDone(){
@@ -1546,7 +1636,7 @@ function drawDone(){
   var miss=m.length-logged, core=(S.day==='mon' || S.day==='wed');
   $('plDone').innerHTML='<h2>'+(miss ? 'Nothing left to log' : 'Session complete')+'</h2><p class="num">'
     +logged+' of '+m.length+' exercises · '+sets+' sets logged'+(miss ? ' · '+miss+' skipped' : '')+'.</p>'
-    +(S.undo ? '<button class="bt" data-act="undo">Undo '+escHtml(S.undo.txt||'')+'</button>' : '')
+    +(S.undo ? '<button class="bt" data-act="undo">Undo '+escHtml(undoName(S.undo))+' '+escHtml(S.undo.txt||'')+'</button>' : '')
     +'<button class="bt pr1" data-act="review">Day review</button>'
     +(core ? '<button class="bt" data-core-timer data-act="closeSheet">▶ Core timer</button>' : '')
     +'<button class="bt" data-act="note">Session note</button>'
@@ -1588,10 +1678,22 @@ function dayReviewData(){                 // also used by the verbatim core-time
    A coach target becomes data ONLY on a LOG tap or a rep-chip tap (CONTRACTS §3).
    Entries are never deleted. The single exception is Undo of a log that CREATED
    its entry seconds ago (see doUndo) — flagged for Travis in the report. */
-function haptic(){ try{ navigator.vibrate && navigator.vibrate(12); }catch(e){} }
+var hapLbl=null;
+function haptic(){                         // Android: vibrate. iPhone (Safari 17.4+): toggling a hidden <input switch> from a tap gives the system tick (R5 F14)
+  try{ navigator.vibrate && navigator.vibrate(12); }catch(e){}
+  try{
+    if(!hapLbl){
+      hapLbl=document.createElement('label'); hapLbl.setAttribute('aria-hidden','true');
+      hapLbl.style.cssText='position:fixed;left:-40px;top:0;width:1px;height:1px;opacity:0;pointer-events:none';
+      var i=document.createElement('input'); i.type='checkbox'; i.setAttribute('switch',''); i.tabIndex=-1; hapLbl.appendChild(i);
+      document.body.appendChild(hapLbl);
+    }
+    hapLbl.click();
+  }catch(e){}
+}
 function afterSave(){ liftSyncLogs(); }
 function moveNote(){                       // a note typed before the session's first set follows that session's date (M1)
-  var nt=loadNotes(), w=reviewWindow(), t=todayStr(), best=null, all=loadLogs(), other=false;
+  var nt=loadNotes(), w=reviewWindow(), t=logDate(), best=null, all=loadLogs(), other=false;
   Object.keys(all).forEach(function(n){      // a lift of this day already logged on ANOTHER date => today is a 2nd session: leave notes alone
     var h=all[n]; if(!Array.isArray(h)) return;
     h.forEach(function(e){ if(e && e.day===S.day && inWeek(e,w) && e.date!==t) other=true; });
@@ -1612,39 +1714,54 @@ function appendSet(s, w, r){               // returns the undo token for exactly
   var e=entryForTag(slotEntries(s.name,S.day,s.variant), s.name, s.needsTag ? s.tag : null), created=false, prev=null;
   if(e){ prev=e.sets.slice(); }
   else {
-    e={date:todayStr(), day:S.day, sets:[]};
+    e={date:logDate(), day:S.day, sets:[]};
     if(s.variant) e.v=s.variant;
     if(s.tag) e.scale_tag=s.tag;
     if(s.added && !s.swapOf) e.added=1;
     if(s.swapped) e.swapFor=s.orig; else if(s.swapOf) e.swapFor=s.swapOf;
     h.push(e); created=true;
   }
-  e.sets.push({w:w, r:r});
+  var ns={w:w, r:r}; e.sets.push(ns); SEQ.set(ns, ++seqN);
   saveLogs(all); if(created) moveNote();
   if(S.skipped[S.day+'|'+s.key]){ delete S.skipped[S.day+'|'+s.key]; saveDrafts(); }
   return {kind:'log', key:s.key, name:s.name, entry:e, created:created, listNew:listNew, prev:prev};
 }
 function locate(s, idx){                   // flat set index -> {e: entry, i: index inside it}
-  var n=0, ents=s.ents||[];
-  for(var k=0;k<ents.length;k++){ var L=ents[k].sets.length; if(idx<n+L) return {e:ents[k], i:idx-n}; n+=L; }
-  return null;
+  var f=(s.flat||[])[idx]; return f ? {e:f.e, i:f.i} : null;
 }
 function updateSet(s, idx, w, r){          // explicit SAVE in edit mode; same slot, original date kept
   var lc=locate(s,idx); if(!lc) return null;
   var st=lc.e.sets[lc.i];
-  var tok={kind:'edit', key:s.key, set:st, pw:st.w, pr:st.r, hadR:has(st,'r'), pp:st.p, hadP:has(st,'p')};
+  var tok={kind:'edit', key:s.key, entry:lc.e, set:st, pw:st.w, pr:st.r, hadR:has(st,'r'), pp:st.p, hadP:has(st,'p')};
   if(st.w!==w) delete st.p;                // a stale plate breakdown must not survive a weight change (M-6)
   st.w=w; st.r=r; saveLogs(loadLogs());
   return tok;
 }
-function armUndo(tok){                     // ~10 s, or until the next write replaces it (H1)
+function undoName(u){                      // the lift this Undo belongs to, short ("Knee Raise"), never the lift now on screen (R5 F3)
+  var n=u.nm || u.name || '';
+  if(!n && S.model) S.model.forEach(function(k){ if(k.key===u.key) n=k.name; });
+  return shortName(n);
+}
+function undoTiny(n){                     // the 62 px Undo button: drop generic lead words (Machine, Cable...) so "Shoulder Press" shows, not "Machine…"
+  var w=String(n).split(/\s+/), g=/^(machine|cable|dumbbell|db|barbell|seated|standing|single-arm|incline|flat)$/i;
+  while(w.length>1 && g.test(w[0])) w.shift();
+  return w.slice(0,2).join(' ');
+}
+function armUndo(tok){                     // 30 s, or until the next write replaces it (R5 F3)
   S.undo=tok; clearTimeout(undoT);
-  undoT=setTimeout(function(){ S.undo=null; if(S.model && S.ctx){ drawList(); drawPlayer(); } }, 10000);
+  tok.nm=undoName(tok);
+  undoT=setTimeout(function(){ S.undo=null; if(S.model && S.ctx){ drawList(); drawPlayer(); } }, 30000);
 }
 function clearUndo(){ clearTimeout(undoT); S.undo=null; }
+function undoSetNo(u){                     // which set an Undo touches (1-based), for the toast
+  if(u.kind==='log') return u.created ? 1 : (u.prev ? u.prev.length+1 : 1);
+  if(u.kind==='rmset') return (u.li!=null ? u.li : 0)+1;
+  var n=1; if(u.entry && u.set) n=u.entry.sets.indexOf(u.set)+1;
+  return n>0 ? n : 1;
+}
 function doUndo(){
   var u=S.undo; if(!u) return; clearUndo();
-  var all=loadLogs(), ok=true;
+  var all=loadLogs(), ok=true, said=(u.kind==='edit' ? 'Restored ' : (u.kind==='rmset' ? 'Put back ' : 'Removed '))+undoName(u)+' set '+undoSetNo(u);
   if(u.kind==='edit'){
     u.set.w=u.pw; if(u.hadR) u.set.r=u.pr; else delete u.set.r;
     if(u.hadP) u.set.p=u.pp;
@@ -1666,7 +1783,7 @@ function doUndo(){
   if(!ok){ toast('Too late to undo — fix it from the set pill'); render(); return; }
   saveLogs(all); afterSave();
   S.sel=u.key; S.edit=null; S.manual=u.key;
-  render();
+  render(); toast(said);                   // the toast names the lift: Undo may switch the player back to it
 }
 function shakeW(){ var w=$('plW'); w.classList.remove('bad'); void w.offsetWidth; w.classList.add('bad'); }
 var shakeRT=null;
@@ -1674,19 +1791,25 @@ function shakeReps(){                      // a greyed LOG that is tapped must a
   var e=$('plReps'); e.classList.remove('shake'); void e.offsetWidth; e.classList.add('shake','flash');
   clearTimeout(shakeRT); shakeRT=setTimeout(function(){ e.classList.remove('shake','flash'); }, 600);
 }
-var lastLogAt=0;
-function offDay(){ return S.day!==defaultDayKey(); }     // the open tab is not today's training day (H1)
+var lastLogAt=0, lastGk='', lastGkAt=0;
+function offDay(){ return S.day!==defaultDayKey(); }
+function backDate(){                       // the date of this tab's weekday this week, when it is in the past (a backfill), else null
+  var d=ymd(dateForWeekday(DOW[S.day])); return d<todayStr() ? d : null;
+}
+function logDate(){ return (offDay() && S.offOk===S.day && S.offDate) ? S.offDate : todayStr(); }   // the date a new entry carries: today, or the tab's own date when backfilling (R5 F11)
 function doLog(r){
   var c=S.ctx; if(!c || !c.slot) return;
   var now=Date.now();
-  if(now-lastLogAt<150) return;          // a double-tap must not write two sets (H6). M3 asked for 400 ms: the harness's honest taps land ~200 ms apart, so 150 stays
+  if(now-lastLogAt<150) return;          // a double-tap must not write two sets (H6)
+  var gk=(r!=null ? 'r'+r : 'log');      // R5 F4: the SAME button again within 400 ms is a double-tap, even if the player has since moved to the next set or lift
+  if(gk===lastGk && now-lastGkAt<400) return;
   var s=c.slot, ed=editOf(s), idx=ed ? ed.idx : s.sets.length, showW=showWeight(s);
   var wv=weightFor(s,idx), w=showW ? wv.v : null;
   if(ed && !showW){ var cs=s.sets[ed.idx]; w=cs ? cs.w : null; }   // editor hidden: keep the saved weight, never null it (B1)
   if(showW && (w==null || isNaN(w) || w<=0)){ shakeW(); openPad(); return; }
   if(r==null){ r=repInfo(s,idx).r; if(r==null) return; }
-  if(!ed && offDay() && S.offOk!==S.day){ S.offOk=S.day; lastLogAt=now; render(); return; }   // not today: the first tap only arms (H1)
-  var tok; lastLogAt=now;
+  if(!ed && offDay() && S.offOk!==S.day){ S.offOk=S.day; S.offDate=backDate(); lastLogAt=now; lastGk=gk; lastGkAt=now; render(); return; }   // not today: the first tap only arms (H1)
+  var tok; lastLogAt=now; lastGk=gk; lastGkAt=now;
   if(ed){ tok=updateSet(s,ed.idx,w,r); S.edit=null; S.editW=null; if(!tok){ render(); return; } }
   else {
     var wk0=wkey(s), had0=has(S.work,wk0), v0=S.work[wk0];            // what he had typed, so Undo can give it back (H6)
@@ -1779,7 +1902,7 @@ function padKey(k){
 }
 
 /* ═══ 14. sheets ═══════════════════════════════════════════════════════════ */
-var sheetAt=0;
+var sheetAt=0, ghostUntil=0;
 function openSheet(html, focusSel){
   sheetAt=Date.now(); var sh=$('sheet'); sh.innerHTML=html; sh.hidden=false; $('scrim').hidden=false;
   if(focusSel){ var f=sh.querySelector(focusSel); if(f) f.focus(); }
@@ -1859,8 +1982,14 @@ function openHistory(){
 }
 function retagEntry(name, i){              // fix a mistag: mutate in place, original date kept
   var h=logsFor(name), e=h[i], o=scaleOptions(); if(!e || !o.length) return;
-  var ti=o.map(function(x){ return x.tag; }).indexOf(e.scale_tag||homeTag(name));
-  e.scale_tag=o[(ti+1)%o.length].tag;
+  var ti=o.map(function(x){ return x.tag; }).indexOf(e.scale_tag||homeTag(name)), vs=variantsOf(name)||[], wk=mondayOf(e.date), nt=null;
+  for(var k=1;k<=o.length && !nt;k++){      // never land on a station that already has an entry in this slot and week (R5 F7: one entry per slot + station)
+    var cand=o[(ti+k)%o.length].tag; if(cand===(e.scale_tag||homeTag(name))) continue;
+    var clash=h.some(function(x){ return x!==e && x && x.day===e.day && mondayOf(x.date)===wk && (x.v||vs[0])===(e.v||vs[0]) && (x.scale_tag||homeTag(name))===cand; });
+    if(!clash) nt=cand;
+  }
+  if(!nt){ toast('Every other station already has sets this week'); return; }
+  e.scale_tag=nt;
   var cs=cur(); if(cs && S.tag[cs.name]){ delete S.tag[cs.name]; saveDrafts(); }    // the player follows the corrected entry
   saveLogs(loadLogs()); liftSyncLogs(); openHistory();
 }
@@ -1871,12 +2000,23 @@ function openNote(){
     +'<div class="sh-sub">Saved as you type.</div>','#shNote');
   $('shNote').value=currentNote();
 }
-function noteKey(){ return (dayLoggedDate(S.day)||todayStr())+'|'+S.day; }
-function currentNote(){
-  var nt=loadNotes(), k=noteKey(); if(nt[k]!=null) return nt[k];
+function dayFirstDate(dayKey){            // EARLIEST performed date of the day's session this week (R5 F12): the note key never moves later
+  var w=reviewWindow(), all=loadLogs(), best=null;
+  for(var k in all){
+    var h=all[k]; if(!Array.isArray(h)) continue;
+    h.forEach(function(e){ if(e && inWeek(e,w) && (e.day||'')===dayKey && (!best || e.date<best)) best=e.date; });
+  }
+  return best;
+}
+function noteKey(){ return (dayFirstDate(S.day)||logDate())+'|'+S.day; }
+function dayNoteKeys(o){                  // every note key of this day in this week (forks from older builds), oldest first
   var w=reviewWindow();
-  var c=Object.keys(nt).filter(function(x){ var p=x.split('|'); return p[1]===S.day && p[0]>=w[0] && p[0]<=w[1]; }).sort();
-  return c.length ? nt[c[c.length-1]] : '';
+  return Object.keys(o).filter(function(x){ var p=x.split('|'); return p[1]===S.day && p[0]>=w[0] && p[0]<=w[1]; }).sort();
+}
+function currentNote(){                   // forked notes of one session are shown together; the first edit folds them under noteKey()
+  var nt=loadNotes(), ks=dayNoteKeys(nt), seen=[], out=[];
+  ks.forEach(function(x){ var v=nt[x]; if(typeof v==='string' && v.trim() && seen.indexOf(v)<0){ seen.push(v); out.push(v); } });
+  return out.join('\n\n');
 }
 function openMenu(){
   var core=(S.day==='mon' || S.day==='wed'), r=dayReviewData();
@@ -1971,13 +2111,13 @@ function pickerList(q){
     var rest=cands.filter(function(c){ return pre.indexOf(c)<0; });
     pre.concat(rest).forEach(function(c){ h+=row(c.n, c.g); });
     var ex1=cands.filter(function(c){ return String(c.n).toLowerCase()===ql; })[0];
-    S.pickFirst=ex1 ? ex1.n : (pre.length ? pre[0].n : null);          // Enter: exact name, else a PREFIX match, else what he typed — never a substring surprise (M5)
+    S.pickFirst=ex1 ? ex1.n : null;          // Enter: the EXACT name if it exists, else exactly what he typed (R5 F9: a custom name may start like a library name)
   } else {
     var lastG=null;
     cands.forEach(function(c){ if(c.g!==lastG){ h+='<div class="sh-k">'+escHtml(c.g)+'</div>'; lastG=c.g; } h+=row(c.n); });
     S.pickFirst=null;
   }
-  if(typed && !exact && !prefix) h+='<button class="li cu" data-act="pickname" data-name="'+escA(typed)+'"><span>Use “'
+  if(typed && !exact) h+='<button class="li cu" data-act="pickname" data-name="'+escA(typed)+'"><span>Use “'
     +escHtml(typed)+'” (custom)</span><small>↵</small></button>';
   $('shBody').innerHTML=h;
 }
@@ -2067,7 +2207,7 @@ document.addEventListener('click', function(ev){
   if(!t) return;
   var a=t.dataset.act, c;
   if(a==='tab'){
-    S.day=t.dataset.d; S.pinned=true; S.sel=null; S.edit=null; S.typing=null; S.manual=null; S.offOk=null; clearUndo();
+    S.day=t.dataset.d; S.pinned=true; S.sel=null; S.edit=null; S.typing=null; S.manual=null; S.offOk=null; S.offDate=null; clearUndo();
     if(S.sheetMode) closeSheetQuiet(); render();
   }
   else if(a==='row'){ S.sel=t.dataset.row; S.manual=null; S.edit=null; S.typing=null; S.padOff=null; render(); }
@@ -2082,7 +2222,8 @@ document.addEventListener('click', function(ev){
   else if(a==='rmset'){ removeLastSet(); }
   else if(a==='extra'){ c=cur(); if(c){ var one=t.dataset.one==='1'; S.extraOn=c.key; S.typing=null; render(); if(one) doLog(null); } }
   else if(a==='reload'){ location.reload(); }
-  else if(a==='syncforce'){ syncForce(); toast('Syncing this phone’s history'); }
+  else if(a==='syncforce'){ syncForceTap(); }
+  else if(a==='syncdismiss'){ $('syncBn').hidden=true; syncArm=false; }
   else if(a==='rep'){ if(Date.now()<repBlock) return; doLog(+t.dataset.r); }
   else if(a==='log'){ if($('logBtn').getAttribute('aria-disabled')==='true'){ shakeReps(); return; } doLog(null); }
   else if(a==='extrashape'){ c=cur(); if(c){ S.extraOn=c.key; S.typing=null; render(); } }
@@ -2102,7 +2243,7 @@ document.addEventListener('click', function(ev){
   else if(a==='review'){ closeSheetQuiet(); openReview(); }
   else if(a==='daynote'){ closeSheetQuiet(); openDayNote(); }
   else if(a==='goto'){ S.sel=t.dataset.key; S.edit=null; S.typing=null; S.manual=null; closeSheet(); }
-  else if(a==='close' || a==='closeSheet'){ if(a==='close' && Date.now()-sheetAt<400) return; closeSheet(); }   // a ghost click after a long-press must not close the sheet that long-press opened (H-7)
+  else if(a==='close' || a==='closeSheet'){ if(a==='close' && (Date.now()-sheetAt<400 || Date.now()<ghostUntil)) return; closeSheet(); }   // a ghost click after a long-press must not close the sheet that long-press opened (H-7)
   else if(a==='pickname'){ pickName(t.dataset.name); }
   else if(a==='remove'){ removeAdded(); }
   else if(a==='skip'){ closeSheetQuiet(); skipCurrent(); }
@@ -2110,6 +2251,7 @@ document.addEventListener('click', function(ev){
   else if(a==='refreshprog'){ closeSheet(); loadProgram(true); toast('Checking for a new program…'); }
   else if(a==='admin'){ closeSheet(); if(!IS_BETA) Admin.open(); }
   else if(a==='demo'){ demoLoad(t); }
+  else if(a==='offdate'){ if(S.offOk===S.day && backDate()){ S.offDate=S.offDate ? null : backDate(); render(); } }
   else if(a==='variant'){
     c=cur();
     if(c && c.vs){ var vi=c.vs.indexOf(c.variant); S.variant[c.name]=c.vs[(vi+1)%c.vs.length]; S.edit=null; render(); }
@@ -2117,15 +2259,7 @@ document.addEventListener('click', function(ev){
   else if(a==='tag'){ openStation(); }
   else if(a==='settag'){ setStation(t.dataset.tag); }
 });
-/* edit mode ends by itself after ~8 s without a tap (so a later rep tap can never overwrite an old set by accident) */
-var editIdleT=null;
-document.addEventListener('click', function(){
-  clearTimeout(editIdleT);
-  if(!S.edit) return;
-  editIdleT=setTimeout(function(){
-    if(S.edit && !S.typing && $('sheet').hidden){ S.edit=null; S.editW=null; S.rmArm=null; render(); }
-  }, 8000);
-});
+/* F1 (R5): edit mode has NO idle timeout. It ends only on Save, Cancel, or when he opens another lift / tab. */
 /* rep strip: a tap that follows a scroll drag of more than 8pt is ignored (sweaty-thumb guard) */
 (function(){
   var el=$('plReps'), x0=0, moved=false;
@@ -2138,6 +2272,7 @@ document.addEventListener('input', function(ev){
   var t=ev.target;
   if(t.id==='shNote'){
     var o=loadNotes(), k=noteKey(), val=t.value;
+    dayNoteKeys(o).forEach(function(x){ if(x!==k) delete o[x]; });      // fold older forks of the same session's note into this one key (R5 F12)
     if(val.trim()==='') delete o[k]; else o[k]=val;
     saveNotesObj(o); liftSyncSoon();
   }
@@ -2179,17 +2314,19 @@ try{
 }catch(e){}
 /* player head: swipe left = skip this exercise · long-press = actions */
 (function(){
-  var el=$('plHead'), x0=0, y0=0, lp=null, moved=false;
+  var el=$('plHead'), x0=0, y0=0, lp=null, moved=false, lpFired=false;
   el.addEventListener('touchstart', function(e){
     var t=e.touches[0]; x0=t.clientX; y0=t.clientY; moved=false; clearTimeout(lp);
     if(e.target.closest('button')) return;
-    lp=setTimeout(function(){ if(!moved) openActions(); }, 600);
+    lpFired=false;
+    lp=setTimeout(function(){ if(!moved){ lpFired=true; openActions(); } }, 600);
   }, {passive:true});
   el.addEventListener('touchmove', function(e){
     var t=e.touches[0]; if(Math.abs(t.clientX-x0)>8 || Math.abs(t.clientY-y0)>8){ moved=true; clearTimeout(lp); }
   }, {passive:true});
   el.addEventListener('touchend', function(e){
     clearTimeout(lp); var t=e.changedTouches[0];
+    if(lpFired){ lpFired=false; ghostUntil=Date.now()+450; }      // the lift-off of a long-press sends a click to whatever is under the finger: the scrim (R5 F13)
     if(!e.target.closest('button') && t.clientX-x0<-70 && Math.abs(t.clientY-y0)<40){
       var cs=cur();
       if(cs && cs.sets.length) toast('Sets already logged here — use the list to move on');   // never skip a lift with data (M9)

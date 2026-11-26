@@ -12,7 +12,7 @@
 
 const SCOPE = new URL(self.registration.scope).pathname;     // '/lift-app/' (live) or '/lift-app/beta/' (beta)
 const SUFFIX = '@' + SCOPE;
-const CACHE = 'lift-r4' + SUFFIX;                             // bump r4 -> r5 to purge this scope's old cache
+const CACHE = 'lift-r5' + SUFFIX;                             // bump r5 -> r6 to purge this scope's old cache
 const NET_MS = 3000;
 const CORE = [
   './',
@@ -25,7 +25,8 @@ const CORE = [
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
-  './icon-180.png'
+  './icon-180.png',
+  './favicon-32.png'
 ];
 
 self.addEventListener('install', (e) => {
