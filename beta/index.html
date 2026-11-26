@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07090d">
-<meta name="lift-build" content="r8">
+<meta name="lift-build" content="r9">
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -62,7 +62,8 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-linecap:round
   grid-template-columns:1fr auto;align-items:center;column-gap:2px}
 .tabs{display:flex;gap:4px}
 .tab{flex:1;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  position:relative;border-radius:var(--r-m);color:var(--muted);transition:color .15s,background-color .15s;}
+  position:relative;border-radius:var(--r-m);color:var(--muted);transition:color .15s,background-color .15s;padding-bottom:5px;}   /* R9 F11: dates clear of the lime underline */
+.tab:active{background:var(--s2)}
 .tab b{font-size:13px;text-transform:uppercase;line-height:1.1;font-weight:800;letter-spacing:.08em;}
 .tab i{font-style:normal;font-size:13px;line-height:1.1;font-variant-numeric:tabular-nums;}   /* R8 F4: full --muted (>=4.5:1), no opacity */
 .tab.on{color:var(--ink);box-shadow:inset 0 0 0 1px var(--line);
@@ -73,7 +74,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-linecap:round
 .hbtn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--steel);
   border-radius:var(--r-m);}
 .hbtn:active{background:var(--s2)}
-.pr{grid-column:1/-1;display:flex;align-items:center;gap:8px;height:26px;padding:0 0 0 4px;
+.pr{grid-column:1/-1;display:flex;align-items:center;gap:8px;height:26px;padding:0 6px 0 4px;   /* R9 F3: last chip >= 16pt from the right edge (10 header + 6) */
   font-size:13px;color:var(--muted)}
 .pr .lk{flex:none;position:relative;height:28px;padding:0 9px;font-size:13px;white-space:nowrap;background:var(--s1);
   border:1px solid var(--line);border-radius:var(--r-s);color:var(--steel);font-weight:650;letter-spacing:.01em;
@@ -84,12 +85,12 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-linecap:round
 .pr .lk svg.ic{width:13px;height:13px}
 .pr .brand{flex:none;font-size:13px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
   color:var(--accent);letter-spacing:.2em;font-weight:800;}
-.pr .bar{flex:1;overflow:hidden;display:block;height:4px;background:var(--s3);border-radius:4px;}
-.pr .bar b{display:block;height:100%;width:0;transition:width .25s;background:var(--accent);border-radius:4px;
+.pr .bar{flex:1;min-width:0;overflow:hidden;display:block;height:4px;background:var(--s3);border-radius:var(--r-xs);}   /* R9 F12: radius tokens */
+.pr .bar b{display:block;height:100%;width:0;transition:width .25s;background:var(--accent);border-radius:var(--r-xs);
   box-shadow:0 0 10px color-mix(in srgb,var(--accent) 45%,transparent);}
 .pr .tx{flex:none;font-variant-numeric:tabular-nums;color:var(--steel);font-weight:650;}
-.beta{flex:none;font-size:13px;font-weight:650;letter-spacing:.06em;
-  border:1px solid color-mix(in srgb,var(--warn) 50%,transparent);border-radius:6px;padding:1px 6px;
+.beta{flex:none;font-size:13px;font-weight:650;letter-spacing:.06em;height:28px;display:inline-flex;align-items:center;   /* R9 F3: same 28pt as the chips beside it */
+  border:1px solid color-mix(in srgb,var(--warn) 50%,transparent);border-radius:var(--r-s);padding:0 9px;
   color:var(--warn);}
 
 /* ── CSS 3. checklist ── */
@@ -104,6 +105,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-linecap:round
 .row .gl{border-radius:50%;position:relative;width:18px;height:18px;}
 .row.part .gl{border:2px solid var(--steel);background:conic-gradient(var(--steel) var(--pc,50%),transparent 0)}
 .row.part.cur .gl{border-color:var(--accent);background:conic-gradient(var(--accent) var(--pc,50%),transparent 0)}   /* R8 F7: only the CURRENT row is lime */
+.row.cur:not(.part):not(.dn):not(.sk) .gl{border:2px solid var(--accent)}   /* R9 F9: the current row's gutter mark is a hollow lime ring; pending rows have none */
 .row.dn .gl{background:var(--ok);}
 .row.dn .gl::after{content:'';position:absolute;left:5.5px;top:2px;width:4px;height:8px;
   border:solid var(--accent-ink);border-width:0 2px 2px 0;transform:rotate(45deg)}
@@ -158,6 +160,8 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-linecap:round
 .pl-name.lg{font-size:21px;line-height:1.04}
 /* a name too long for one line at 26px steps down to 21px on two lines (keeps the player short) */
 .pl-name span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.pl-name.one{font-size:22px}
+.pl-name.one span{display:block;white-space:nowrap;text-overflow:ellipsis;min-width:0}   /* R9 F6 */
 .pl-btns{display:flex;align-items:center}
 .pb{min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:13px;
   font-weight:650;padding:0 4px;border-radius:var(--r-m);color:var(--steel);}
@@ -194,7 +198,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-linecap:round
 .sst.eye{flex:none;width:44px;padding:0}
 .sst.eye svg.ic{width:20px;height:20px}
 .pl-tl{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.pl-tl>*{min-width:0;text-align:left;border-radius:10px;padding:0 2px}
+.pl-tl>*{min-width:0;text-align:left;border-radius:var(--r-s);padding:0 2px}
 #plTarget{overflow:hidden}
 /* a long plate recipe must never run into LAST TIME (H8) */
 .pl-tl small{display:block;font-size:13px;text-transform:uppercase;line-height:1.2;white-space:nowrap;overflow:hidden;
@@ -209,18 +213,19 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-linecap:round
 .pl-tl small #plPl{display:inline;margin-left:6px;font-size:13px;font-weight:500;letter-spacing:0;
   text-transform:none;color:var(--muted)}
 .pl-tl small #plLd{margin-left:6px;font-weight:650;letter-spacing:0;color:var(--steel)}
-.pl-tl #plLast{margin:-5px 0;padding:5px 8px 0 10px;border-radius:0;display:flex;flex-direction:column;
+.pl-tl #plLast{margin:-5px 0;padding:5px 0 0 10px;/* R9 F1: +8px for the last-time line */border-radius:0;display:flex;flex-direction:column;
   justify-content:flex-start;border-left:1px solid var(--line);}   /* R8 F3: label top-aligned with TARGET; box is fixed-height (2-line #plLv) */
-.pl-sets{flex:1;min-width:0;display:flex;gap:4px;height:44px;overflow-x:auto;scrollbar-width:none}
+.pl-sets{flex:1;min-width:0;display:flex;gap:4px;height:44px;overflow-x:auto;scrollbar-width:none;scroll-padding-inline:16px}   /* R9 F10 */
 .pl-sets::-webkit-scrollbar{display:none}
 .pl-sets.fade{-webkit-mask-image:linear-gradient(90deg,transparent,black var(--fl,0px),black calc(100% - var(--fr,0px)),transparent);
   mask-image:linear-gradient(90deg,transparent,black var(--fl,0px),black calc(100% - var(--fr,0px)),transparent)}
 /* soft edge on the side that has more pills */
 .ub{flex:none;width:62px;margin-left:8px;height:44px;font-size:13px;font-weight:800;letter-spacing:.02em;
   overflow:hidden;padding:0 3px;color:var(--ink);display:flex;flex-direction:column;align-items:center;
-  justify-content:center;line-height:1.1;background:var(--s2);border:1px solid var(--line);
+  justify-content:center;line-height:1;background:var(--s2);border:1px solid var(--line);
   border-radius:var(--r-m);}
 .ub small{font-size:13px;font-weight:650;color:var(--steel);letter-spacing:0;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;line-height:1.08}
+.ub small.un{font-weight:500;color:var(--muted)}   /* R9 F7 */
 .ub:disabled{visibility:hidden;pointer-events:none}
 /* R6 F13: no dead placeholder; the slot keeps its width so pills never shift */
 .ed-on .ub{display:none}
@@ -243,7 +248,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-linecap:round
 .sp.pe{color:var(--muted);border-style:dashed;border-color:rgba(255,255,255,.16);}
 .sp:active{background:var(--s4);transform:translateY(1px)}   /* R8 F6: visible pressed state */
 #plNext{height:18px;font-size:15px;line-height:18px;font-weight:500;white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis;padding:0 2px;margin-top:-2px;color:var(--steel);}
+  text-overflow:ellipsis;padding:0 2px;margin-top:-2px;color:var(--muted);}   /* R9 F12: the quiet line is muted; the lift's name stays steel */
 /* R6b F18: regular weight sets it apart from Target; spacing kept at R6 (lead: the 4px cost T6 the last row) */
 #plNext b{color:var(--steel);font-weight:500}
 #plEntry{display:flex;flex-direction:column;gap:12px}
@@ -256,12 +261,13 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-linecap:round
 /* R6b F10 */
 .ws:active{background:var(--s4);color:var(--ink);transform:translateY(1px);}
 .wbox{flex:1;min-width:0;height:56px;position:relative;display:flex;align-items:center;
-  justify-content:center;border-radius:12px}
+  justify-content:center;border-radius:var(--r-m)}
 #plW{width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;font-size:40px;line-height:.92;
-  color:var(--ink);font-variant-numeric:tabular-nums;border-radius:12px;padding:0 6px;font-family:var(--num);
+  color:var(--ink);font-variant-numeric:tabular-nums;border-radius:var(--r-m);padding:0 6px 5px;font-family:var(--num);
   font-weight:800;letter-spacing:-.035em;}   /* R6 F20: digit box starts 5 px below the caption */
-#plW.long{font-size:38px;letter-spacing:-.06em}
-#plW.typing{background:var(--s1);box-shadow:inset 0 -3px 0 var(--accent);}
+#plW.long{font-size:34px;letter-spacing:-.05em}   /* R9 F4: 4+ chars step down so the digits stay >= 10px clear of the steppers */
+#plW.xlong{font-size:29px;letter-spacing:-.04em}
+#plW.typing{background:linear-gradient(var(--accent),var(--accent)) no-repeat 50% 100%/calc(100% - 28px) 3px,var(--s1);}   /* R9 F4: the underline sits inside the box, clear of the rounded corners (digits sit 5px up, clear of the caption) */
 /* an underline, not a ring: nothing can strike the caption above it (H8) */
 #plW.fresh,#plW.pre{color:var(--steel)}
 #plW.pre.planw{color:var(--ink)}
@@ -269,7 +275,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-linecap:round
 /* prefilled, not touched yet (M-9) */
 #plW.bad{animation:shake .3s}
 #plReps.shake{animation:shake .3s}
-#plReps.flash{box-shadow:0 0 0 2px var(--warn);border-radius:12px}
+#plReps.flash{box-shadow:0 0 0 2px var(--warn);border-radius:var(--r-m)}
 @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .wcap{position:absolute;top:0;left:-30px;right:-30px;text-align:center;pointer-events:none;font-size:15px;
   white-space:nowrap;text-transform:uppercase;line-height:12px;color:var(--steel);letter-spacing:.1em;
@@ -283,7 +289,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-linecap:round
   background:var(--s2);border-radius:var(--r-m);color:var(--steel);}
 .pl-bw svg.ic{width:15px;height:15px;vertical-align:-2px;margin-right:4px}
 .pl-reps{position:relative;display:flex;gap:6px;height:44px;flex:none;overflow-x:auto;scrollbar-width:none;
-  overscroll-behavior-x:contain}
+  overscroll-behavior-x:contain;scroll-padding-inline:16px}   /* R9 F10 */
 .pl-reps::-webkit-scrollbar{display:none}
 .ch{flex:0 0 46px;height:44px;font-size:18px;font-variant-numeric:tabular-nums;font-family:var(--num);
   background:var(--s3);border-radius:var(--r-m);color:var(--steel);font-weight:650;box-shadow:var(--hi);}
@@ -415,13 +421,14 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
 .hr .htag{flex:none;min-width:44px;height:44px;padding:0 10px;font-size:13px;font-weight:650;background:var(--s2);
   border:1px solid var(--line);border-radius:var(--r-s);color:var(--steel);}
 .ssv{padding:4px 18px 10px}
-.ssv .g{display:flex;gap:8px;align-items:center;height:36px;font-size:15px;font-family:var(--mono);
-  font-variant-numeric:tabular-nums;}
-.ssv .g em{flex:none;width:22px;font-style:normal;font-size:13px;color:var(--muted)}
+.ssv .g{display:flex;gap:10px;align-items:center;height:40px;font-size:15px;font-weight:650;font-family:var(--sys);
+  border-bottom:1px solid var(--line);}   /* R9 F5: the sheet rows' own sans; name left (ellipsis), value right; no mono, no dashed pills */
+.ssv .g em{flex:none;width:22px;font-style:normal;font-size:13px;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
 .ssv .g span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ssv .g.pe span{padding:4px 8px;color:var(--muted);border:1px dashed rgba(255,255,255,.16);border-radius:var(--r-s);}
-.ssv .g.dn span{border:1px solid color-mix(in srgb,var(--ok) 40%,var(--line));padding:4px 8px;color:var(--ink);
-  background:color-mix(in srgb,var(--ok) 10%,transparent);border-radius:var(--r-s);}
+.ssv .g .gv{flex:none;max-width:55%;text-align:right;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.ssv .g.pe{color:var(--muted)}
+.ssv .g.dn .gv{color:var(--ok);font-weight:650}
 .note-ta{flex:1;margin:4px 18px 6px;min-height:170px;max-height:300px;resize:none;padding:12px 14px;font-size:18px;
   line-height:1.4;outline:0;width:calc(100% - 36px);background:var(--bg2);border:1px solid var(--line);
   border-radius:var(--r-m);}
@@ -480,11 +487,19 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
   background-image:var(--g-key);border-color:transparent;
   font-weight:800;}
 /* Ticket 21: total-duration readout + pre-start Randomize */
-.abt-meta{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;min-height:34px;}
+/* R9 F2 (CSS only, timer JS untouched): ready / rest / get-ready phases carry .rest, where the eyebrow repeated the big title
+   ("MONDAY CORE" twice, "REST" twice). The eyebrow becomes a fixed "Core timer"; the big line is the only title.
+   Pre-start (the Randomize button is showing) is the calm lime state; once running, work = lime, rest / get-ready = amber.
+   Not separable in CSS: the 3s get-ready lead-in and the between-exercise "get ready" share .rest with Rest, so they are amber too. */
+.abt.rest .abt-stage{font-size:0}
+.abt.rest .abt-stage::before{content:'Core timer';font-size:13px}
+.abt.rest:has(#abtRoll:not([hidden])){background:rgba(7,8,10,.98)}
+.abt.rest:has(#abtRoll:not([hidden])) .abt-stage,.abt.rest:has(#abtRoll:not([hidden])) .abt-time{color:var(--accent)}
+.abt-meta{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;min-height:44px;}
 .abt-dur{font-family:var(--sys);font-weight:650;font-size:13px;letter-spacing:.08em;
     text-transform:uppercase;color:var(--muted);}
 .abt-roll{display:inline-flex;align-items:center;gap:6px;font-family:var(--sys);font-weight:650;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
-  height:34px;padding:0 14px;cursor:pointer;-webkit-appearance:none;border:1px solid var(--line);
+  height:44px;padding:0 16px;cursor:pointer;-webkit-appearance:none;border:1px solid var(--line);
   color:var(--steel);transition:.15s;border-radius:var(--r-s);background:var(--s2);}
 .abt-btn svg.ic{width:24px;height:24px}
 .abt-roll svg.ic{width:16px;height:16px}
@@ -494,12 +509,12 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
 .day-review{margin:10px 0 4px;padding:10px 12px;font-size:13px;color:var(--steel);line-height:2;border-radius:var(--r-m);
   border:1px solid color-mix(in srgb,var(--warn) 30%,var(--line));
   background:color-mix(in srgb,var(--warn) 6%,var(--s1));}
-.rv-ex{font-family:var(--sys);font-weight:650;font-size:13px;letter-spacing:.03em;border-radius:8px;
+.rv-ex{font-family:var(--sys);font-weight:650;font-size:13px;letter-spacing:.03em;border-radius:var(--r-s);
   color:var(--ink);padding:4px 9px;margin:0 4px 0 2px;cursor:pointer;-webkit-appearance:none;
   background:var(--s2);border:1px solid var(--line);}
 .rv-ex:active{border-color:var(--accent);color:var(--accent);}
 .hist-tag{font-family:var(--sys);font-weight:650;font-size:13px;letter-spacing:.05em;text-transform:uppercase;
-  border-radius:6px;color:var(--steel);padding:2px 7px;margin-left:6px;cursor:pointer;-webkit-appearance:none;
+  border-radius:var(--r-xs);color:var(--steel);padding:2px 7px;margin-left:6px;cursor:pointer;-webkit-appearance:none;
   background:var(--s2);border:1px solid var(--line);}
 .hist-tag:active{border-color:var(--accent);color:var(--accent);}
 .abt-review{margin-top:18px;text-align:center;font-size:15px;color:var(--steel);}
@@ -509,7 +524,7 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
 .abt-list{margin-top:22px;display:flex;flex-direction:column;gap:4px;max-height:26vh;
     overflow-y:auto;text-align:left;}
 .abt-li{font-family:var(--sys);font-size:15px;font-weight:500;color:var(--muted);
-    display:flex;justify-content:space-between;padding:5px 9px;border-radius:8px;}
+    display:flex;justify-content:space-between;padding:5px 9px;border-radius:var(--r-s);}
 .abt-li.cur{color:var(--ink);background:color-mix(in srgb,var(--accent) 12%,transparent);}
 .abt-li.done{opacity:.45;}
 .abt-li span:last-child{font-variant-numeric:tabular-nums;}
@@ -522,7 +537,7 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
 .adm[hidden]{display:none;}
 .adm-inner{width:100%;max-width:460px;}
 .adm-top{display:flex;justify-content:space-between;align-items:center;margin:6px 0 16px;}
-.adm-title{font-family:var(--sys);text-transform:uppercase;font-size:26px;font-weight:800;letter-spacing:-.01em;}
+.adm-title{font-family:var(--sys);font-size:18px;font-weight:650;letter-spacing:-.015em;}   /* R9 F5: the sheet-title style (.sh-t), not its own shout */
 .adm-lab{display:block;font-family:var(--sys);font-weight:650;font-size:13px;
     letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 2px 6px;}
 .adm-in,.adm-ta{width:100%;border:1px solid var(--line);color:var(--ink);font-size:18px;padding:12px;-webkit-appearance:none;
@@ -565,7 +580,8 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
       <span class="brand" id="brand">LIFT</span>
       <span class="tx num" id="prTx"></span>
       <span class="bar"><b id="prBar"></b></span>
-      <span class="beta" id="betaTag" hidden>BETA · demo data</span>
+      <span class="beta" id="betaTag" title="BETA · demo data" aria-label="BETA · demo data" hidden>BETA</span><!-- R9 F3 -->
+
       <button class="lk" data-act="daynote" id="lkDay">Day notes</button>
       <button class="lk" data-core-timer data-act="closeSheet" id="lkCore" hidden><svg class="ic" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5z" style="fill:currentColor"/></svg>Core</button>
     </div>
@@ -672,7 +688,7 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
       </div>
       <label class="adm-lab">Publish token</label>
       <input class="adm-in" id="admToken" type="password" autocomplete="off" placeholder="paste once — saved on this device">
-      <label class="adm-lab">New routine — paste the JSON from the chat</label>
+      <label class="adm-lab">New routine · paste JSON</label><!-- R9 F5 -->
       <button class="adm-btn adm-paste" id="admPaste"><i><svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px"><rect x="6" y="5" width="12" height="16" rx="2"/><path d="M9 5V4h6v1M9.5 11h5M9.5 15h5"/></svg></i> Paste from clipboard</button>
       <textarea class="adm-ta" id="admJson" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="…or tap here and paste the routine"></textarea>
       <div class="adm-status" id="admStatus">&nbsp;</div>
@@ -1071,12 +1087,19 @@ function slotEntries(name, day, variant){
 }
 /* R8 F16: a program lift's OWN entries. An entry whose swapFor names a DIFFERENT slot belongs to that slot (this lift was
    logged there as a substitute) - it must not mark this slot logged or take this slot's new sets. Added rows keep everything. */
+/* R9 F8: a swapFor that names NO program slot that day (the program moved on) is an orphan: the lift counts as its own, not as a hidden substitute */
+function realSwapFor(day, sf){
+  if(!sf) return null;
+  var A=((PROGRAM && PROGRAM[day]) || {}).A || [], hit=false;
+  A.forEach(function(b){ (b.e||[]).forEach(function(x){ if(x && x[0]===sf) hit=true; }); });
+  return hit ? sf : null;
+}
 function slotEnts(s){
   var a=slotEntries(s.name,S.day,s.variant);
   if(s.added) return a;
   var own=false;                            // a SWAPPED slot whose substitute is itself a program lift: that lift's un-tagged entries are its own slot's, not ours
   if(s.swapped) (((PROGRAM && PROGRAM[S.day]) || {}).A || []).forEach(function(b){ (b.e||[]).forEach(function(x){ if(x && x[0]===s.name) own=true; }); });
-  return a.filter(function(e){ return e.swapFor ? e.swapFor===s.orig : !own; });
+  return a.filter(function(e){ var sf=realSwapFor(S.day,e.swapFor); return sf ? sf===s.orig : !own; });   // R9 F8
 }
 function entryForTag(ents, name, tag){      // the entry that new sets go to: same station (legacy untagged = home)
   for(var i=ents.length-1;i>=0;i--){ if(!tag || (ents[i].scale_tag||homeTag(name))===tag) return ents[i]; }
@@ -1314,7 +1337,7 @@ function liftPushState(){                 // widget snapshot — exact shape in 
 function swapOfAdded(day, name){            // an extra row that is really a late swap: which program lift it replaced
   var m=loadOv().swapAdd[day] && loadOv().swapAdd[day][name]; if(m) return m;
   var w=reviewWindow(), h=logsFor(name);
-  for(var i=h.length-1;i>=0;i--){ var e=h[i]; if(e && e.swapFor && e.day===day && inWeek(e,w)) return e.swapFor; }
+  for(var i=h.length-1;i>=0;i--){ var e=h[i]; if(e && e.swapFor && e.day===day && inWeek(e,w)) return realSwapFor(day,e.swapFor); }   // R9 F8: an orphan is not a swap
   return null;
 }
 function addedForView(day){
@@ -1332,7 +1355,7 @@ function addedForView(day){
     for(var i=h.length-1;i>=0;i--){
       var e=h[i];
       if(e && inWeek(e,w) && (e.day||'')===day){
-        if(!e.swapFor || ownSets(e.swapFor,day) || effName(day,e.swapFor)!==n){ out.push(n); have[n]=1; }   // R6b F4: a substitute that is not the slot's current one still gets its own row
+        if(!realSwapFor(day,e.swapFor) || ownSets(e.swapFor,day) || effName(day,e.swapFor)!==n){ out.push(n); have[n]=1; }   // R6b F4: a substitute that is not the slot's current one still gets its own row
         break;
       }
     }
@@ -1503,15 +1526,44 @@ function tvText(s){
 }
 /* R6 F1: last time as runs ("230×12,12 · 210×12,10"); spaces let it wrap to 2 lines, the set he is on is accent */
 function fmtSetsRuns(sets, hi){
-  if(!sets || !sets.length) return '';
-  if(sets.some(function(x){ return x.r==null; })){
-    if(sets.every(function(x){ return x.r==null; })){        // R8 F3: weight-only legacy line = "225·225·225·220 lb" as ONE unbreakable group (no "wt " lead: 'lb' already says it is weight)
-      var ws=sets.filter(function(x){ return x.w!=null; }).map(function(x){ return fmtW(x.w); });
-      if(ws.length) return '<span class="lvg">'+escHtml(ws.join('·'))+' lb</span>';
-    }
-    return escHtml(fmtSets(sets));
+  var p=lvParts(sets, hi); return p ? lvJoin(p, p.items.length) : '';
+}
+/* R9 F1: last time as TOKENS that wrap only at separators and are never clipped.
+   runs ("230×12,12 ·" ...) join with a space; weight-only legacy ("225·" ...) joins with <wbr>; lvFit() drops the tail ("+2 more") until it fits 2 lines. */
+function lvParts(sets, hi){
+  if(!sets || !sets.length) return null;
+  if(sets.every(function(x){ return x.r!=null; })){
+    var groups=[], g=null;
+    sets.forEach(function(x,i){
+      if(!g || g.w!==x.w){ g={w:x.w, rs:[]}; groups.push(g); }
+      g.rs.push(i===hi ? '<span class="lvh">'+x.r+'</span>' : String(x.r));
+    });
+    return {items:groups.map(function(q){ return (q.w!=null ? escHtml(fmtW(q.w))+'×' : '')+q.rs.join(','); }), sep:' ·', join:' ', tail:''};
   }
-  return runsOf(sets, hi, true);
+  if(sets.every(function(x){ return x.r==null; })){
+    var ws=sets.filter(function(x){ return x.w!=null; }).map(function(x){ return escHtml(fmtW(x.w)); });
+    if(!ws.length) return {items:[escHtml(sets.length+(sets.length===1 ? ' set' : ' sets'))], sep:'', join:'', tail:''};
+    return {items:ws, sep:'·', join:'<wbr>', tail:' lb'};
+  }
+  return {items:sets.map(function(x){ return escHtml(setTxt(x)); }), sep:'·', join:'<wbr>', tail:''};
+}
+function lvPlain(sets){                   // R9 F5: the player's last-time grammar as plain text (sheets: no "wt ")
+  var p=lvParts(sets,-1); if(!p) return '';
+  return p.items.join(p.join===' ' ? ' · ' : '·')+p.tail;
+}
+function lvJoin(p, k){
+  var n=p.items.length, out=[];
+  for(var i=0;i<k;i++) out.push('<span class="lvg">'+p.items[i]+((i<k-1 || k<n) ? p.sep : '')+((i===k-1 && k===n) ? p.tail : '')+'</span>');
+  if(k<n) out.push('<span class="lvg">+'+(n-k)+' more'+p.tail+'</span>');
+  return out.join(p.join);
+}
+function lvFit(s){                        // R9 F1: fill #plLv, then shorten until nothing is clipped (2 lines max)
+  var el=$('plLv'), le=lastEntry(s), ed=editOf(s);
+  if(!le){ el.textContent='first time'; return; }
+  var p=lvParts(le.sets, ed ? ed.idx : s.sets.length);
+  if(!p){ el.textContent=''; return; }
+  var n=p.items.length, k=n; el.innerHTML=lvJoin(p, n);
+  while(k>1 && el.clientWidth && (el.scrollHeight>el.clientHeight+1 || el.scrollWidth>el.clientWidth+1)){ k--; el.innerHTML=lvJoin(p, k); }
 }
 /* R6b F9: ONE grammar for last time everywhere (player, history, review, list rows): comma = next set, " · " = next weight.
    In the player each "· 210×12,10" run is nowrap, so a wrap can never strand a "·" at the end of a line. */
@@ -1710,7 +1762,7 @@ function ensureVisible(){                 // keep current row, next row and Undo
   var top=1e9, bot=0;
   rows.forEach(function(r){ top=Math.min(top,r.offsetTop); bot=Math.max(bot,r.offsetTop+r.offsetHeight); });
   if(top<L.scrollTop+2) L.scrollTop=Math.max(0, top-4);
-  else if(bot>L.scrollTop+viewH-2) L.scrollTop=Math.max(0, Math.min(cr.offsetTop-4, bot-viewH+4));
+  else if(bot>L.scrollTop+viewH+1) L.scrollTop=Math.max(0, Math.min(cr.offsetTop-4, bot-viewH+4));
 }
 function chipsBuild(){
   var h=''; for(var i=1;i<=60;i++) h+='<button class="ch" data-act="rep" data-r="'+i+'">'+i+'</button>';
@@ -1744,8 +1796,8 @@ function logSide(s, ed){                   // buttons LEFT of LOG, edit mode onl
 }
 function fadeSets(){                       // a soft edge only while more pills wait off to the right
   var pv=$('plSets'), more=pv.scrollWidth>pv.clientWidth+2;
-  pv.style.setProperty('--fl', (more && pv.scrollLeft>2) ? '18px' : '0px');
-  pv.style.setProperty('--fr', (more && pv.scrollLeft+pv.clientWidth<pv.scrollWidth-2) ? '18px' : '0px');
+  pv.style.setProperty('--fl', (more && pv.scrollLeft>2) ? '24px' : '0px');   // R9 F10: 24px, only while there is more to scroll to
+  pv.style.setProperty('--fr', (more && pv.scrollLeft+pv.clientWidth<pv.scrollWidth-2) ? '24px' : '0px');
   pv.classList.toggle('fade', more);
 }
 $('plSets').addEventListener('scroll', fadeSets, {passive:true});
@@ -1764,7 +1816,8 @@ function drawPlayer(){
   $('player').classList.toggle('ed-on', !!ed);
   /* exercise + big SET n OF M numeral */
   var pnb=$('plNameBox'); $('plName').textContent=s.name; pnb.classList.remove('lg');
-  if(pnb.scrollHeight>pnb.clientHeight+1 || $('plName').scrollHeight>pnb.clientHeight+1) pnb.classList.add('lg');
+  pnb.classList.toggle('one', !!s.ss);      // R9 F6: a superset's title is ONE line (ellipsis) in the same 46pt box; the member tabs below carry the rest
+  if(!s.ss && (pnb.scrollHeight>pnb.clientHeight+1 || $('plName').scrollHeight>pnb.clientHeight+1)) pnb.classList.add('lg');
   var sl, se=$('plSet');
   var of=function(n){ return n>=5 ? '/'+n : 'of '+n; };     // 5+ sets: "3/5" keeps room for every set pill (H2)
   if(ed) sl='<small>Edit</small><b>'+(ed.idx+1)+'</b>';       // R6 F13: no "of m" so pill 4 is never clipped
@@ -1795,7 +1848,7 @@ function drawPlayer(){
   /* target (coach) and last time (what he lifted) live in different cells — never mixed */
   $('plTv').textContent=tvText(s);
   $('plPl').textContent=platesLine(s);
-  $('plLv').innerHTML=lvText(s); $('plLd').textContent=lvDate(s);
+  lvFit(s); $('plLd').textContent=lvDate(s);   /* R9 F1 */
   /* set pills = progress + edit entry points */
   var ph='';
   for(var i=0;i<np;i++){
@@ -1819,7 +1872,7 @@ function drawPlayer(){
   var txt = typing ? (S.typing.fresh ? (w==null?'—':fmtW(w)) : (S.typing.buf===''?'—':S.typing.buf))
                    : (w==null ? '—' : fmtW(w));
   we.textContent=txt;
-  we.className=(typing?'typing':'')+(typing && S.typing.fresh?' fresh':'')+(txt.length>4?' long':'')+(!typing && (wv.src==='plan'||wv.src==='same'||wv.src==='drop'||wv.src==='last'||wv.src==='check') ? ' pre' : '')+(!typing && (wv.src==='plan'||wv.src==='same'||wv.src==='drop') ? ' planw' : '');   // R6 F9: a prefilled-same weight reads white; steel = last time / check
+  we.className=(typing?'typing':'')+(typing && S.typing.fresh?' fresh':'')+(txt.length>=4?' long':'')+(txt.length>=5?' xlong':'')+(!typing && (wv.src==='plan'||wv.src==='same'||wv.src==='drop'||wv.src==='last'||wv.src==='check') ? ' pre' : '')+(!typing && (wv.src==='plan'||wv.src==='same'||wv.src==='drop') ? ' planw' : '');   // R6 F9: a prefilled-same weight reads white; steel = last time / check
   var cap=$('plWc'); cap.textContent=(CAPS[wv.src]||'')+' · '+unitOf(s);   // R6b F1: no "WAS" caption; a drop set's amber cue is the class + the DROP SET tag
   cap.className='wcap '+(wv.src==='plan'?'plan':(wv.src==='same'?'same':(wv.src==='edit'?'edit':(wv.src==='check'?'drop':(wv.src==='drop'?'drop':'')))))+((!ed && isDrop(s) && idx>0 && wv.src==='same') ? ' drop' : '');
   $('pad').hidden=!typing; $('list').classList.toggle('padpad', typing);
@@ -1844,9 +1897,14 @@ function drawPlayer(){
   if(!fin) centerReps(repCenter(s,idx,r!=null ? r : ri.hint), r, s.spec.lo!=null ? [s.spec.lo,s.spec.hi] : null, ri.hint);
   var ub=$('plUndo'), uo=!!(S.undo && !ed);          // Undo has its OWN fixed slot in the set row: LOG never moves (H-1)
   ub.disabled=!uo; ub.setAttribute('aria-disabled', uo ? 'false' : 'true'); if(uo) ub.dataset.act='undo'; else ub.removeAttribute('data-act');
-  ub.setAttribute('aria-label', uo ? 'Undo '+(S.undo.txt||'') : 'Nothing to undo');
   ub.setAttribute('aria-label', uo ? 'Undo '+undoName(S.undo)+' '+(S.undo.txt||'') : 'Nothing to undo');
   ub.innerHTML= (uo && S.undo.txt && (S.undo.kind==='log' || S.undo.kind==='edit')) ? 'Undo<small>'+escHtml(S.undo.txt)+'</small>' : 'Undo';   // R8 F13: "Undo 230×12" - the lift's name is in the aria-label and the undo toast
+  if(uo && S.undo.txt && (S.undo.kind==='log' || S.undo.kind==='edit') && undoName(S.undo)){        // R9 F7: the lift's short name as a muted 3rd line, only when it fits whole
+    ub.insertAdjacentHTML('beforeend','<small class="un">'+escHtml(undoName(S.undo))+'</small>');
+    var uns=ub.querySelectorAll('small'), tight=ub.clientWidth && ub.scrollHeight>ub.clientHeight+1;
+    for(var ui=0;ui<uns.length;ui++) if(uns[ui].scrollWidth>uns[ui].clientWidth+1) tight=true;
+    if(tight){ var un0=ub.querySelector('.un'); if(un0) un0.remove(); }
+  }
   var nxs=(!fin && !ed) ? nextSlot(m, s) : null;        // one quiet line: what comes after this set's lift (R5 F16)
   var wrapN=nxs && !(s.ss && nxs.bi===s.bi) && m.indexOf(nxs)<m.indexOf(s);       // R6 F15: nothing after this lift: say so (the earlier unfinished one is not "next")
   var rem=null;                                       // R6b F17: "Last lift" only when no unfinished lift remains anywhere; else name the first one
@@ -1861,10 +1919,10 @@ function drawDone(){
   var miss=m.length-logged, core=(S.day==='mon' || S.day==='wed');
   $('plDone').innerHTML='<h2>'+(miss ? 'Nothing left to log' : 'Session complete')+'</h2><p class="num">'
     +logged+' of '+m.length+' exercises · '+sets+' sets logged'+(miss ? ' · '+miss+' skipped' : '')+'.</p>'
-    +(S.undo ? '<button class="bt" data-act="undo">Undo '+escHtml(undoName(S.undo))+' '+escHtml(S.undo.txt||'')+'</button>' : '')
-    +'<button class="bt pr1" data-act="review">Day review</button>'
+    +(S.undo ? '<button class="bt" data-act="undo">'+ICO.back+'Undo '+escHtml(undoName(S.undo))+' '+escHtml(S.undo.txt||'')+'</button>' : '')
+    +'<button class="bt pr1" data-act="review">'+ICO.review+'Day review</button>'
     +(core ? '<button class="bt" data-core-timer data-act="closeSheet">'+ICO.play+'Core timer</button>' : '')
-    +'<button class="bt" data-act="note">Session note</button>'
+    +'<button class="bt" data-act="note">'+ICO.note+'Session note</button>'   /* R9 F12: every button leads with an icon */
     +'<button class="bt" data-act="add">'+ICO.plus+'Add exercise</button>';
 }
 function render(){
@@ -2151,7 +2209,7 @@ function ctxLine(){                        // keeps current/target/last visible 
   var ed=editOf(s), idx=ed ? ed.idx : s.sets.length, le=lastEntry(s);
   return '<div class="ctx"><div data-probe="current"><b>'+escHtml(s.name)+'</b> · set '+(idx+1)+' of '+s.n+'</div>'
     +'<div class="c2"><span data-probe="target">Target '+escHtml(tvText(s))+'</span>'
-    +'<span data-probe="last">Last '+escHtml(le ? fmtDate(le.date)+' '+fmtSets(le.sets) : 'first time')+'</span></div></div>';
+    +'<span data-probe="last">Last '+escHtml(le ? fmtDate(le.date)+' '+lvPlain(le.sets) : 'first time')+'</span></div></div>';
 }
 function openCoach(){
   var s=cur(); if(!s){ openDayNote(); return; }
@@ -2290,8 +2348,8 @@ function openSsView(){                     // dashed = planned, solid = done, in
     mem.forEach(function(k){
       if(i>=Math.max(k.n,k.sets.length)) return;
       var d=i<k.sets.length;
-      rows+='<div class="g '+(d?'dn':'pe')+'"><em>'+(i+1)+'</em><span>'+escHtml(shortName(k.name))+' · '
-        +(d ? escHtml(setTxt(k.sets[i])) : escHtml(tvText(k)))+'</span></div>';
+      rows+='<div class="g '+(d?'dn':'pe')+'"><em>'+(i+1)+'</em><span>'+escHtml(shortName(k.name))+'</span><b class="gv">'   /* R9 F5: name left (ellipsis), value right */
+        +(d ? escHtml(setTxt(k.sets[i])) : escHtml(tvText(k)))+'</b></div>';
     });
   }
   S.sheetMode='ssview';
