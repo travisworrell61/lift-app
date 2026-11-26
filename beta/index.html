@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07090d">
-<meta name="lift-build" content="r6">
+<meta name="lift-build" content="r6b">
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -47,7 +47,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .tab{flex:1;height:44px;border-radius:12px;display:flex;flex-direction:column;align-items:center;
   justify-content:center;color:var(--muted);position:relative}
 .tab b{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;line-height:1.1}
-.tab i{font-style:normal;font-size:10.5px;opacity:.75;line-height:1.1}
+.tab i{font-style:normal;font-size:13px;/* R6b F10 */opacity:.75;line-height:1.1}
 .tab.on{background:var(--s2);color:var(--ink);box-shadow:inset 0 -2px 0 var(--dc,var(--accent))}
 .tab.today::after{content:'';position:absolute;top:6px;right:8px;width:5px;height:5px;
   border-radius:50%;background:var(--dc,var(--accent))}
@@ -70,7 +70,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
   border:1px solid color-mix(in srgb,var(--warn) 50%,transparent);border-radius:6px;padding:1px 6px}
 
 /* ── CSS 3. checklist ── */
-#list{position:relative;flex:1;min-height:0;overflow-y:auto;padding:2px 10px 24px;
+#list{position:relative;flex:1;min-height:0;overflow-y:auto;padding:0 10px 24px;   /* R6b lead: -2px top pays for F6 */
   overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 #list::-webkit-scrollbar{display:none}
 #list.padpad{padding-bottom:124px}   /* room to scroll the last rows above the floating number pad */
@@ -98,7 +98,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .row.part .rs,.row.part.cur .rs{color:var(--accent)}   /* what he LIFTED reads ink/accent; plans stay muted (M-9) */
 .row.sw .rn::after{content:' ⇄';color:var(--warn);font-weight:700}
 .rr{display:flex;align-items:center;gap:8px}
-.tg{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--tagc);
+.tg{font-size:13px;/* R6b F10 */font-weight:800;letter-spacing:.06em;color:var(--tagc);
   border:1px solid color-mix(in srgb,var(--tagc) 50%,transparent);border-radius:5px;padding:1px 4px}
 .row.ssm::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--rc)}
 .row.ssf::before{top:7px;border-radius:3px 3px 0 0}
@@ -112,7 +112,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 
 /* ── CSS 4. player ── */
 #player{flex:none;position:relative;z-index:5;display:flex;flex-direction:column;gap:4px;
-  padding:3px 8px calc(6px + env(safe-area-inset-bottom));
+  padding:0 8px calc(4px + env(safe-area-inset-bottom));   /* R6b lead: -3px top, -2px bottom pay for F6 */
   background:linear-gradient(180deg,#1a212d,#10141b 70%);
   border-radius:22px 22px 0 0;border-top:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));
   box-shadow:0 -8px 20px rgba(0,0,0,.35)}
@@ -139,7 +139,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .pl-set.ed,.pl-set.ex{color:var(--warn)}
 .pl-set.fn{color:var(--ok)}
 .pl-set.ed b{color:var(--warn)}
-.bdg{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--tagc);white-space:nowrap;
+.bdg{font-size:13px;/* R6b F10 */font-weight:800;letter-spacing:.06em;color:var(--tagc);white-space:nowrap;
   border:1px solid color-mix(in srgb,var(--tagc) 50%,transparent);border-radius:5px;padding:1px 5px;
   line-height:1.3;margin-left:6px;vertical-align:1px}
 .pl-ss{display:flex;gap:6px;height:44px}
@@ -147,7 +147,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
   background:var(--s2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
   padding:0 6px;font-size:13px;font-weight:600;color:var(--steel);line-height:1.2}
 .sst span{max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sst b{flex:none;font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.sst b{flex:none;font-size:13px;/* R6b F10 */font-variant-numeric:tabular-nums;color:var(--muted)}
 .sst.on{border:2px solid var(--rc,var(--accent));color:var(--ink)}
 .sst.on b{color:var(--ink)}
 .sst.eye{flex:none;width:44px;padding:0;font-size:20px}
@@ -188,13 +188,13 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .sp.cu{border:2px solid var(--accent);color:var(--accent);background:transparent}
 .sp.ed{border:2px solid var(--warn);color:var(--warn);background:transparent}
 .sp.pe{color:var(--muted);border-style:dashed}
-#plNext{height:18px;font-size:15px;line-height:18px;font-weight:600;color:var(--steel);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px;margin-top:-2px}
-#plNext b{color:var(--steel);font-weight:700}
+#plNext{height:18px;font-size:15px;line-height:18px;font-weight:500;color:var(--steel);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px;margin-top:-2px}   /* R6b F18: regular weight sets it apart from Target; spacing kept at R6 (lead: the 4px cost T6 the last row) */
+#plNext b{color:var(--steel);font-weight:500}
 #plEntry{display:flex;flex-direction:column;gap:12px}   /* >= 12pt between weight row, rep strip and LOG */
 .pl-w{display:flex;align-items:flex-end;gap:2px;height:56px}
 .ws{flex:none;width:44px;height:44px;border-radius:11px;background:var(--s2);border:1px solid var(--line);
   font-size:13.5px;font-weight:700;color:var(--steel);font-variant-numeric:tabular-nums;padding:0}
-.ws.sm{font-size:12.5px}
+.ws.sm{font-size:13px}   /* R6b F10 */
 .ws:active{background:var(--s3)}
 .wbox{flex:1;min-width:0;height:56px;position:relative;display:flex;align-items:center;
   justify-content:center;border-radius:12px}
@@ -229,7 +229,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .ch.on{background:var(--accent);box-shadow:none;color:var(--accent-ink);font-size:26px;font-weight:800}   /* the chosen number: solid and bigger, readable from arm's length (R5 F15) */
 .ed-on .ch.on{background:var(--warn);color:var(--accent-ink)}
 .ch:active{background:var(--accent);color:var(--accent-ink)}
-#logRow{display:flex;gap:8px;margin-top:8px}
+#logRow{display:flex;gap:8px;margin-top:12px}   /* R6b F6: 4 (player gap) + 12 = 16pt between the rep chips and LOG (was 12); lead trimmed from 18 so the last list row stays clear (T6) */
 #logRow.nar #logBtn .l2{font-size:24px}
 #logRow.nar #logBtn .lrow{gap:8px}
 #logSide{display:flex;gap:8px;flex:none}
@@ -306,7 +306,7 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
 .li{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;
   padding:0 10px;border-radius:10px;text-align:left;font-size:16px}
 .li:active{background:var(--s3)}
-.li small{color:var(--muted);font-size:12.5px}
+.li small{color:var(--muted);font-size:13px}   /* R6b F10 */
 .li.cu{color:var(--accent);font-weight:700}
 .li.en{box-shadow:inset 3px 0 0 var(--accent)}   /* R6 F3: the row Enter will take */
 .li.off{opacity:.45;pointer-events:none}
@@ -317,7 +317,7 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
   font-size:15px;min-height:46px}
 .hr b{flex:none;width:44px;color:var(--steel)}
 .hr span{flex:1;min-width:0;font-variant-numeric:tabular-nums}
-.hr i{font-style:normal;font-size:11px;color:var(--muted);flex:none}
+.hr i{font-style:normal;font-size:13px;/* R6b F10 */color:var(--muted);flex:none}
 .hr .htag{flex:none;min-width:44px;height:44px;padding:0 10px;border-radius:10px;background:var(--s2);
   border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--steel)}
 .ssv{padding:4px 14px 10px}
@@ -647,7 +647,16 @@ var memStore=null, memNotes=null;
 function cleanLogs(o){                    // a malformed entry (no sets array) must not crash the app; nothing is deleted
   Object.keys(o).forEach(function(k){
     var h=o[k]; if(!Array.isArray(h)) return;
-    h.forEach(function(e){ if(e && typeof e==='object' && !Array.isArray(e.sets)) e.sets=[]; });
+    h.forEach(function(e){
+      if(!(e && typeof e==='object') || Array.isArray(e.sets)) return;
+      /* R6b F19: the app works on an empty sets list, but the malformed value itself is kept and written back unchanged until a real set is logged into it */
+      var raw=e.sets;
+      Object.defineProperty(e,'toJSON',{enumerable:false,configurable:true,writable:true,value:function(){
+        var c={}; Object.keys(this).forEach(function(q){ c[q]=this[q]; }, this);
+        if(Array.isArray(c.sets) && !c.sets.length && raw!==undefined) c.sets=raw; else if(raw===undefined && Array.isArray(c.sets) && !c.sets.length) delete c.sets;
+        return c; }});
+      e.sets=[];
+    });
   });
   return o;
 }
@@ -947,15 +956,15 @@ function ownSets(orig, day){                // the program lift itself already h
 function effName(day, orig){
   if(ownSets(orig,day)) return orig;
   var ov=loadOv(), sw=ov.swaps[day] && ov.swaps[day][orig]; if(sw) return sw;
-  var w=reviewWindow(), all=loadLogs();
-  for(var n in all){
+  var w=reviewWindow(), all=loadLogs(), best=null, bestD='';
+  for(var n in all){       // R6b F4: several substitutes can exist (double swap): the slot shows the LATEST one; addedForView gives the others their own rows
     var h=all[n]; if(!Array.isArray(h)) continue;
     for(var i=0;i<h.length;i++){
       var e=h[i];
-      if(e && e.swapFor===orig && e.day===day && inWeek(e,w)) return n;
+      if(e && e.swapFor===orig && e.day===day && inWeek(e,w) && (best===null || String(e.date||'')>bestD)){ best=n; bestD=String(e.date||''); }
     }
   }
-  return orig;
+  return best!==null ? best : orig;
 }
 function dayLoggedDate(dayKey){          // real performed date of the day's session
   var w=reviewWindow(), all=loadLogs(), best=null;
@@ -1181,7 +1190,7 @@ function addedForView(day){
     for(var i=h.length-1;i>=0;i--){
       var e=h[i];
       if(e && inWeek(e,w) && (e.day||'')===day){
-        if(!e.swapFor || ownSets(e.swapFor,day)){ out.push(n); have[n]=1; }
+        if(!e.swapFor || ownSets(e.swapFor,day) || effName(day,e.swapFor)!==n){ out.push(n); have[n]=1; }   // R6b F4: a substitute that is not the slot's current one still gets its own row
         break;
       }
     }
@@ -1322,8 +1331,7 @@ function fmtSets(sets){
     var ws=sets.filter(function(x){ return x.w!=null; });
     return ws.length ? 'wt '+ws.map(function(x){ return fmtW(x.w); }).join('·')+' lb' : sets.length+(sets.length===1 ? ' set' : ' sets');
   }
-  var same=sets.length>1 && sets.every(function(x){ return x.w===sets[0].w && x.r!=null; });
-  if(same && sets[0].w!=null) return fmtW(sets[0].w)+'×'+sets.map(function(x){ return x.r; }).join('·');
+  if(sets.every(function(x){ return x.r!=null; })) return runsOf(sets, -1, false);   // R6b F9: same runs grammar as the player ("230×12,12 · 210×12,10")
   return sets.map(setTxt).join('·');
 }
 function unitKind(s){                     // 'side' | 'each' | '': the library decides; the plates text only for lifts missing from it (M4)
@@ -1332,7 +1340,7 @@ function unitKind(s){                     // 'side' | 'each' | '': the library d
   if(imp==='db' || imp==='kb') return 'each';
   if(e || s.swapped || s.added) return '';
   var pl=platesFor(s.orig) || '';
-  if(/\/\s*side|per side/i.test(pl)) return 'side';
+  if(/\/\s*side|per side/i.test(pl) && !/^\s*(?:ez[\s-]*bar|barbell|bar)\b/i.test(pl)) return 'side';   // R6b F15: "EZ bar 25 + 10/side" starts with the bar's own weight: the logged number is a TOTAL
   if(/dumbbell|kettlebell|\bdbs?\b|\bkb\b/i.test(pl) && !/fixed/i.test(pl)) return 'each';
   return '';
 }
@@ -1354,16 +1362,25 @@ function tvText(s){
 function fmtSetsRuns(sets, hi){
   if(!sets || !sets.length) return '';
   if(sets.some(function(x){ return x.r==null; })) return escHtml(fmtSets(sets));
+  return runsOf(sets, hi, true);
+}
+/* R6b F9: ONE grammar for last time everywhere (player, history, review, list rows): comma = next set, " · " = next weight.
+   In the player each "· 210×12,10" run is nowrap, so a wrap can never strand a "·" at the end of a line. */
+function runsOf(sets, hi, html){
   var groups=[], g=null;
   sets.forEach(function(x,i){
     if(!g || g.w!==x.w){ g={w:x.w, rs:[]}; groups.push(g); }
-    g.rs.push(i===hi ? '<span class="lvh">'+x.r+'</span>' : String(x.r));
+    g.rs.push(html && i===hi ? '<span class="lvh">'+x.r+'</span>' : String(x.r));
   });
-  return groups.map(function(q){ return (q.w!=null ? escHtml(fmtW(q.w))+'×' : '')+q.rs.join(','); }).join(' · ');
+  return groups.map(function(q,i){
+    var t=(q.w!=null ? escHtml(fmtW(q.w))+'×' : '')+q.rs.join(',');
+    return html ? (i ? ' <span style="white-space:nowrap">· '+t+'</span>' : t) : (i ? ' · ' : '')+t;
+  }).join('');
 }
 function lvText(s){
   var le=lastEntry(s);
-  return le ? fmtSetsRuns(le.sets, s.sets.length) : 'first time';   // R6 F1
+  var ed=editOf(s);                       // R6b F7: while fixing a set, highlight THAT set of last time
+  return le ? fmtSetsRuns(le.sets, ed ? ed.idx : s.sets.length) : 'first time';   // R6 F1
 }
 function lvDate(s){ var le=lastEntry(s); return le ? fmtDate(le.date) : ''; }
 /* weight shown for the NEXT set, and where it came from (drives the PLAN / SAME caption) */
@@ -1377,10 +1394,7 @@ function weightFor(s, idx){
     for(var q=Math.min(idx,s.flat.length)-1;q>=0;q--){ var fe=s.flat[q].e; if((fe.scale_tag||homeTag(s.name))===s.tag){ prev=s.flat[q].st; break; } }
   }
   if(prev && prev.w!=null){
-    if(isDrop(s) && idx>0 && prev.w>0){        // R6 F8: a drop set's one-tap value IS the drop: -10%, to the nearest 2.5
-      var dv=Math.round(prev.w*0.9/2.5)*2.5;
-      if(dv<prev.w) return {v:dv, src:'drop', was:prev.w};
-    }
+    /* R6b F1 (Travis): a drop set starts EVERY set at the top weight (he drops mid-set), so set 2+ = the previous set's weight; "drop set" is a reminder only */
     return {v:prev.w, src:'same'};
   }
   if(planOk(s)){ var rc=recNum(s.orig); if(rc!=null) return {v:rc, src:'plan'}; }
@@ -1414,7 +1428,8 @@ function repInfo(s, idx){
 }
 function repCenter(s, idx, base){         // where the strip is scrolled (not a value)
   if(base!=null){                           // R6 F7: window starts 3 chips below the selected / prefilled rep (7 chips show); a short range keeps its low end too
-    var lf=base-3;
+    var wide=(s.spec.lo!=null && s.spec.hi!=null && s.spec.hi-s.spec.lo>=5) || (s.tags||[]).indexOf('amrap')>=0 || /burnout|amrap/i.test(s.reps||'');
+    var lf=base-(wide ? 4 : 3);               // R6b F11: wide ranges / burnout / AMRAP fall further between sets: 4 chips below the base
     if(!editOf(s) && s.spec.lo!=null && s.spec.lo<lf && base-s.spec.lo<=6) lf=s.spec.lo;
     return Math.max(4,lf+3);
   }
@@ -1445,7 +1460,11 @@ function logSubText(s, idx, w, r, showW, hint, src){
   if(r==null) return 'pick your reps below';          // the message lives ON the button (H3)
   if(showW && w==null) return 'set the weight first';
   if(idx>=s.n) return 'extra set';
-  if(isDrop(s) && idx>0) return (s.sets[idx-1] && w!=null && s.sets[idx-1].w!=null && w<s.sets[idx-1].w) ? 'drop set' : 'same weight · drop it';   // R5 F5: a drop set repeats the weight only as a reminder to take it down
+  if(isDrop(s) && idx>0){                                        // R6b F1: every drop-set set starts at the top weight; "drop set" is a reminder, never an instruction to lower it
+    var dp=s.sets[idx-1];
+    if(!dp || dp.w==null || w==null) return 'drop set';
+    return dp.w===w ? 'drop set · same start' : 'adjusted';
+  }
   if(s.spec.hi!=null && hasPlan(s)){
     if(!matchesPlan(s,w,r)) return 'adjusted';
     if(src==='prev') return 'same as last set';              // reps carried from the set before are not "the plan" (R5 F5)
@@ -1453,15 +1472,23 @@ function logSubText(s, idx, w, r, showW, hint, src){
       var lle=lastEntry(s), lx=lle && lle.sets[idx];
       if(lx && lx.w===w && lx.r===r) return 'same as last time';
       if(lx && lx.w!=null && w!=null && w>lx.w) return 'up from last time';
+      if(lx && lx.w!=null && w!=null && w<lx.w) return 'down from last time';   // R6b F2
       if(lx && lx.r===r) return 'reps as last time';
       return 'as planned';
     }
     return (src==='plan' && s.spec.lo!==s.spec.hi) ? 'top of '+s.spec.lo+'–'+s.spec.hi : 'as planned';   // a range is not a single plan (M-1)
   }
+  /* R6b F2: same honest ladder as the ranged branch; "adjusted" only when he changed something */
   var prev=idx>0 ? s.sets[idx-1] : null;
-  if(prev) return (prev.w===w && prev.r===r) ? 'same as last set' : 'adjusted';
+  if(prev && prev.w===w && prev.r===r) return 'same as last set';
   var le=lastEntry(s), x=le && le.sets[idx];
-  return (x && x.w===w && x.r===r) ? 'same as last time' : 'adjusted';
+  if(x && x.w===w && x.r===r) return 'same as last time';
+  if(x && x.w!=null && w!=null){
+    if(w>x.w) return 'up from last time';
+    if(w<x.w) return 'down from last time';
+  }
+  if(!prev && hasPlan(s) && matchesPlan(s,w,r)) return 'as planned';
+  return 'adjusted';
 }
 
 /* ═══ 12. rendering ════════════════════════════════════════════════════════ */
@@ -1642,7 +1669,7 @@ function drawPlayer(){
                    : (w==null ? '—' : fmtW(w));
   we.textContent=txt;
   we.className=(typing?'typing':'')+(typing && S.typing.fresh?' fresh':'')+(txt.length>4?' long':'')+(!typing && (wv.src==='plan'||wv.src==='same'||wv.src==='drop'||wv.src==='last'||wv.src==='check') ? ' pre' : '')+(!typing && (wv.src==='plan'||wv.src==='same'||wv.src==='drop') ? ' planw' : '');   // R6 F9: a prefilled-same weight reads white; steel = last time / check
-  var cap=$('plWc'); cap.textContent=wv.src==='drop' ? 'DROP · was '+fmtW(wv.was)+' · '+unitOf(s) : (CAPS[wv.src]||'')+' · '+unitOf(s);
+  var cap=$('plWc'); cap.textContent=(CAPS[wv.src]||'')+' · '+unitOf(s);   // R6b F1: no "WAS" caption; a drop set's amber cue is the class + the DROP SET tag
   cap.className='wcap '+(wv.src==='plan'?'plan':(wv.src==='same'?'same':(wv.src==='edit'?'edit':(wv.src==='check'?'drop':(wv.src==='drop'?'drop':'')))))+((!ed && isDrop(s) && idx>0 && wv.src==='same') ? ' drop' : '');
   $('pad').hidden=!typing; $('list').classList.toggle('padpad', typing);
   /* LOG row: never shows a rep count that was invented */
@@ -1671,7 +1698,10 @@ function drawPlayer(){
   ub.innerHTML= (uo && S.undo.txt && (S.undo.kind==='log' || S.undo.kind==='edit')) ? 'Undo<small>'+escHtml(undoTiny(undoName(S.undo)))+'</small><small>'+escHtml(S.undo.txt)+'</small>' : 'Undo';
   var nxs=(!fin && !ed) ? nextSlot(m, s) : null;        // one quiet line: what comes after this set's lift (R5 F16)
   var wrapN=nxs && !(s.ss && nxs.bi===s.bi) && m.indexOf(nxs)<m.indexOf(s);       // R6 F15: nothing after this lift: say so (the earlier unfinished one is not "next")
-  $('plNext').innerHTML=nxs ? (wrapN ? 'Last lift' : 'Next · <b>'+escHtml(shortName(nxs.name))+'</b>') : ((!fin && !ed) ? 'Last lift' : '');
+  var rem=null;                                       // R6b F17: "Last lift" only when no unfinished lift remains anywhere; else name the first one
+  if(!fin && !ed && (wrapN || !nxs)) m.some(function(k){ if(k!==s && !k.complete && !k.skipped && !k.swapOf){ rem=k; return true; } return false; });
+  var shown=(nxs && !wrapN) ? nxs : rem;
+  $('plNext').innerHTML=shown ? 'Next · <b>'+escHtml(shortName(shown.name))+'</b>' : ((!fin && !ed) ? 'Last lift' : '');
   $('plId').dataset.exercise=s.name;
 }
 function drawDone(){
@@ -1916,7 +1946,12 @@ var toastT=null;
 function toast(t, o){                      // o = {act:'reload', ms:20000} makes it a tappable banner
   var e=$('toast'); e.textContent=t; e.hidden=false;
   if(o && o.act) e.setAttribute('data-act', o.act); else e.removeAttribute('data-act');
-  clearTimeout(toastT); toastT=setTimeout(function(){ e.hidden=true; e.removeAttribute('data-act'); }, (o && o.ms) || 3200);
+  /* R6b F5: the tappable "new version" toast sits just above the player (not over the top pills) and stays 8 s; plain toasts stay at the top */
+  if(o && o.act){
+    var pl=$('player'), pt=pl ? pl.getBoundingClientRect().top : 0;
+    e.style.top='auto'; e.style.bottom=Math.max(8, Math.round(window.innerHeight-(pt||window.innerHeight)+8))+'px';
+  } else { e.style.top=''; e.style.bottom=''; }
+  clearTimeout(toastT); toastT=setTimeout(function(){ e.hidden=true; e.removeAttribute('data-act'); e.style.top=''; e.style.bottom=''; }, (o && o.act) ? 8000 : ((o && o.ms) || 3200));
 }
 /* weight: -10/-5/+5/+10 steppers and the in-app number pad (the system keyboard never shows for numbers) */
 function setDraftW(s, v){
@@ -2081,7 +2116,7 @@ function openMenu(){
 }
 function openReview(){
   var r=dayReviewData(), m=S.model||[];
-  var miss=m.filter(function(s){ return !s.logged; });
+  var miss=m.filter(function(s){ return !s.logged && !s.swapOf; });     // R6b F3: a late swap's substitute is never a "missing" lift
   var some=r.logged.length>0 && miss.length>0;       // "Not logged" chips only when 0 < done < total
   S.sheetMode='review';
   openSheet(shHead('Day review')+'<div class="sh-b"><div class="sh-p"><b class="num">'+r.logged.length
@@ -2089,9 +2124,15 @@ function openReview(){
     +(some ? '<div class="sh-k">Not logged — tap to go back</div><div class="chips">'+miss.map(function(s){
         return '<button class="chp" data-act="goto" data-key="'+escA(s.key)+'">'+escHtml(s.name)+'</button>';
       }).join('')+'</div>' : (miss.length ? '' : '<div class="sh-p">All logged ✓</div>'))
-    +'<div class="sh-k">Logged</div>'+m.filter(function(s){ return s.logged; }).map(function(s){
+    +(r.logged.length ? '<div class="sh-k">Logged</div>' : '')                  // R6b F16: no orphan heading when nothing is logged
+    +m.filter(function(s){ return s.logged && !s.swapOf; }).map(function(s){   // R6b F3: substitutes fold under their original
+        var subs=m.filter(function(k){ return k.swapOf===s.key && k.logged; });
         return '<button class="li" data-act="goto" data-key="'+escA(s.key)+'"><span>'+escHtml(s.name)
-          +'</span><small class="num">'+escHtml(fmtSets(s.sets))+'</small></button>';
+          +'</span><small class="num">'+escHtml(fmtSets(s.sets))+'</small></button>'
+          +subs.map(function(k){
+            return '<button class="li" data-act="goto" data-key="'+escA(k.key)+'"><span>↳ '+escHtml(k.name)
+              +'</span><small class="num">'+escHtml(fmtSets(k.sets))+'</small></button>';
+          }).join('');
       }).join('')+'</div>');
 }
 function openSsView(){                     // dashed = planned, solid = done, interleaved in play order
@@ -2181,8 +2222,20 @@ function setStation(tag){                  // a station switch applies from the 
   S.tag[c.name]=tag; saveDrafts();
   S.edit=null; closeSheet();               // the next LOG writes a second entry (same date rules) tagged with this station
 }
+/* R6b F13: a typed/custom name that only differs by case or spacing from a lift he already has (library, any program day, anything he ever logged) resolves to THAT name,
+   so "hammer curl" never starts a second history next to "Hammer Curl" */
+function canonName(name){
+  var key=function(x){ return String(x).toLowerCase().replace(/\s+/g,' ').trim(); }, want=key(name), hit=null;
+  var see=function(n){ if(!hit && n && key(n)===want) hit=String(n); };
+  try{ pickerGroups().forEach(function(g){ (g.names||[]).forEach(see); }); }catch(e){}
+  try{ (S.model||[]).forEach(function(k){ see(k.name); see(k.orig); }); }catch(e){}
+  try{ ORDER.forEach(function(dk){ var d=PROGRAM && PROGRAM[dk]; ((d && d.A) || []).forEach(function(b){ (b.e||[]).forEach(function(e){ if(e) see(e[0]); }); }); }); }catch(e){}
+  try{ var all=loadLogs(); for(var n in all) see(n); }catch(e){}
+  return hit || name;
+}
 function pickName(name){
   name=String(name); if(!name.trim()) return;
+  name=canonName(name.trim());
   var ov=loadOv(), mode=S.sheetMode;
   if(mode==='swap'){
     var s=S.sheetFor; if(!s) return;
@@ -2380,11 +2433,16 @@ try{
       else skipCurrent();
     }
   }, {passive:true});
+  el.addEventListener('touchcancel', function(){ clearTimeout(lp); lpFired=false; moved=true; }, {passive:true});   // R6b F14: iOS cancels the touch (call, notification, edge swipe): no phantom long-press menu
   el.addEventListener('contextmenu', function(e){ e.preventDefault(); });
 })();
 /* resume / background */
 document.addEventListener('visibilitychange', function(){
   if(document.visibilityState!=='visible'){ liftSyncLogs(); return; }     // keep-awake is NOT released on hide (B-1)
+  lifeResume();
+});
+window.addEventListener('pageshow', function(e){ if(e.persisted) lifeResume(); });   // R6b F14: back/forward-cache restore does not fire visibilitychange on every iOS version
+function lifeResume(){
   liftSyncLogs(); loadProgram(false);
   if(!$('abtimer').hidden) liftWake(true);                              // timer still open: re-assert after the app returns
   try{ if(LIFT_ACTX && LIFT_ACTX.state!=='running') LIFT_ACTX.resume().catch(function(){}); }catch(e){}   // beeps after an interruption (M-8)
@@ -2395,8 +2453,18 @@ document.addEventListener('visibilitychange', function(){
     if(!S.pinned){ var nd=defaultDayKey(); if(nd!==S.day){ S.day=nd; S.sel=null; S.edit=null; S.typing=null; } }
     render();                              // open pad / edit mode / sheets are state, so they survive this
   }
-});
+}
 window.addEventListener('pagehide', function(){ liftWake(false); liftSyncLogs(); });
+/* R6b F12: when the player grows or shrinks (superset, edit mode, pad) the list resizes with it. If the last row was in view before, keep it in view. */
+try{
+  var plH0=0;
+  new ResizeObserver(function(){
+    var P=$('player'), L=$('list'); if(!P || !L) return;
+    var h=P.offsetHeight, d=h-plH0; plH0=h;
+    if(d<=0 || plH0-d<=0) return;                       // only a growing player can cover the last row
+    if(L.scrollTop>0 && L.scrollHeight-L.scrollTop-(L.clientHeight+d)<48) L.scrollTop=L.scrollHeight;   // only a list he had already scrolled to its end (never moves rows he is not scrolling)
+  }).observe($('player'));
+}catch(e){}
 /* new-version nudge: at most hourly, only when idle, never auto-reloads (H10) */
 var lastBuildChk=Date.now();
 function checkBuild(){
@@ -2408,7 +2476,7 @@ function checkBuild(){
       .then(function(r){ return r.ok ? r.text() : ''; })
       .then(function(t){
         var m=/name="lift-build" content="([^"]*)"/.exec(t), me=document.querySelector('meta[name="lift-build"]');
-        if(m && me && m[1]!==me.getAttribute('content')) toast('New version ready — tap here to reload', {act:'reload', ms:20000});
+        if(m && me && m[1]!==me.getAttribute('content')) toast('New version ready — tap here to reload', {act:'reload', ms:8000});   // R6b F5
       }).catch(function(){});
   }catch(e){}
 }
@@ -2769,8 +2837,16 @@ function programKeyWarnings(prog){
         if(day && typeof day==='object' && !Array.isArray(day)) Object.keys(day).forEach(function(k){ if(!known(k)) bad.push(k); }); });
       warnBad(bad, label); } }
     checkDayNested(prog.recs,'recs'); checkDayNested(prog.plates,'plates'); checkMap(prog.alts,'alts');
-    if(Array.isArray(prog.plateMode)){ var bp=prog.plateMode.filter(function(k){ return !known(k); });
-      if(bp.length) warns.push('plateMode '+bp.slice(0,3).map(q).join(', ')+(bp.length>3?' +'+(bp.length-3):'')+' (no matching exercise)'); }
+    /* R6b F8: warn (never block) on published shapes this build does not read */
+    if(prog.recs && typeof prog.recs==='object' && !Array.isArray(prog.recs)){
+      var nd=Object.keys(prog.recs).filter(function(k){ return ORDER.indexOf(k)<0; });
+      if(nd.length) warns.push('recs key '+nd.slice(0,3).map(q).join(', ')+(nd.length>3?' +'+(nd.length-3):'')+' is not a day (mon/tue/wed/fri) — recs are { day: { exercise: weight } }');
+      var rich=[]; ORDER.forEach(function(dk){ var dd=prog.recs[dk];
+        if(dd && typeof dd==='object' && !Array.isArray(dd)) Object.keys(dd).forEach(function(k){ var v=dd[k];
+          if(v && typeof v==='object' && ('lo' in v || 'hi' in v || 'cue' in v || 'v' in v || 'w' in v)) rich.push(k); }); });
+      if(rich.length) warns.push('recs for '+rich.slice(0,3).map(q).join(', ')+(rich.length>3?' +'+(rich.length-3):'')+' use lo/hi/cue/v — this build only reads a number, so they are ignored');
+    }
+    if(prog.plateMode!=null || prog.plateSet!=null) warns.push('plateMode/plateSet are not supported in this build — plates are ignored');
     // Rich text is allowed ONLY in prog.t — everywhere else renders literally (escaped), so a
     // <b>/<i>/<span> outside prog.t is a paste mistake. Matches markup-SHAPED strings only;
     // plain "<45°" / "(<60s rest)" prose never warns.
