@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07090d">
-<meta name="lift-build" content="r9">
+<meta name="lift-build" content="r10">
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -495,6 +495,8 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
 .abt.rest .abt-stage::before{content:'Core timer';font-size:13px}
 .abt.rest:has(#abtRoll:not([hidden])){background:rgba(7,8,10,.98)}
 .abt.rest:has(#abtRoll:not([hidden])) .abt-stage,.abt.rest:has(#abtRoll:not([hidden])) .abt-time{color:var(--accent)}
+/* R10: pre-start the big line ("MONDAY CORE") is the only title; the eyebrow keeps its space (no jump) but is hidden */
+.abt.rest:has(#abtRoll:not([hidden])) .abt-stage{visibility:hidden}
 .abt-meta{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;min-height:44px;}
 .abt-dur{font-family:var(--sys);font-weight:650;font-size:13px;letter-spacing:.08em;
     text-transform:uppercase;color:var(--muted);}
@@ -2809,6 +2811,29 @@ function ab_buildCircuit(){
   return { seq:seq, work:work, title:dayName+' Core'+(AB_ROLL>0?' · re-rolled':'') };
 }
 
+/* R10: pick the most natural English voice the device has. iOS exposes downloaded "Enhanced" / "Premium" voices
+   (Settings → Accessibility → Read & Speak → Voices) to web speech; the default compact voice is the robotic one. */
+var LIFT_VOICE=null;
+function liftVoiceScore(v){
+  var n=((v.name||'')+' '+(v.voiceURI||'')).toLowerCase(), s=0;
+  if(/premium/.test(n)) s+=100; else if(/enhanced/.test(n)) s+=60;
+  if(/^en[-_]us/i.test(v.lang||'')) s+=10;
+  if(/\b(ava|zoe|evan|nathan|samantha|allison|tom|susan|noelle|joelle|serena|daniel|karen|moira)\b/.test(n)) s+=20;
+  if(/compact|eloquence|novelty|albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|ralph|kathy|grandma|grandpa|rocko|shelley|flo|reed|sandy|eddy/.test(n)) s-=80;
+  return s;
+}
+function liftVoice(){
+  if(LIFT_VOICE) return LIFT_VOICE;
+  try{
+    var vs=(window.speechSynthesis && window.speechSynthesis.getVoices()) || [], best=null, bs=-1e9;
+    for(var i=0;i<vs.length;i++){ if(!/^en/i.test(vs[i].lang||'')) continue; var s=liftVoiceScore(vs[i]); if(s>bs){ bs=s; best=vs[i]; } }
+    LIFT_VOICE=best;
+  }catch(e){}
+  return LIFT_VOICE;
+}
+try{ if(window.speechSynthesis){ window.speechSynthesis.getVoices();
+  window.speechSynthesis.addEventListener && window.speechSynthesis.addEventListener('voiceschanged', function(){ LIFT_VOICE=null; liftVoice(); }); } }catch(e){}
+
 var Ab = (function(){
   var el = function(id){ return document.getElementById(id); };
   var phases=[], pi=0, remaining=0, running=false, started=false, timer=null, endAt=0, lastSec=-1, wake=null, wakeWant=false, actx=null;
@@ -2822,6 +2847,7 @@ var Ab = (function(){
       if(!('speechSynthesis' in window)) return;
       var u=new SpeechSynthesisUtterance(text);
       u.rate=1.0; u.pitch=1.0; u.volume=1.0; u.lang='en-US';
+      var vv=liftVoice(); if(vv){ u.voice=vv; u.lang=vv.lang; }
       window.speechSynthesis.speak(u);
     }catch(e){}
   }
