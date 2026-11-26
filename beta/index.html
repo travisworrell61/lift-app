@@ -1,0 +1,2481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#07090d">
+<meta name="lift-build" content="r2">
+<meta name="color-scheme" content="dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<title>LIFT</title>
+<style>
+/* ── CSS 1. tokens + base ── */
+:root{
+  --bg:#07090d; --bg2:#0c1016; --s1:#10141b; --s2:#171d27; --s3:#222a38; --line:#262e3d;
+  --panel:#10141b; --panel2:#171d27;
+  --ink:#f3f5f9; --steel:#b9c2d1; --muted:#8892a3;
+  --accent:#38bdf8; --accent-ink:#04121b; --ok:#4ade80; --warn:#fbbf24; --bad:#fb7185; --tagc:#c4b5fd;
+  /* ONE accent (cyan) = LOG, current set, PLAN. Day colour (--day) only tints the tab underline + backdrop. */
+  --kb:336px;
+  --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro",system-ui,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.25 var(--sys);
+  overscroll-behavior:none;-webkit-text-size-adjust:100%;color-scheme:dark}
+html{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+input,textarea,.note-ta,.sh-p,.daynote,.adm-in,.adm-ta{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;
+  touch-action:manipulation;-webkit-appearance:none;appearance:none}
+input,textarea{font:inherit;color:inherit;-webkit-appearance:none;appearance:none}
+.num{font-variant-numeric:tabular-nums}
+svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;background:
+  radial-gradient(120% 60% at 50% -10%,color-mix(in srgb,var(--day,var(--accent)) 9%,transparent),transparent 60%),var(--bg)}
+
+/* ── CSS 2. header (one band: day tabs + note + menu) ── */
+#hdr{flex:none;padding:max(6px,env(safe-area-inset-top)) 10px 0;display:grid;
+  grid-template-columns:1fr auto;align-items:center;column-gap:2px}
+.tabs{display:flex;gap:4px}
+.tab{flex:1;height:44px;border-radius:12px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;color:var(--muted);position:relative}
+.tab b{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;line-height:1.1}
+.tab i{font-style:normal;font-size:10.5px;opacity:.75;line-height:1.1}
+.tab.on{background:var(--s2);color:var(--ink);box-shadow:inset 0 -2px 0 var(--dc,var(--accent))}
+.tab.today::after{content:'';position:absolute;top:6px;right:8px;width:5px;height:5px;
+  border-radius:50%;background:var(--dc,var(--accent))}
+.hbtns{display:flex}
+.hbtn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  color:var(--steel);border-radius:12px}
+.hbtn:active{background:var(--s2)}
+.pr{grid-column:1/-1;display:flex;align-items:center;gap:8px;height:30px;padding:0 0 0 4px;
+  font-size:13px;color:var(--muted)}
+.pr .lk{flex:none;position:relative;height:28px;padding:0 9px;border-radius:9px;font-size:13px;font-weight:700;
+  color:var(--steel);border:1px solid var(--line);white-space:nowrap}
+.pr .lk::after{content:'';position:absolute;left:-4px;right:-4px;top:-2px;bottom:-14px}   /* hit area grows downward to ~44pt */
+.pr .lk:active{background:var(--s3)}
+.pr .brand{flex:none;font-weight:800;letter-spacing:.14em;color:var(--steel);font-size:11px;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.pr .bar{flex:1;height:4px;border-radius:2px;background:var(--s3);overflow:hidden;display:block}
+.pr .bar b{display:block;height:100%;width:0;background:var(--ok);border-radius:2px;transition:width .25s}
+.pr .tx{flex:none;font-variant-numeric:tabular-nums}
+.beta{flex:none;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--warn);
+  border:1px solid color-mix(in srgb,var(--warn) 50%,transparent);border-radius:6px;padding:1px 6px}
+
+/* ── CSS 3. checklist ── */
+#list{position:relative;flex:1;min-height:0;overflow-y:auto;padding:2px 10px 6px;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+#list::-webkit-scrollbar{display:none}
+#list.padpad{padding-bottom:124px}   /* room to scroll the last rows above the floating number pad */
+.boot{padding:40px 20px;color:var(--muted);text-align:center}
+.row{position:relative;display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;
+  column-gap:11px;width:100%;height:44px;padding:0 4px 0 12px;border-radius:10px;text-align:left}
+.row .gl{width:18px;height:18px;border-radius:50%;position:relative}
+.row.part .gl{border:2px solid var(--accent);background:conic-gradient(var(--accent) var(--pc,50%),transparent 0)}
+.row.dn .gl{background:var(--ok)}
+.row.dn .gl::after{content:'';position:absolute;left:5.5px;top:2px;width:4px;height:8px;
+  border:solid var(--accent-ink);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.row.sk .gl{border:2px dashed #4a5568}
+.row .rt{min-width:0}
+.rn{display:block;font-size:15px;font-weight:600;line-height:1.15;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.rs{display:block;font-size:11.5px;line-height:1.2;color:var(--muted);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.rs:empty{display:none}
+.row.dn .rn,.row.sk .rn{color:var(--steel);font-weight:500}
+.row.dn .rs{color:#7fd9a0}
+.row.cur{background:color-mix(in srgb,var(--accent) 15%,var(--s1));
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 55%,transparent)}
+.row.cur .rs{color:var(--steel)}
+.row.sw .rn::after{content:' ⇄';color:var(--warn);font-weight:700}
+.rr{display:flex;align-items:center;gap:8px}
+.tg{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--tagc);
+  border:1px solid color-mix(in srgb,var(--tagc) 50%,transparent);border-radius:5px;padding:1px 4px}
+.row.ssm::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--rc)}
+.row.ssf::before{top:7px;border-radius:3px 3px 0 0}
+.row.ssl::before{bottom:7px;border-radius:0 0 3px 3px}
+.row.ssm:not(.ssf):not(.ssl)::before{border-radius:0}
+.act{display:flex;align-items:center;justify-content:center;min-width:64px;height:44px;
+  border-radius:10px;font-size:14px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  background:var(--s3);color:var(--ink)}
+.act.cx{color:var(--warn)}
+.act.un{color:var(--accent);background:transparent;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 55%,transparent)}
+
+/* ── CSS 4. player ── */
+#player{flex:none;position:relative;z-index:5;display:flex;flex-direction:column;gap:4px;
+  padding:4px 12px calc(8px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,#1a212d,#10141b 70%);
+  border-radius:22px 22px 0 0;border-top:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));
+  box-shadow:0 -14px 34px rgba(0,0,0,.55)}
+#plId{display:flex;flex-direction:column;gap:4px}
+.pl-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:2px;
+  touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.pl-name{font-size:21px;font-weight:700;letter-spacing:-.01em;line-height:1.15;min-height:44px;
+  display:flex;align-items:center;min-width:0;overflow:hidden}
+.pl-name span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.pl-name.sm{font-size:16px;line-height:1.12}
+.pl-btns{display:flex;align-items:center}
+.pb{min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  border-radius:12px;color:var(--steel);font-size:12px;font-weight:700;padding:0 4px}
+.pb:active{background:var(--s3)}
+.pb.pill{border:1px solid var(--line);background:var(--s2);padding:0 9px;max-width:104px;margin-right:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;line-height:42px;border-radius:12px}
+.pl-setrow{display:flex;align-items:center;gap:8px;height:44px}
+.pl-set{display:flex;align-items:baseline;gap:6px;color:var(--accent);flex:none}
+.pl-set small{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.pl-set b{font-size:38px;line-height:1;font-weight:800;letter-spacing:-.02em;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+.pl-set.ed,.pl-set.ex{color:var(--warn)}
+.pl-set.fn{color:var(--ok)}
+.pl-set.ed b{color:var(--warn)}
+.bdg{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--tagc);white-space:nowrap;
+  border:1px solid color-mix(in srgb,var(--tagc) 50%,transparent);border-radius:5px;padding:1px 5px;
+  line-height:1.3;margin-left:6px;vertical-align:1px}
+.pl-ss{display:flex;gap:6px;height:44px}
+.sst{flex:1 1 0;min-width:0;height:44px;border-radius:12px;border:1px solid var(--line);
+  background:var(--s2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  padding:0 6px;font-size:13px;font-weight:600;color:var(--steel);line-height:1.2}
+.sst span{max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sst b{flex:none;font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.sst.on{border:2px solid var(--rc,var(--accent));color:var(--ink)}
+.sst.on b{color:var(--ink)}
+.sst.eye{flex:none;width:44px;padding:0;font-size:20px}
+.pl-tl{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pl-tl>*{min-width:0;text-align:left;border-radius:10px;padding:0 2px}
+.pl-tl small{display:block;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);line-height:1.3;white-space:nowrap}
+.pl-tl #plTv,.pl-tl #plLv{display:block;font-size:18px;font-weight:650;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;line-height:1.2;color:var(--ink)}
+.pl-tl #plLv{color:var(--steel);font-weight:500;font-size:16px}
+.pl-tl small #plPl{display:inline;margin-left:6px;font-size:13px;font-weight:500;letter-spacing:0;
+  text-transform:none;color:var(--muted)}
+.pl-tl #plLast{border-left:1px solid var(--line);height:44px;margin:-5px 0;padding:0 0 0 10px;border-radius:0;
+  display:flex;flex-direction:column;justify-content:center}
+.pl-sets{flex:1;min-width:0;display:flex;gap:6px;height:44px;overflow-x:auto;scrollbar-width:none}
+.pl-sets::-webkit-scrollbar{display:none}
+.sp{flex:1 0 52px;max-width:92px;height:44px;border-radius:12px;background:var(--s2);
+  border:1px solid var(--line);font-size:14px;font-weight:700;color:var(--steel);display:flex;
+  align-items:center;justify-content:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sp.dn{background:color-mix(in srgb,var(--ok) 14%,var(--s2));
+  border-color:color-mix(in srgb,var(--ok) 38%,var(--line));color:var(--ink)}
+.sp.cu{border:2px solid var(--accent);color:var(--accent);background:transparent}
+.sp.ed{border:2px solid var(--warn);color:var(--warn);background:transparent}
+.sp.pe{color:var(--muted);border-style:dashed}
+#plEntry{display:flex;flex-direction:column;gap:12px}   /* >= 12pt between weight row, rep strip and LOG */
+.pl-w{display:flex;align-items:flex-end;gap:3px;height:56px}
+.ws{flex:none;width:44px;height:44px;border-radius:11px;background:var(--s2);border:1px solid var(--line);
+  font-size:13.5px;font-weight:700;color:var(--steel);font-variant-numeric:tabular-nums;padding:0}
+.ws.sm{font-size:12.5px}
+.ws:active{background:var(--s3)}
+.wbox{flex:1;min-width:0;height:56px;position:relative;display:flex;align-items:center;
+  justify-content:center;border-radius:12px}
+#plW{width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:0;
+  font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--ink);
+  font-variant-numeric:tabular-nums;border-radius:12px}
+#plW.long{font-size:32px}
+#plW.typing{box-shadow:0 0 0 2px var(--accent);background:var(--s1)}
+#plW.fresh{color:var(--steel)}
+#plW.bad{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.wcap{position:absolute;top:0;left:-30px;right:-30px;text-align:center;pointer-events:none;font-size:13px;
+  font-weight:800;letter-spacing:.07em;white-space:nowrap;text-transform:uppercase;line-height:1;color:var(--muted)}
+.wcap.plan{color:var(--accent)}
+.wcap.same{color:var(--ink)}
+.wcap.edit{color:var(--warn)}
+.pl-bw{flex:1;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 6px;
+  color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.pl-bw button{height:44px;padding:0 14px;border:1px solid var(--line);border-radius:12px;
+  background:var(--s2);letter-spacing:0;text-transform:none;color:var(--steel);font-size:14px}
+.pl-reps{position:relative;display:flex;gap:6px;height:44px;flex:none;overflow-x:auto;scrollbar-width:none;
+  overscroll-behavior-x:contain}
+.pl-reps::-webkit-scrollbar{display:none}
+.ch{flex:0 0 46px;height:44px;border-radius:12px;background:var(--s3);font-size:18px;font-weight:700;
+  color:var(--steel);font-variant-numeric:tabular-nums}
+.ch.rg{color:var(--ink);background:#2a3447}
+.ch.on{background:transparent;box-shadow:inset 0 0 0 2px var(--accent);color:var(--accent)}
+.ed-on .ch.on{box-shadow:inset 0 0 0 2px var(--warn);color:var(--warn)}
+.ch:active{background:var(--accent);color:var(--accent-ink)}
+#logRow{display:flex;gap:8px;margin-top:8px}
+#logRow.nar #logBtn .l2{font-size:24px}
+#logRow.nar #logBtn .lrow{gap:8px}
+#logSide{display:flex;gap:8px;flex:none}
+#logSide:empty{display:none}
+.sb{width:84px;height:56px;border-radius:16px;background:var(--s2);border:1px solid var(--line);
+  color:var(--steel);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;line-height:1.1;padding:0 4px}
+.sb small{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;max-width:100%;overflow:hidden;
+  text-overflow:ellipsis}
+.sb:active{background:var(--s3)}
+.sb.rm{width:78px;color:var(--bad)}
+.sb.rm.sure{background:var(--bad);color:#1a0509;border-color:var(--bad)}
+.sb.rm.sure small{color:#1a0509}
+.sb.un{color:var(--ink)}
+#logBtn{flex:1;min-width:0;height:56px;border-radius:16px;background:var(--accent);color:var(--accent-ink);display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:1px;font-weight:800;
+  box-shadow:0 6px 18px color-mix(in srgb,var(--accent) 30%,transparent)}
+#logBtn .lrow{display:flex;align-items:baseline;gap:12px}
+#logBtn .l1{font-size:15px;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
+#logBtn .l2{font-size:30px;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1}
+#logBtn .l3{font-size:13px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;line-height:1.1}
+#logBtn:active{filter:brightness(.88);transform:scale(.995)}
+#logBtn.ed{background:var(--warn)}
+#logBtn.dis{background:var(--s3);color:var(--muted);box-shadow:none}
+#logBtn.xtra{background:var(--s2);color:var(--steel);box-shadow:none;border:1px solid var(--line)}
+#logBtn.xtra .l1{opacity:1;font-size:16px;letter-spacing:.04em}
+#plFin{height:108px;border-radius:14px;border:1px dashed var(--line);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;text-align:center;color:var(--steel);font-size:15px}
+#plFin b{font-size:22px;color:var(--ok)}
+/* in-app numeric pad: floats just above the player so the player never moves or hides */
+#pad{position:absolute;left:0;right:0;bottom:100%;z-index:4;display:grid;grid-template-columns:repeat(6,1fr);
+  gap:6px;padding:10px 12px 8px;background:#0e131b;border-top:1px solid var(--line);
+  box-shadow:0 -10px 24px rgba(0,0,0,.5)}
+.k{height:44px;border-radius:12px;background:var(--s3);font-size:22px;font-weight:700;
+  font-variant-numeric:tabular-nums}
+.k:active{background:var(--accent);color:var(--accent-ink)}
+.k.bs{font-size:18px;color:var(--steel)}
+.pl-done{display:flex;flex-direction:column;gap:10px;justify-content:center;min-height:260px}
+.pl-done h2{margin:0;font-size:26px;letter-spacing:-.02em}
+.pl-done p{margin:0;color:var(--steel);font-size:14px}
+.pl-done .bt{height:50px;border-radius:14px;background:var(--s3);font-weight:700;font-size:16px}
+.pl-done .bt.pr1{background:var(--accent);color:var(--accent-ink)}
+
+/* ── CSS 5. sheets ── */
+#scrim{position:fixed;inset:0;z-index:90;background:rgba(2,4,8,.6)}
+#sheet{position:fixed;z-index:100;left:8px;right:8px;top:max(8px,env(safe-area-inset-top));
+  max-height:calc(100% - 16px - env(safe-area-inset-top));display:flex;flex-direction:column;
+  background:#10151d;border:1px solid var(--line);border-radius:20px;overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.6)}
+body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-top))}
+.sh-h{flex:none;display:flex;align-items:center;gap:8px;padding:6px 6px 2px 16px}
+.sh-t{flex:1;min-width:0;font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.x{width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--steel);
+  border-radius:12px;font-size:20px}
+.ctx{flex:none;margin:2px 14px 6px;padding:7px 12px;border-radius:12px;background:var(--bg2);
+  border:1px solid var(--line);font-size:13px;color:var(--steel);line-height:1.35}
+.ctx b{color:var(--ink)}
+.ctx .c2{display:flex;gap:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctx .c2 span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.sh-in{flex:none;margin:4px 14px 8px;height:46px;border-radius:12px;border:1px solid var(--line);
+  background:var(--bg2);padding:0 14px;font-size:17px;width:calc(100% - 28px);outline:0}
+.sh-in:focus{border-color:var(--accent)}
+.sh-b{flex:1;min-height:0;overflow-y:auto;padding:0 8px calc(12px + env(safe-area-inset-bottom));overscroll-behavior:contain}
+.sh-p{padding:4px 16px 14px;color:var(--steel);font-size:15px;line-height:1.45;white-space:pre-wrap}
+.sh-p b{color:var(--ink)}
+.sh-k{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+  padding:12px 10px 4px}
+.li{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:46px;
+  padding:0 10px;border-radius:10px;text-align:left;font-size:16px}
+.li:active{background:var(--s3)}
+.li small{color:var(--muted);font-size:12.5px}
+.li.cu{color:var(--accent);font-weight:700}
+.li.off{opacity:.45;pointer-events:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:2px 10px 6px}
+.chp{min-height:44px;padding:0 14px;border-radius:12px;background:var(--s2);border:1px solid var(--line);
+  font-size:15px;font-weight:600}
+.hr{display:flex;gap:10px;align-items:center;padding:4px 12px;border-bottom:1px solid #1b2230;
+  font-size:15px;min-height:46px}
+.hr b{flex:none;width:44px;color:var(--steel)}
+.hr span{flex:1;min-width:0;font-variant-numeric:tabular-nums}
+.hr i{font-style:normal;font-size:11px;color:var(--muted);flex:none}
+.hr .htag{flex:none;min-width:44px;height:44px;padding:0 10px;border-radius:10px;background:var(--s2);
+  border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--steel)}
+.ssv{padding:4px 14px 10px}
+.ssv .g{display:flex;gap:8px;align-items:center;height:36px;font-size:15px;font-variant-numeric:tabular-nums}
+.ssv .g em{flex:none;width:22px;font-style:normal;font-size:12px;color:var(--muted)}
+.ssv .g span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ssv .g.pe span{border:1px dashed #3a4558;border-radius:8px;padding:4px 8px;color:var(--muted)}
+.ssv .g.dn span{border:1px solid color-mix(in srgb,var(--ok) 40%,var(--line));border-radius:8px;
+  padding:4px 8px;color:var(--ink);background:color-mix(in srgb,var(--ok) 10%,transparent)}
+.note-ta{flex:1;margin:4px 14px 6px;min-height:170px;max-height:300px;resize:none;border-radius:14px;
+  border:1px solid var(--line);background:var(--bg2);padding:12px 14px;font-size:17px;line-height:1.4;
+  outline:0;width:calc(100% - 28px)}
+.note-ta:focus{border-color:var(--accent)}
+.sh-sub{padding:0 18px 12px;font-size:12px;color:var(--muted)}
+.daynote{border-left:3px solid var(--pc,var(--accent));padding:2px 0 2px 12px;margin:8px 16px 12px;
+  color:var(--steel);font-size:14.5px;line-height:1.45}
+.daynote b{color:var(--ink)}
+.toast[data-act]{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 60px);
+  z-index:120;background:#e9edf5;color:#0b0f16;border-radius:12px;padding:10px 16px;font-weight:600;
+  font-size:14px;max-width:calc(100% - 32px);text-align:center}
+
+  .abt{position:fixed;inset:0;z-index:200;background:rgba(8,10,14,.975);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    display:flex;align-items:center;justify-content:center;
+    padding:max(20px,env(safe-area-inset-top)) 22px max(24px,env(safe-area-inset-bottom));}
+  .abt[hidden]{display:none;}
+  .abt.rest{background:rgba(10,9,7,.975);}
+  .abt-inner{width:100%;max-width:460px;text-align:center;}
+  .abt-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .abt-top-btns{display:flex;gap:8px;}
+  .abt-close.off{opacity:.5;}
+  .abt-stage{font-family:var(--sys);font-weight:700;letter-spacing:.22em;
+    text-transform:uppercase;font-size:.82rem;color:var(--accent);}
+  .abt.rest .abt-stage{color:#ffb24d;}
+  .abt-close{width:42px;height:42px;border:1px solid var(--line);border-radius:11px;
+    background:transparent;color:var(--muted);font-size:1.1rem;cursor:pointer;}
+  .abt-name{font-family:var(--sys);font-weight:800;text-transform:uppercase;font-size:2.5rem;
+    line-height:1.02;margin:6px 0 2px;}
+  .abt-time{font-family:var(--sys);font-weight:800;font-size:6rem;line-height:1;color:var(--accent);
+    font-variant-numeric:tabular-nums;}
+  .abt.rest .abt-time{color:#ffb24d;}
+  .abt-next{font-family:var(--sys);text-transform:uppercase;letter-spacing:.1em;
+    color:var(--muted);font-size:.86rem;margin-top:6px;min-height:1em;}
+  .abt-dots{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:20px 0 24px;}
+  .abt-dot{width:11px;height:11px;border-radius:50%;background:var(--line);transition:.2s;}
+  .abt-dot.done{background:color-mix(in srgb,var(--accent) 55%,var(--line));}
+  .abt-dot.cur{background:var(--accent);transform:scale(1.35);}
+  .abt-controls{display:flex;gap:12px;justify-content:center;align-items:center;}
+  .abt-btn{min-width:62px;height:58px;border-radius:14px;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);font-size:1.3rem;cursor:pointer;}
+  .abt-play{flex:1;max-width:210px;background:var(--accent);color:var(--accent-ink);
+    border-color:var(--accent);font-family:var(--sys);font-weight:700;
+    letter-spacing:.08em;text-transform:uppercase;font-size:1rem;}
+  /* Ticket 21: total-duration readout + pre-start Randomize */
+  .abt-meta{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;min-height:34px;}
+  .abt-dur{font-family:var(--sys);font-weight:600;font-size:.82rem;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);}
+  .abt-roll{font-family:var(--sys);font-weight:600;font-size:.72rem;letter-spacing:.1em;
+    text-transform:uppercase;height:34px;padding:0 14px;cursor:pointer;-webkit-appearance:none;
+    border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--steel);transition:.15s;}
+  .abt-roll:active{color:var(--ink);border-color:var(--accent);}
+  .abt-roll[hidden]{display:none;}
+  /* Day review — logged vs missed (Ticket 22-B) */
+  .day-review{margin:10px 0 4px;padding:10px 12px;border:1px solid color-mix(in srgb,#fbbf24 35%,var(--line));
+    border-radius:12px;background:color-mix(in srgb,#fbbf24 7%,var(--panel));
+    font-size:.78rem;color:var(--steel);line-height:2;}
+  .rv-ex{font-family:var(--sys);font-weight:600;font-size:.72rem;letter-spacing:.03em;
+    border:1px solid var(--line);border-radius:8px;background:var(--panel2);color:var(--ink);
+    padding:4px 9px;margin:0 4px 0 2px;cursor:pointer;-webkit-appearance:none;}
+  .rv-ex:active{border-color:var(--accent);color:var(--accent);}
+  .hist-tag{font-family:var(--sys);font-weight:600;font-size:.62rem;letter-spacing:.05em;
+    text-transform:uppercase;border:1px solid var(--line);border-radius:6px;background:var(--panel2);
+    color:var(--steel);padding:2px 7px;margin-left:6px;cursor:pointer;-webkit-appearance:none;}
+  .hist-tag:active{border-color:var(--accent);color:var(--accent);}
+  .abt-review{margin-top:18px;text-align:center;font-size:.92rem;color:var(--steel);}
+  .abt-review b{color:var(--ink);}
+  .abt-review-list{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px;}
+  .abt-review-list .rv-ex{font-size:.8rem;padding:8px 12px;}
+  .abt-list{margin-top:22px;display:flex;flex-direction:column;gap:4px;max-height:26vh;
+    overflow-y:auto;text-align:left;}
+  .abt-li{font-family:var(--sys);font-size:.8rem;color:var(--muted);
+    display:flex;justify-content:space-between;padding:5px 9px;border-radius:8px;}
+  .abt-li.cur{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--ink);}
+  .abt-li.done{opacity:.45;}
+  .abt-li span:last-child{font-variant-numeric:tabular-nums;}
+
+  /* ───────── Update Program admin ───────── */
+  .adm{position:fixed;inset:0;z-index:210;background:rgba(8,10,14,.985);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;
+    padding:max(20px,env(safe-area-inset-top)) 18px max(24px,env(safe-area-inset-bottom));}
+  .adm[hidden]{display:none;}
+  .adm-inner{width:100%;max-width:460px;}
+  .adm-top{display:flex;justify-content:space-between;align-items:center;margin:6px 0 16px;}
+  .adm-title{font-family:var(--sys);font-weight:800;text-transform:uppercase;font-size:1.7rem;}
+  .adm-lab{display:block;font-family:var(--sys);font-weight:600;font-size:.66rem;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 2px 6px;}
+  .adm-in,.adm-ta{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;
+    color:var(--ink);font-size:1rem;padding:12px;font-family:'Barlow',sans-serif;
+    -webkit-appearance:none;appearance:none;}
+  .adm-in:focus,.adm-ta:focus{outline:none;border-color:var(--accent);}
+  .adm-ta{min-height:230px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1rem;   /* 16px min — this rule overrides .adm-in,.adm-ta above; below 16 iOS force-zooms on focus */
+    line-height:1.4;resize:vertical;white-space:pre;overflow-wrap:normal;overflow-x:auto;}
+  .adm-status{min-height:1.3em;font-family:var(--sys);font-size:.8rem;margin:11px 2px;color:var(--muted);}
+  .adm-status.ok{color:#7ef0b0;}
+  .adm-status.err{color:#fb7185;}
+  .adm-status.warn{color:#ffcf5c;}
+  .adm-actions{display:flex;gap:10px;}
+  .adm-btn{flex:1;min-height:48px;border-radius:11px;cursor:pointer;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);font-family:var(--sys);font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;}
+  .adm-pub{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);flex:1.4;}
+  .adm-paste{width:100%;min-height:46px;margin:0 0 8px;display:flex;align-items:center;justify-content:center;gap:8px;
+    background:color-mix(in srgb,var(--accent) 14%,var(--panel));border-color:color-mix(in srgb,var(--accent) 40%,var(--line));
+    color:var(--accent);}
+  .adm-paste i{font-style:normal;}
+  .adm-hint{font-size:.74rem;color:var(--muted);line-height:1.4;margin-top:14px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="hdr">
+    <div class="tabs" id="tabs"></div>
+    <div class="hbtns">
+      <button class="hbtn" data-act="note" aria-label="Session note"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
+      <button class="hbtn" data-act="menu" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg></button>
+    </div>
+    <div class="pr" data-probe="progress">
+      <span class="brand" id="brand">LIFT</span>
+      <span class="tx num" id="prTx"></span>
+      <span class="bar"><b id="prBar"></b></span>
+      <span class="beta" id="betaTag" hidden>BETA · demo data</span>
+      <button class="lk" data-act="daynote" id="lkDay">Day note</button>
+      <button class="lk" data-core-timer data-act="closeSheet" id="lkCore" hidden>▶ Core</button>
+    </div>
+  </header>
+  <main id="list"></main>
+  <section id="player" aria-label="Current set">
+    <div id="pad" hidden>
+      <button class="k" data-act="key" data-k="1">1</button>
+      <button class="k" data-act="key" data-k="2">2</button>
+      <button class="k" data-act="key" data-k="3">3</button>
+      <button class="k" data-act="key" data-k="4">4</button>
+      <button class="k" data-act="key" data-k="5">5</button>
+      <button class="k bs" data-act="key" data-k="bs" aria-label="Delete">⌫</button>
+      <button class="k" data-act="key" data-k="6">6</button>
+      <button class="k" data-act="key" data-k="7">7</button>
+      <button class="k" data-act="key" data-k="8">8</button>
+      <button class="k" data-act="key" data-k="9">9</button>
+      <button class="k" data-act="key" data-k="0">0</button>
+      <button class="k" data-act="key" data-k=".">.</button>
+    </div>
+    <div id="plMain" style="display:contents">
+      <div id="plId" data-probe="current">
+        <div class="pl-head" id="plHead">
+          <div class="pl-name" id="plNameBox"><span id="plName"></span></div>
+          <div class="pl-btns">
+            <button class="pb pill" id="plVar" data-act="variant" hidden></button>
+            <button class="pb pill" id="plTag" data-act="tag" hidden></button>
+            <button class="pb" data-act="coach" aria-label="Coach note"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".6"/></svg></button>
+            <button class="pb" data-act="swap" aria-label="Swap exercise"><svg class="ic" viewBox="0 0 24 24"><path d="M4 8h14l-3-3"/><path d="M20 16H6l3 3"/></svg></button>
+          </div>
+        </div>
+        <div class="pl-ss" id="plSs" hidden></div>
+        <div class="pl-setrow">
+          <div class="pl-set" id="plSet"></div>
+          <div class="pl-sets" id="plSets"></div>
+        </div>
+      </div>
+      <div class="pl-tl">
+        <div data-probe="target" id="plTarget"><small>Target<span id="plBdg" style="display:inline"></span><span id="plPl"></span></small><span id="plTv"></span></div>
+        <button id="plLast" data-probe="last" data-act="history"><small>Last time</small><span id="plLv"></span></button>
+      </div>
+      <div id="plEntry">
+        <div class="pl-w" id="plWrow">
+          <button class="ws" data-act="wstep" data-d="-10">−10</button>
+          <button class="ws" data-act="wstep" data-d="-5">−5</button>
+          <button class="ws sm" data-act="wstep" data-d="-2.5">−2.5</button>
+          <div class="wbox"><span class="wcap" id="plWc"></span><button id="plW" data-act="wtype" aria-label="Weight, tap to type"></button></div>
+          <button class="ws sm" data-act="wstep" data-d="2.5">+2.5</button>
+          <button class="ws" data-act="wstep" data-d="5">+5</button>
+          <button class="ws" data-act="wstep" data-d="10">+10</button>
+        </div>
+        <div class="pl-w" id="plBwRow" hidden><div class="pl-bw"><span>Bodyweight · reps only</span><button data-act="bwadd">＋ weight</button></div></div>
+        <div class="pl-reps" id="plReps" aria-label="Reps"></div>
+        <div id="plFin" hidden></div>
+      </div>
+      <div id="logRow">
+        <div id="logSide"></div>
+        <button id="logBtn" data-act="log"><span class="lrow"><span class="l1">Log</span><span class="l2" id="logTx"></span></span><span class="l3" id="logSub"></span></button>
+      </div>
+    </div>
+    <div class="pl-done" id="plDone" hidden></div>
+  </section>
+</div>
+<div id="scrim" hidden data-act="close"></div>
+<div id="sheet" hidden></div>
+<div class="toast" id="toast" hidden></div>
+  <!-- ───────── Core / ab interval timer (replaces the browser trip) ───────── -->
+  <div class="abt" id="abtimer" hidden>
+    <div class="abt-inner">
+      <div class="abt-top">
+        <div class="abt-stage" id="abtStage">Core Timer</div>
+        <div class="abt-top-btns">
+          <button class="abt-close" id="abtVoice" aria-label="toggle voice">🔊</button>
+          <button class="abt-close" id="abtClose" aria-label="close">✕</button>
+        </div>
+      </div>
+      <div class="abt-name" id="abtName">Ready?</div>
+      <div class="abt-time" id="abtTime">0:30</div>
+      <div class="abt-next" id="abtNext">&nbsp;</div>
+      <div class="abt-dots" id="abtDots"></div>
+      <div class="abt-controls">
+        <button class="abt-btn" id="abtPrev" aria-label="previous">⏮</button>
+        <button class="abt-btn abt-play" id="abtPlay">Start</button>
+        <button class="abt-btn" id="abtSkip" aria-label="skip">⏭</button>
+      </div>
+      <div class="abt-meta">
+        <span class="abt-dur" id="abtDur"></span>
+        <button class="abt-roll" id="abtRoll">⟳ Randomize</button>
+      </div>
+      <div class="abt-list" id="abtList"></div>
+    </div>
+  </div>
+
+  <!-- ───────── Update Program (long-press the LIFT logo) ───────── -->
+  <div class="adm" id="admin" hidden>
+    <div class="adm-inner">
+      <div class="adm-top">
+        <div class="adm-title">Update Program</div>
+        <button class="abt-close" id="admClose" aria-label="close">✕</button>
+      </div>
+      <label class="adm-lab">Publish token</label>
+      <input class="adm-in" id="admToken" type="password" autocomplete="off" placeholder="paste once — saved on this device">
+      <label class="adm-lab">New routine — paste the JSON from the chat</label>
+      <button class="adm-btn adm-paste" id="admPaste"><i>📋</i> Paste from clipboard</button>
+      <textarea class="adm-ta" id="admJson" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="…or tap here and paste the routine"></textarea>
+      <div class="adm-status" id="admStatus">&nbsp;</div>
+      <div class="adm-actions">
+        <button class="adm-btn" id="admClear">Clear</button>
+        <button class="adm-btn" id="admValidate">Check</button>
+        <button class="adm-btn adm-pub" id="admPublish">Publish</button>
+      </div>
+      <div class="adm-hint">Publishing replaces the live routine on all your devices within a few seconds. Your current routine stays as a fallback if anything's wrong.</div>
+    </div>
+  </div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIFT · guided session (checklist on top, player bar docked at the bottom)
+   THIS FILE IS THE SOURCE. Hand-edit it. Sections (search for "═══ N."):
+     1 constants + helpers      2 dates          3 stores        4 UI state + drafts
+     5 sets/uneven (verbatim)   6 library        7 week slots    8 program + load chain
+     9 native bridge           10 model         11 formatting   12 render
+    13 logging + undo          14 sheets        15 events       16 core timer (verbatim)
+    17 program warnings (verbatim)  18 admin (verbatim)         19 boot
+   Verbatim = copied unchanged from the old app. Do not "tidy" them.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ═══ 1. constants + helpers ═══════════════════════════════════════════════ */
+var PFX = (location.pathname.indexOf('/beta/') >= 0) ? 'liftbeta-' : 'lift-';   // CONTRACTS §2
+var IS_BETA = (PFX === 'liftbeta-');
+var K = {
+  logs:PFX+'logs', notes:PFX+'notes', prog:PFX+'program-cache',
+  ov:PFX+'overrides', tok:PFX+'pub-token', draft:PFX+'drafts'
+};
+var ORDER = ['mon','tue','wed','fri'];
+var DAY_ACCENT = { mon:'#fb7185', tue:'#fbbf24', wed:'#a78bfa', fri:'#38bdf8' };
+var SS_COLORS = ['#34d399','#f472b6','#a78bfa','#fbbf24'];
+var DOW = { mon:1, tue:2, wed:3, fri:5 };
+var PROGRAM = (typeof PROGRAM !== 'undefined') ? PROGRAM : null;   // set by program.js
+var curDay = 'fri';          // plain global the verbatim core timer reads; render() keeps it = S.day
+var $ = function(id){ return document.getElementById(id); };
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escA(s){ return escHtml(s).replace(/"/g,'&quot;'); }
+function enc(s){ return encodeURIComponent(s); }
+function dec(s){ return decodeURIComponent(s); }
+function fmtW(n){ if(n==null||isNaN(n)) return ''; return String(Math.round(n*100)/100); }
+function has(o,k){ return Object.prototype.hasOwnProperty.call(o,k); }
+function shortName(n){ return String(n).split(/[·→(]/)[0].trim(); }
+var TAG_LABEL = {
+  dropset:'DROP SET', partials:'PARTIALS', restpause:'REST-PAUSE',
+  amrap:'AMRAP', failure:'TO FAILURE', tempo:'SLOW TEMPO'
+};
+var TAG_SHORT = {
+  dropset:'DROP', partials:'PARTIALS', restpause:'REST-PAUSE',
+  amrap:'AMRAP', failure:'FAILURE', tempo:'TEMPO'
+};
+function tagText(t, map){ return map[String(t).toLowerCase()] || String(t).toUpperCase(); }
+
+/* ═══ 2. dates / week window (local dates only — never toISOString) ═══════ */
+function ymd(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function todayStr(){ return ymd(new Date()); }
+function fmtDate(s){ var p=s.split('-'); return parseInt(p[1])+'/'+parseInt(p[2]); }
+function anchorMonday(){
+  var now=new Date(), dow=now.getDay(), m=new Date(now);
+  m.setDate(now.getDate()-(dow===0?6:dow-1)); m.setHours(0,0,0,0); return m;
+}
+function reviewWindow(){
+  var m=anchorMonday(), e=new Date(m); e.setDate(m.getDate()+6);
+  return [ymd(m), ymd(e)];
+}
+function dateForWeekday(t){ var m=anchorMonday(); m.setDate(m.getDate()+(t-1)); return m; }
+function defaultDayKey(){            // Thu -> Fri, Sat/Sun -> Mon
+  switch(new Date().getDay()){
+    case 1: return 'mon'; case 2: return 'tue'; case 3: return 'wed';
+    case 4: return 'fri'; case 5: return 'fri'; default: return 'mon';
+  }
+}
+var mmdd = function(d){ return String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); };
+
+/* ═══ 3. stores (write-through; the in-memory copy is the source of truth) ═ */
+var memStore=null, memNotes=null;
+function cleanLogs(o){                    // a malformed entry (no sets array) must not crash the app; nothing is deleted
+  Object.keys(o).forEach(function(k){
+    var h=o[k]; if(!Array.isArray(h)) return;
+    h.forEach(function(e){ if(e && typeof e==='object' && !Array.isArray(e.sets)) e.sets=[]; });
+  });
+  return o;
+}
+function loadLogs(){
+  if(memStore===null){
+    memStore={};
+    try{ var r=localStorage.getItem(K.logs);
+      if(r){ var p=JSON.parse(r); if(p && typeof p==='object' && !Array.isArray(p)) memStore=cleanLogs(p); } }catch(e){}
+  }
+  return memStore;
+}
+function saveLogs(o){ memStore=o; try{ localStorage.setItem(K.logs, JSON.stringify(o)); }catch(e){} }
+function loadNotes(){
+  if(memNotes===null){
+    memNotes={};
+    try{ var r=localStorage.getItem(K.notes);
+      if(r){ var o=JSON.parse(r); if(o && typeof o==='object') memNotes=o; } }catch(e){}
+  }
+  return memNotes;
+}
+function saveNotesObj(o){ memNotes=o; try{ localStorage.setItem(K.notes, JSON.stringify(o)); }catch(e){} }
+function logsFor(name){ var h=loadLogs()[name]; return Array.isArray(h) ? h : []; }
+
+/* ═══ 4. UI state + drafts + week-scoped swaps/adds ═══════════════════════ */
+var S = {
+  day:defaultDayKey(), pinned:false,
+  wk:null,           // Monday of the week the in-memory drafts belong to (H10)
+  extraOn:null,      // key of a finished slot where he chose "Add extra set"
+  rmArm:null,        // {key, idx}: Remove-set button armed (second tap confirms)
+  sel:null,          // key of the slot the user picked (null = first unfinished) — persisted (H5)
+  manual:null,       // key picked via a superset member tab (bypasses auto-alternation once)
+  edit:null,         // {key, idx} while fixing an already-logged set
+  editW:null,        // weight shown while editing
+  typing:null,       // {key, buf, fresh} while the in-app number pad is open
+  padOff:null,       // key of a slot whose auto-opened pad he dismissed
+  work:{},           // typed/stepped weight drafts  { day|name|variant|tag : number|null }
+  skipped:{}, variant:{}, tag:{}, bw:{},
+  undo:null,         // one-shot undo token for the last write (see section 13)
+  boot:true, model:null, ctx:null, sheetMode:null, sheetFor:null
+};
+function loadDrafts(){
+  try{
+    var o=JSON.parse(localStorage.getItem(K.draft)||'null');
+    if(o && o.wk===reviewWindow()[0]){
+      S.work=o.work||{}; S.skipped=o.skipped||{}; S.bw=o.bw||{};
+      if(o.selDay===S.day){ S.sel=o.sel||null; S.manual=o.manual||null; }   // resume on the same lift (H5)
+    }
+  }catch(e){}
+  S.wk=reviewWindow()[0];
+}
+function saveDrafts(){
+  try{ localStorage.setItem(K.draft,
+    JSON.stringify({wk:reviewWindow()[0], work:S.work, skipped:S.skipped, bw:S.bw,
+      sel:S.sel, manual:S.manual, selDay:S.day})); }catch(e){}
+}
+/* swaps/adds are WEEK-scoped (old midnight-expiry bug B2). Once a swapped lift has logged sets,
+   the swap is also derivable from entry.swapFor, so it survives even if this record is lost. */
+var ovMem=null;
+function loadOv(){
+  var wk=reviewWindow()[0]; if(ovMem && ovMem.wk===wk) return ovMem;
+  ovMem={wk:wk, swaps:{}, added:{}};
+  try{
+    var p=JSON.parse(localStorage.getItem(K.ov)||'null');
+    if(p && p.wk===wk){ ovMem=p; ovMem.swaps=ovMem.swaps||{}; ovMem.added=ovMem.added||{}; }
+  }catch(e){}
+  return ovMem;
+}
+function saveOv(){ try{ localStorage.setItem(K.ov, JSON.stringify(loadOv())); }catch(e){} }
+
+/* ═══ 5. set count + uneven-superset note (VERBATIM from the old app) ═════ */
+
+// Leading set count from a reps string (Ticket 24-A). The count is the number(s) BEFORE "×"/"x"
+// (or before "sets"). For a set-RANGE ("2–3×…","3–4 × burnout") take the TOP so we never render
+// fewer rows than prescribed. Returns null when there's no leading set count (e.g. "AMRAP","Bonus").
+function setsOf(r){
+  r=String(r);
+  var i=r.search(/[×x]/);
+  var head = i>=0 ? r.slice(0,i) : (/sets/i.test(r) ? r.slice(0, r.search(/sets/i)) : null);
+  if(head==null) return null;
+  var nums=head.match(/\d+/g);
+  if(!nums || !nums.length) return null;
+  return Math.max.apply(null, nums.map(Number));
+}
+function unevenNote(exs){
+  var c=exs.map(function(e){return {name:e[0].split(/[·→]/)[0].trim(), n:setsOf(e[1])};}).filter(function(x){return x.n!=null;});
+  if(c.length<2)return null;
+  var mn=Math.min.apply(null,c.map(function(x){return x.n;}));
+  var mx=Math.max.apply(null,c.map(function(x){return x.n;}));
+  if(mn===mx)return null;
+  var extra=c.filter(function(x){return x.n>mn;}).map(function(x){return x.name+' +'+(x.n-mn)+' solo';});
+  return 'do '+mn+' as a superset, then '+extra.join(' · ');
+}
+
+/* ═══ 6. library + catalog (read-only data files) ═════════════════════════ */
+var EXLIB=null, EQUIP=null;
+(function(){
+  function grab(url, set){
+    fetch(url+'?t='+Date.now(), {cache:'no-store'})
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ if(d){ set(d); rerenderSafe(); } })
+      .catch(function(){});
+  }
+  grab('exercise-library.json', function(d){ EXLIB=d; });
+  grab('equipment-catalog.json', function(d){ EQUIP=d; });
+})();
+var EX_LIB_DEFAULT = {
+  'Chest':['Incline DB Press','Incline Machine Press','Flat DB Press','Flat Machine Press',
+    'Smith Incline Press','Pec Deck','Cable Fly (high)','Cable Fly (low)','Incline Cable Fly',
+    'Push-up','Dip'],
+  'Back':['Wide Lat Pulldown','Close-grip Pulldown','Neutral-grip Pulldown','Pull-up','Chin-up',
+    'Seated Cable Row','Chest-supported Row','Machine Row','T-bar Row','Barbell Row',
+    'Single-arm DB Row','Single-arm Cable Row'],
+  'Shoulders':['Machine Shoulder Press','DB Shoulder Press','Arnold Press','DB Lateral Raise',
+    'Cable Lateral Raise','Lateral Raise Machine','Rear-delt Fly','Reverse Pec Deck','Face Pull',
+    'Upright Row','Front Raise'],
+  'Arms':['DB Curl','Hammer Curl','Cable Curl','Preacher Curl','Rope Pushdown',
+    'Straight-bar Pushdown','Skullcrusher','Close-grip Press'],
+  'Legs':['Leg Extension','Leg Press','Hack Squat','Belt Squat','Goblet Squat',
+    'Bulgarian Split Squat','Walking Lunge','Lying Leg Curl','Seated Leg Curl','Romanian Deadlift',
+    'Hip Thrust','Standing Calf Raise','Seated Calf Raise'],
+  'Core':['Cable Crunch','Hanging Leg Raise','Vertical Knee Raise','Ab Wheel','Plank']
+};
+function libEntry(name){
+  try{
+    if(EXLIB && Array.isArray(EXLIB.groups)){
+      var n=String(name);
+      for(var i=0;i<EXLIB.groups.length;i++){
+        var ex=EXLIB.groups[i].exercises||[];
+        for(var j=0;j<ex.length;j++){ if(ex[j].name===n) return ex[j]; }
+      }
+    }
+  }catch(e){}
+  return null;
+}
+function libConvention(name){ var e=libEntry(name); return e ? e.convention : null; }
+function pickerGroups(){
+  if(EXLIB && Array.isArray(EXLIB.groups) && EXLIB.groups.length){
+    return EXLIB.groups.map(function(g){
+      return {label:g.muscle, names:(g.exercises||[]).map(function(e){ return e.name; })};
+    });
+  }
+  var lib=(PROGRAM && PROGRAM.exLib && typeof PROGRAM.exLib==='object' && !Array.isArray(PROGRAM.exLib)
+    && Object.keys(PROGRAM.exLib).length) ? PROGRAM.exLib : EX_LIB_DEFAULT;
+  return Object.keys(lib).map(function(k){ return {label:k, names:lib[k]||[]}; });
+}
+function altsFor(name){
+  try{ var a=PROGRAM && PROGRAM.alts && PROGRAM.alts[name]; return Array.isArray(a) ? a : []; }
+  catch(e){ return []; }
+}
+/* cable station tags: TAG & STORE only, never convert between scales */
+function scaleLabel(tag){ return {hoist_cmj:'Hoist ~1:1', versa:'Versa 1:2', matrix_g3ms53:'Matrix G3'}[tag] || tag; }
+function scaleOptions(){
+  try{
+    if(EQUIP && Array.isArray(EQUIP.lines)){
+      return EQUIP.lines
+        .filter(function(l){ return l.scale_tag && (l.type==='selectorized_cable'||l.type==='functional_trainer'); })
+        .map(function(l){ return {tag:l.scale_tag, label:scaleLabel(l.scale_tag)}; });
+    }
+  }catch(e){}
+  return [];
+}
+function needsScaleTag(name){ var e=libEntry(name); return !!(e && e.scale_tag_required); }
+function homeTag(name){                  // HOME station — never "last used"
+  var e=libEntry(name), s=String((e && e.default_equipment) || '');
+  if(/hoist/i.test(s)) return 'hoist_cmj';
+  if(/g3ms53/i.test(s)) return 'matrix_g3ms53';
+  if(/versa/i.test(s)) return 'versa';
+  var o=scaleOptions(); return o.length ? o[0].tag : null;
+}
+function variantsOf(name){
+  var p=String(name).split(' / ').map(function(s){ return s.trim(); }).filter(Boolean);
+  return p.length>1 ? p : null;
+}
+function isBodyweight(name, reps){
+  if(libConvention(name)==='bodyweight') return true;
+  var r=String(reps||'').toLowerCase();
+  if(/amrap|burnout|to\s*failure|max\s*reps/.test(r)) return true;
+  var s=String(name||'').toLowerCase();
+  if(/push-?up|pull-?up|chin-?up|\bdip\b|\bplank\b/.test(s)) return true;
+  if(/vertical knee raise|captain'?s chair|hanging (knee|leg) raise/.test(s)) return true;
+  return false;
+}
+
+/* ═══ 7. week-slot lookups ═════════════════════════════════════════════════
+   Slot identity = (exact name, day, variant) inside the Mon-Sun week.
+   scale_tag is an ATTRIBUTE of the entry, not part of the key (retag in place). */
+function inWeek(e, w){ return !!e && e.date>=w[0] && e.date<=w[1]; }
+function entryAny(name, day){
+  var w=reviewWindow(), h=logsFor(name);
+  for(var i=h.length-1;i>=0;i--){
+    var e=h[i]; if(!inWeek(e,w)) continue;
+    if((e.day||day)!==day) continue;
+    return e;
+  }
+  return null;
+}
+function weekEntry(name, day, variant){
+  var w=reviewWindow(), h=logsFor(name), vs=variantsOf(name)||[];
+  for(var i=h.length-1;i>=0;i--){
+    var e=h[i]; if(!inWeek(e,w)) continue;
+    if((e.day||day)!==day) continue;
+    if(variant && (e.v||vs[0])!==variant) continue;
+    return e;
+  }
+  return null;
+}
+/* program name -> what he is actually doing (pending swap, or derived from this week's swapFor) */
+function effName(day, orig){
+  var ov=loadOv(), sw=ov.swaps[day] && ov.swaps[day][orig]; if(sw) return sw;
+  var w=reviewWindow(), all=loadLogs();
+  for(var n in all){
+    var h=all[n];
+    for(var i=0;i<h.length;i++){
+      var e=h[i];
+      if(e && e.swapFor===orig && e.day===day && inWeek(e,w)) return n;
+    }
+  }
+  return orig;
+}
+function dayLoggedDate(dayKey){          // real performed date of the day's session
+  var w=reviewWindow(), all=loadLogs(), best=null;
+  for(var k in all){
+    var h=all[k]; if(!h) continue;
+    for(var i=h.length-1;i>=0;i--){
+      var e=h[i]; if(!inWeek(e,w)) continue;
+      if((e.day||'')!==dayKey) continue;
+      if(!best || e.date>best) best=e.date;
+    }
+  }
+  return best;
+}
+function curVariant(name){
+  var vs=variantsOf(name); if(!vs) return null;
+  if(S.variant[name] && vs.indexOf(S.variant[name])>=0) return S.variant[name];
+  var e=entryAny(name,S.day); if(e && e.v && vs.indexOf(e.v)>=0) return e.v;
+  var h=logsFor(name);
+  for(var i=h.length-1;i>=0;i--){ if(h[i].v && vs.indexOf(h[i].v)>=0) return h[i].v; }
+  return vs[0];
+}
+function addedSessionCount(name){        // distinct dates he added this lift himself (F54)
+  var seen={}, n=0;
+  logsFor(name).forEach(function(e){ if(e && e.added && !seen[e.date]){ seen[e.date]=1; n++; } });
+  return n;
+}
+
+/* ═══ 8. program: coach recs / plates / load chain ═════════════════════════ */
+function recNum(orig){
+  try{
+    var R=PROGRAM && PROGRAM.recs, dr=R && R[S.day];
+    if(dr && has(dr,orig)){
+      var v=dr[orig];
+      return (typeof v==='number') ? v : (v && typeof v.w==='number' ? v.w : null);
+    }
+  }catch(e){}
+  return null;
+}
+function platesFor(orig){
+  try{ var dp=PROGRAM && PROGRAM.plates && PROGRAM.plates[S.day]; return (dp && dp[orig]) ? String(dp[orig]) : null; }
+  catch(e){ return null; }
+}
+var PROGRAM_API = "https://lift-sync-api.vercel.app/api/program";
+var PROGRAM_URL = "https://raw.githubusercontent.com/travisworrell61/lift-app/main/program.json";
+function cachedProgram(){ try{ var r=localStorage.getItem(K.prog); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+function setCachedProgram(p){ try{ localStorage.setItem(K.prog, JSON.stringify(p)); }catch(e){} }
+function normalizeProgram(data){
+  var p=(data && data.program)?data.program:data;        // accept a raw object or { program: {...} }
+  if(!(p && typeof p==='object' && !Array.isArray(p) && Object.keys(p).length)) return null;
+  // If wrapped as { program:{…}, recs:{…}, … }, fold the sibling top-level keys
+  // (recs/alts/exLib/plateMode/plateSet/corePools) onto the program so they aren't dropped.
+  if(data && data.program && data!==p){
+    ['recs','plates','alts','exLib','plateMode','plateSet','corePools'].forEach(function(k){
+      if(data[k]!=null && p[k]==null) p[k]=data[k];
+    });
+  }
+  return p;
+}
+// Structural check shared by the publish validator AND the runtime loader, so a
+// malformed program can neither be published nor adopted from the network/cache.
+// Returns null if OK, else a human-readable problem description.
+function programIssue(p){
+  if(!p || typeof p!=='object') return 'not an object';
+  for(var i=0;i<ORDER.length;i++){
+    var k=ORDER[i], d=p[k];
+    if(!d || typeof d!=='object') return 'missing day "'+k+'" — all 4 days (mon, tue, wed, fri) are required';
+    if(typeof d.title!=='string' || !d.title) return k+': missing "title"';
+    if(typeof d.sub!=='string') return k+': missing "sub"';
+    if(typeof d.warm!=='string') return k+': missing "warm"';
+    if(!d.fin || typeof d.fin.core!=='string' || typeof d.fin.cardio!=='string') return k+': missing "fin" {core, cardio}';
+    if(!d.prog || typeof d.prog.c!=='string' || typeof d.prog.t!=='string') return k+': missing "prog" {c, t}';
+    if(!Array.isArray(d.A) || !d.A.length) return k+': "A" must be a non-empty array of blocks';
+    for(var j=0;j<d.A.length;j++){
+      var b=d.A[j];
+      if(!b || !Array.isArray(b.e) || !b.e.length) return k+'.A['+j+']: block needs an "e" exercise array';
+      for(var m=0;m<b.e.length;m++){
+        var ex=b.e[m];
+        if(!Array.isArray(ex) || typeof ex[0]!=='string' || typeof ex[1]!=='string') return k+'.A['+j+'].e['+m+']: exercise must be [name, reps, note?]';
+      }
+    }
+  }
+  return null;
+}
+/* fetch with a 6 s abort (weak gym signal must never hang the app) */
+async function fetchProgramT(url){
+  var ctl=(typeof AbortController!=='undefined') ? new AbortController() : null;
+  var tm=setTimeout(function(){ try{ ctl && ctl.abort(); }catch(e){} }, 6000);
+  try{
+    var res=await fetch(url+(url.indexOf('?')<0?'?':'&')+'t='+Date.now(),
+      {cache:'no-store', signal:ctl ? ctl.signal : undefined});
+    if(!res.ok) throw new Error('http '+res.status);
+    var p=normalizeProgram(await res.json());
+    return (p && !programIssue(p)) ? p : null;      // never adopt a structurally broken program
+  } finally { clearTimeout(tm); }
+}
+/* LOAD ORDER (CONTRACTS §4): valid cache is already on screen -> Vercel API -> (only when there is
+   NO cache) GitHub -> bundled program.js. The GitHub copy never overwrites a cache. */
+var GOOD=null, bundledAsked=false;        // GOOD = last program adopted from cache/network (never overwritten by the bundled copy)
+function loadBundled(){                     // program.js is NOT a blocking <script>: it is fetched only when nothing else worked
+  if(bundledAsked) return; bundledAsked=true;
+  var sc=document.createElement('script'); sc.src='program.js'; sc.async=true;
+  sc.onload=function(){ if(GOOD) PROGRAM=GOOD; S.boot=false; rerenderSafe(); };
+  sc.onerror=function(){ S.boot=false; rerenderSafe(); };
+  document.head.appendChild(sc);
+}
+var lastProgFetch=0, progBusy=false;
+async function loadProgram(force){
+  var now=Date.now();
+  if(progBusy || (!force && now-lastProgFetch<60000)) return;     // resume refetch is throttled
+  progBusy=true; lastProgFetch=now;
+  try{
+    var c=cachedProgram(), hadCache=!!(c && !programIssue(c)), prog=null, fromApi=false;
+    try{ prog=await fetchProgramT(PROGRAM_API); fromApi=!!prog; }catch(e){}
+    if(!prog && !hadCache){ try{ prog=await fetchProgramT(PROGRAM_URL); }catch(e){} }
+    if(prog){ if(fromApi || !hadCache) setCachedProgram(prog); PROGRAM=prog; GOOD=prog; }
+  } finally { progBusy=false; }
+  if(!PROGRAM){ loadBundled(); return; }   // nothing from cache or network: bundled copy (S.boot ends when it loads)
+  S.boot=false; rerenderSafe();
+}
+
+/* ═══ 9. native bridge (all guarded: absent in Safari and in the harness) ═══ */
+function bridge(n){
+  try{ return (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers[n]) || null; }
+  catch(e){ return null; }
+}
+function liftSyncLogs(){                  // never in beta, never an empty store
+  try{
+    if(IS_BETA) return; var b=bridge('liftSync'); if(!b) return;
+    var lg=loadLogs(), nt=loadNotes();
+    if(!Object.keys(lg).length && !Object.keys(nt).length) return;
+    b.postMessage(JSON.stringify({logs:lg, notes:nt, sentAt:Date.now()}));
+  }catch(e){}
+}
+var noteSyncT=null;
+function liftSyncSoon(){ clearTimeout(noteSyncT); noteSyncT=setTimeout(liftSyncLogs,1500); }
+function liftWake(on){ try{ var b=bridge('liftWake'); if(b) b.postMessage(on?'1':'0'); }catch(e){} }
+function flattenExercises(slots){
+  return slots.map(function(s){
+    return {name:s.name, reps:s.added ? 'Bonus' : String(s.reps||''), ss:!!s.ss, grp:s.added ? -1 : s.bi};
+  });
+}
+function liftPushState(){                 // widget snapshot — exact shape in briefs/NATIVE.md
+  try{
+    if(IS_BETA) return;                   // would overwrite the real widget with demo data
+    var b=bridge('lift'); if(!b) return;
+    var d=PROGRAM && PROGRAM[S.day]; if(!d || !S.model) return;
+    var list=flattenExercises(S.model);
+    var done=S.model.map(function(s){ return !!s.logged; });
+    var ci=done.indexOf(false); if(ci<0) ci=list.length;
+    b.postMessage(JSON.stringify({
+      day:String(d.title||'').slice(0,3).toUpperCase(), title:String(d.title||''), sub:String(d.sub||''),
+      week:'A', accent:DAY_ACCENT[S.day]||'#38bdf8',
+      exercises:list, currentIndex:ci, total:list.length, done:done
+    }));
+  }catch(e){}
+}
+
+/* ═══ 10. model: program -> slots with live logged state ═══════════════════ */
+function addedForView(day){
+  var out=[], have={};
+  (loadOv().added[day]||[]).forEach(function(n){ if(!have[n]){ out.push(n); have[n]=1; } });
+  var prog={};
+  (((PROGRAM && PROGRAM[day]) || {}).A || []).forEach(function(b){
+    (b.e||[]).forEach(function(e){ if(e && e[0]){ prog[e[0]]=1; prog[effName(day,e[0])]=1; } });
+  });
+  out=out.filter(function(n){ return !prog[n]; });
+  var w=reviewWindow(), all=loadLogs();
+  for(var n in all){                       // rehydrate adds (and legacy swaps with no swapFor) from logs
+    if(have[n] || prog[n]) continue;
+    var h=all[n];
+    for(var i=h.length-1;i>=0;i--){
+      var e=h[i];
+      if(e && inWeek(e,w) && (e.day||'')===day){
+        if(!e.swapFor){ out.push(n); have[n]=1; }
+        break;
+      }
+    }
+  }
+  return out;
+}
+function repsSpec(str){
+  str=String(str||'');
+  var i=str.search(/[×x]/), tail=i>=0 ? str.slice(i+1) : '';
+  var m=tail.match(/(\d+)\s*(?:[–\-]\s*(\d+))?/), lo=null, hi=null;
+  if(m){ lo=+m[1]; hi=m[2] ? +m[2] : lo; }
+  var per=/\/\s*(leg|arm|side)/i.exec(tail);
+  var label = lo!=null ? (lo===hi ? String(lo) : lo+'–'+hi)
+    : (tail.trim().replace(/^[·\s]+/,'')
+       || str.replace(/^\s*\d+(\s*[–-]\s*\d+)?\s*(sets?)?\s*[·]?\s*/i,'').trim() || '');
+  if(lo!=null && per) label+='/'+per[1].toLowerCase();
+  return {lo:lo, hi:hi, per:per ? per[1].toLowerCase() : null, label:label};
+}
+function lastEntry(s){                    // most recent OTHER entry, same variant + same station only
+  var h=logsFor(s.name), vs=variantsOf(s.name)||[];
+  for(var i=h.length-1;i>=0;i--){
+    var e=h[i]; if(!e || e===s.entry) continue;
+    if(s.variant && (e.v||vs[0])!==s.variant) continue;
+    if(s.tag && (e.scale_tag||homeTag(s.name))!==s.tag) continue;
+    return e;
+  }
+  return null;
+}
+function mkSlot(ex, bi, ss, label, added){
+  var orig=ex[0], name=added ? orig : effName(S.day,orig);
+  var s={ key:orig, orig:orig, name:name, reps:ex[1]||'', note:ex[2]||'',
+    tags:Array.isArray(ex[3]) ? ex[3] : [], bi:bi, ss:ss, label:label||'', added:!!added,
+    swapped:name!==orig };
+  if(added){ var le0=libEntry(name); if(le0 && le0.note) s.note=le0.note; }
+  s.vs=variantsOf(name); s.variant=s.vs ? curVariant(name) : null;
+  s.entry=weekEntry(name,S.day,s.variant);
+  s.needsTag=needsScaleTag(name);
+  s.tag=s.needsTag ? ((s.entry && s.entry.scale_tag) || S.tag[name] || homeTag(name)) : null;
+  s.bw=isBodyweight(name, s.reps);
+  s.spec=repsSpec(s.reps);
+  s.sets=s.entry ? s.entry.sets : [];
+  var prescribed=setsOf(s.reps)||3, lastE=lastEntry(s);
+  s.n=Math.max(prescribed, s.sets.length, lastE ? lastE.sets.length : 0);   // never under-log (F37)
+  s.logged=!!s.entry;                      // "logged" = any entry this week for the slot (F06)
+  s.complete=s.sets.length>=s.n;
+  s.skipped=!!S.skipped[S.day+'|'+s.key];
+  return s;
+}
+function buildModel(){
+  var d=PROGRAM && PROGRAM[S.day]; if(!d || !Array.isArray(d.A)) return null;
+  var slots=[];
+  d.A.forEach(function(b,bi){
+    var es=b.e||[], ss=es.length>1;
+    es.forEach(function(ex){ slots.push(mkSlot(ex,bi,ss,b.w,false)); });
+  });
+  addedForView(S.day).forEach(function(n){ slots.push(mkSlot([n,'','',null],-1,false,'Added',true)); });
+  return slots;
+}
+function openMembers(slots, s){
+  return slots.filter(function(k){ return k.bi===s.bi && !k.complete && !k.skipped; });
+}
+function fewest(list, dflt){
+  var best=dflt||list[0];
+  list.forEach(function(m){ if(m.sets.length<best.sets.length) best=m; });
+  return best;
+}
+function inBlock(slots, s){               // supersets alternate on their own
+  if(!s.ss) return s;
+  var mem=openMembers(slots,s); if(!mem.length) return s;
+  return fewest(mem, mem.indexOf(s)>=0 ? s : mem[0]);
+}
+function pick(slots){
+  var s=null;
+  if(S.sel){ for(var i=0;i<slots.length;i++) if(slots[i].key===S.sel){ s=slots[i]; break; } }
+  if(s){
+    if(s.complete || s.skipped) return {slot:s, review:true};
+    if(S.manual===s.key) return {slot:s};
+    return {slot:inBlock(slots,s)};
+  }
+  for(var j=0;j<slots.length;j++){
+    var x=slots[j]; if(!x.complete && !x.skipped) return {slot:inBlock(slots,x)};
+  }
+  return {slot:null, done:true};
+}
+function nextSlot(slots, c){
+  if(!c) return null;
+  if(c.ss){
+    var p=slots.filter(function(k){ return k!==c && k.bi===c.bi && !k.complete && !k.skipped; });
+    if(p.length) return fewest(p);
+  }
+  var ci=slots.indexOf(c), i;
+  for(i=ci+1;i<slots.length;i++) if(!slots[i].complete && !slots[i].skipped) return slots[i];
+  for(i=0;i<ci;i++) if(!slots[i].complete && !slots[i].skipped) return slots[i];
+  return null;
+}
+function editOf(s){ return (S.edit && S.edit.key===s.key) ? S.edit : null; }
+function wkey(s){ return S.day+'|'+s.name+'|'+(s.variant||'')+'|'+(s.tag||''); }
+function anyW(e){ return !!e && (e.sets||[]).some(function(x){ return x && x.w!=null; }); }
+/* bodyweight lifts hide the weight editor — unless a weight was ever logged for it (weighted knee raise, F26) */
+function showWeight(s){ return !s.bw || !!S.bw[s.key] || anyW(s.entry) || anyW(lastEntry(s)); }
+/* the coach's PLAN numbers belong to the HOME station: never show them as the plan on another cable station (M3) */
+function planOk(s){ return !s.swapped && !s.added && (!s.tag || s.tag===homeTag(s.name)); }
+
+/* ═══ 11. formatting + the numbers the player shows ════════════════════════ */
+function setTxt(x){
+  if(x.r!=null && x.w!=null) return fmtW(x.w)+'×'+x.r;
+  if(x.r!=null) return String(x.r);
+  if(x.w!=null) return fmtW(x.w);            // legacy entry: weight only, no invented reps
+  return '✓';
+}
+function fmtSets(sets){
+  if(!sets || !sets.length) return '';
+  var same=sets.length>1 && sets.every(function(x){ return x.w===sets[0].w && x.r!=null; });
+  if(same && sets[0].w!=null) return fmtW(sets[0].w)+'×'+sets.map(function(x){ return x.r; }).join('·');
+  return sets.map(setTxt).join('·');
+}
+function unitKind(s){                     // 'side' | 'each' | '': the library decides; the plates text only for lifts missing from it (M4)
+  var e=libEntry(s.name), imp=e && e.implement, cv=e && e.convention;
+  if(cv==='per_side') return 'side';
+  if(imp==='db' || imp==='kb') return 'each';
+  if(e || s.swapped || s.added) return '';
+  var pl=platesFor(s.orig) || '';
+  if(/\/\s*side|per side/i.test(pl)) return 'side';
+  if(/dumbbell|kettlebell|\bdbs?\b|\bkb\b/i.test(pl) && !/fixed/i.test(pl)) return 'each';
+  return '';
+}
+function unitOf(s){ var k=unitKind(s); return k==='side' ? 'lb / side' : (k==='each' ? 'lb each' : 'lb'); }
+function recText(s){                      // coach target, display only
+  if(!planOk(s)) return '';
+  var n=recNum(s.orig); if(n==null) return '';
+  var k=unitKind(s);
+  return k==='side' ? fmtW(n)+'/side' : (k==='each' ? fmtW(n)+' each' : fmtW(n));
+}
+function platesLine(s){ return (s.swapped || s.added) ? '' : (platesFor(s.orig) || ''); }
+function tvText(s){
+  var rt=recText(s), rl=s.spec.label;
+  return (rt ? rt+(rl ? ' × ' : '') : '') + (rl||'') || (s.reps || (s.added ? 'added · no target' : '—'));
+}
+function lvText(s){
+  var le=lastEntry(s);
+  return le ? '<b style="font-weight:700;color:var(--ink)">'+fmtDate(le.date)+'</b> '+escHtml(fmtSets(le.sets))
+            : 'first time';
+}
+/* weight shown for the NEXT set, and where it came from (drives the PLAN / SAME caption) */
+function weightFor(s, idx){
+  if(editOf(s)) return {v:S.editW, src:'edit'};
+  var k=wkey(s); if(has(S.work,k)) return {v:S.work[k], src:'typed'};
+  if(!showWeight(s)) return {v:null, src:'bw'};
+  var prev=idx>0 ? s.sets[idx-1] : null; if(prev && prev.w!=null) return {v:prev.w, src:'same'};
+  if(planOk(s)){ var rc=recNum(s.orig); if(rc!=null) return {v:rc, src:'plan'}; }
+  var le=lastEntry(s);
+  if(le){ var x=le.sets[idx] || le.sets[le.sets.length-1]; if(x && x.w!=null) return {v:x.w, src:'last'}; }
+  return {v:null, src:'none'};
+}
+/* reps shown on LOG. NEVER INVENT: no number to show -> r:null -> LOG is disabled ("tap reps"). */
+function repInfo(s, idx){
+  var ed=editOf(s);
+  if(ed){ var cs=s.sets[ed.idx]; return {r:(cs && cs.r!=null) ? cs.r : null, src:'edit'}; }
+  var prev=idx>0 ? s.sets[idx-1] : null;
+  if(prev && prev.r!=null) return {r:prev.r, src:'prev'};
+  if(s.bw && !S.bw[s.key]) return {r:null, src:'none'};            // bodyweight: he counts, we don't guess
+  if(s.spec.hi!=null) return {r:s.spec.hi, src:'plan'};
+  return {r:null, src:'none'};                                      // drop / burnout / failure / AMRAP / no target
+}
+function repCenter(s, idx, base){         // where the strip is scrolled (not a value)
+  if(base!=null) return base;
+  var le=lastEntry(s);
+  if(le && le.sets[idx] && le.sets[idx].r!=null) return le.sets[idx].r;
+  return 12;
+}
+function hasPlan(s){ return (planOk(s) && recNum(s.orig)!=null) || s.spec.lo!=null; }
+function matchesPlan(s, w, r){
+  var rc=planOk(s) ? recNum(s.orig) : null;
+  var wOk = rc==null || w==null || w===rc;
+  var rOk = s.spec.lo==null || (r>=s.spec.lo && r<=s.spec.hi);
+  return wOk && rOk;
+}
+function logSubText(s, idx, w, r, showW){
+  var ed=editOf(s);
+  if(ed){ var cs=s.sets[ed.idx]; return 'was '+(cs ? setTxt(cs) : '—'); }
+  if(r==null) return 'tap your reps below';
+  if(showW && w==null) return 'set the weight first';
+  if(idx>=s.n) return 'extra set';
+  if(hasPlan(s)) return matchesPlan(s,w,r) ? 'as planned' : 'adjusted';
+  var prev=idx>0 ? s.sets[idx-1] : null;
+  if(prev) return (prev.w===w && prev.r===r) ? 'same as last set' : 'adjusted';
+  var le=lastEntry(s), x=le && le.sets[idx];
+  return (x && x.w===w && x.r===r) ? 'same as last time' : 'adjusted';
+}
+
+/* ═══ 12. rendering ════════════════════════════════════════════════════════ */
+var plInit=false, undoT=null;
+function rerenderSafe(){ render(); }     // render() never touches sheet text fields or the open pad
+function drawHeader(){
+  var root=document.documentElement, ac=DAY_ACCENT[S.day]||'#38bdf8';
+  root.style.setProperty('--day', ac);      // day colour = tab underline + backdrop tint ONLY; --accent (cyan) never changes
+  var nowDow=new Date().getDay();
+  var P=PROGRAM||{};
+  $('tabs').innerHTML=ORDER.filter(function(k){ return P[k] && P[k].title; }).map(function(k){
+    return '<button class="tab'+(k===S.day?' on':'')+(DOW[k]===nowDow?' today':'')
+      +'" data-act="tab" data-d="'+k+'" style="--dc:'+DAY_ACCENT[k]+'"><b>'+escHtml(P[k].title.slice(0,3))
+      +'</b><i>'+mmdd(dateForWeekday(DOW[k]))+'</i></button>';
+  }).join('');
+  var m=S.model||[], dn=m.filter(function(s){ return s.logged; }).length, plan=0, did=0;
+  m.forEach(function(s){ plan+=s.n; did+=Math.min(s.sets.length,s.n); });
+  $('prTx').textContent=m.length ? (dn+'/'+m.length+' logged') : '';
+  $('prBar').style.width=(plan ? Math.round(100*did/plan) : 0)+'%';
+  $('betaTag').hidden=!IS_BETA;
+  $('lkCore').hidden=!(S.day==='mon' || S.day==='wed');
+}
+function undoRowKey(nextKey, ctx, m){      // where Undo / Cancel is drawn: the NEXT row, where the eyes are
+  var base = S.edit ? (ctx.slot && ctx.slot.key) : (S.undo ? S.undo.key : null);
+  if(!base) return null;
+  var ci=m.indexOf(ctx.slot), ni=-1;
+  m.forEach(function(k,i){ if(k.key===nextKey) ni=i; });
+  return (nextKey && ni>ci) ? nextKey : base;     // next wraps to the top of the list? use the row he just worked
+}
+function rowHTML(s, ctx, nextKey, m, actKey){
+  var cur=ctx.slot===s, st=s.complete ? 'dn' : (s.skipped ? 'sk' : (s.sets.length ? 'part' : ''));
+  var sub = s.sets.length ? fmtSets(s.sets) : (s.skipped ? 'skipped' : (s.reps || s.label || ''));
+  if(s.swapped && !s.sets.length) sub='swapped for '+s.orig;
+  if(!(s.sets.length || s.skipped || s.swapped || cur || nextKey===s.key)) sub='';   // calm: plans only where eyes are
+  var cls='row '+st+(cur?' cur':'')+(s.swapped?' sw':''), style='';
+  if(s.ss){
+    var grp=m.filter(function(k){ return k.bi===s.bi; }), ix=grp.indexOf(s);
+    cls+=' ssm'+(ix===0?' ssf':'')+(ix===grp.length-1?' ssl':'');
+    style=' style="--rc:'+SS_COLORS[s.bi%SS_COLORS.length]+';--pc:'+Math.round(100*s.sets.length/s.n)+'%"';
+  } else if(st==='part'){ style=' style="--pc:'+Math.round(100*s.sets.length/s.n)+'%"'; }
+  var tg=s.tags.length ? '<span class="tg">'+escHtml(tagText(s.tags[0],TAG_SHORT))+'</span>' : '';
+  var right;
+  if(actKey===s.key && !S.edit && S.undo) right='<span class="act un" data-act="undo">Undo</span>';
+  else right=tg;
+  return '<button class="'+cls+'" data-act="row" data-row="'+escA(s.key)+'"'+style
+    +(nextKey===s.key ? ' data-probe="next"' : '')
+    +'><span class="gl"></span><span class="rt"><span class="rn">'+escHtml(s.name)
+    +'</span><span class="rs num">'+escHtml(sub)+'</span></span><span class="rr">'+right+'</span></button>';
+}
+function drawList(){
+  var m=S.model, ctx=S.ctx, L=$('list'), st=L.scrollTop;
+  if(!m){ L.innerHTML='<div class="boot">Could not load the program.</div>'; return; }
+  var nx=nextSlot(m, ctx.slot), nk=nx ? nx.key : null, ak=undoRowKey(nk, ctx, m);
+  L.innerHTML=m.map(function(s){ return rowHTML(s,ctx,nk,m,ak); }).join('');
+  L.scrollTop=st;
+  ensureVisible();
+}
+function ensureVisible(){                 // keep current row, next row and Undo/Cancel in view (minimal scroll)
+  var L=$('list'), cr=L.querySelector('.row.cur'); if(!cr) return;
+  var pad=$('pad'), cover=(S.typing && !pad.hidden) ? pad.offsetHeight : 0, viewH=L.clientHeight-cover;
+  var rows=[cr], nx=L.querySelector('[data-probe="next"]'), ac=L.querySelector('.act');
+  if(nx && nx.offsetTop>cr.offsetTop) rows.push(nx);
+  if(ac && ac.closest('.row')) rows.push(ac.closest('.row'));
+  var top=1e9, bot=0;
+  rows.forEach(function(r){ top=Math.min(top,r.offsetTop); bot=Math.max(bot,r.offsetTop+r.offsetHeight); });
+  if(top<L.scrollTop+2) L.scrollTop=Math.max(0, top-4);
+  else if(bot>L.scrollTop+viewH-2) L.scrollTop=Math.max(0, Math.min(cr.offsetTop-4, bot-viewH+4));
+}
+function chipsBuild(){
+  var h=''; for(var i=1;i<=60;i++) h+='<button class="ch" data-act="rep" data-r="'+i+'">'+i+'</button>';
+  $('plReps').innerHTML=h;
+}
+function centerReps(center, base, rng){
+  var st=$('plReps'), kids=st.children;
+  for(var i=0;i<kids.length;i++){
+    var r=i+1;
+    kids[i].className='ch'+(rng && rng[0]!=null && r>=rng[0] && r<=rng[1] ? ' rg' : '')+(base!=null && r===base ? ' on' : '');
+  }
+  var c=kids[Math.min(Math.max(center,1),60)-1];
+  if(c) st.scrollLeft=c.offsetLeft-(st.clientWidth-c.offsetWidth)/2;
+}
+var CAPS = {plan:'PLAN', same:'SAME', last:'LAST TIME', typed:'CHANGED', none:'SET WEIGHT', edit:'EDIT'};
+function logSide(s, ed){                   // buttons LEFT of LOG, in thumb reach: Undo (after a save) / Cancel + Remove (edit)
+  if(ed){
+    var h='<button class="sb" data-act="cancel">Cancel</button>';
+    if(s.entry && ed.idx===s.sets.length-1){
+      var arm=!!(S.rmArm && S.rmArm.key===s.key && S.rmArm.idx===ed.idx);
+      h+='<button class="sb rm'+(arm?' sure':'')+'" data-act="rmset">'+(arm?'Sure?':'Remove')+'<small>set '+(ed.idx+1)+'</small></button>';
+    }
+    return h;
+  }
+  if(S.undo) return '<button class="sb un" data-act="undo">Undo<small>'+escHtml(S.undo.txt||'')+'</small></button>';
+  return '';
+}
+function drawPlayer(){
+  var ctx=S.ctx, m=S.model;
+  if(!plInit){ chipsBuild(); plInit=true; }
+  var done=!ctx || !ctx.slot;
+  $('plMain').hidden=done; $('plDone').hidden=!done;
+  $('plMain').style.display=done ? 'none' : 'contents';
+  if(done){ $('pad').hidden=true; $('list').classList.remove('padpad'); drawDone(); return; }
+  var s=ctx.slot, ed=editOf(s), idx=ed ? ed.idx : s.sets.length;
+  var fin=!ed && s.complete && S.extraOn!==s.key;          // finished lift: sets as pills + a muted "Add extra set"
+  var extra=!ed && !fin && idx>=s.n;
+  var np=Math.max(s.n,s.sets.length), showW=showWeight(s);
+  var typing=!!(S.typing && S.typing.key===s.key && showW && !fin);
+  $('player').classList.toggle('ed-on', !!ed);
+  /* exercise + big SET n OF M numeral */
+  $('plName').textContent=s.name; $('plNameBox').className='pl-name'+(s.name.length>16?' sm':'');
+  var sl, se=$('plSet');
+  if(ed) sl='<small>Edit set</small><b>'+(ed.idx+1)+'</b><small>of '+np+'</small>';
+  else if(fin) sl='<small>Done</small><b>'+s.sets.length+'</b><small>of '+s.n+'</small>';
+  else if(extra) sl='<small>Extra set</small><b>'+(idx+1)+'</b>';
+  else sl='<small>Set</small><b>'+(idx+1)+'</b><small>of '+s.n+'</small>';
+  se.className='pl-set'+(ed?' ed':(fin?' fn':(extra?' ex':''))); se.innerHTML=sl;
+  var bd=s.tags.map(function(t){ return '<span class="bdg">'+escHtml(tagText(t,TAG_LABEL))+'</span>'; });
+  if(s.swapped) bd.push('<span class="bdg">SWAPPED</span>');
+  if(s.added) bd.push('<span class="bdg">ADDED</span>');
+  $('plBdg').innerHTML=bd.join('');
+  var vb=$('plVar'), tb=$('plTag');
+  vb.hidden=!s.vs; if(s.vs) vb.textContent=s.variant;
+  var opts=s.needsTag ? scaleOptions() : [];
+  tb.hidden=!(s.needsTag && opts.length); if(!tb.hidden) tb.textContent=scaleLabel(s.tag);
+  /* superset member tabs (name over n/m) + interleaved view button */
+  var ssEl=$('plSs');
+  if(s.ss){
+    var mem=m.filter(function(k){ return k.bi===s.bi; });
+    ssEl.hidden=false;
+    ssEl.innerHTML=mem.map(function(k){
+      return '<button class="sst'+(k===s?' on':'')+'" data-act="ssm" data-key="'+escA(k.key)
+        +'" style="--rc:'+SS_COLORS[k.bi%SS_COLORS.length]+'"><span>'+escHtml(shortName(k.name))
+        +'</span><b>'+k.sets.length+'/'+k.n+'</b></button>';
+    }).join('')+'<button class="sst eye" data-act="ssview" aria-label="All sets">≡</button>';
+  } else ssEl.hidden=true;
+  /* target (coach) and last time (what he lifted) live in different cells — never mixed */
+  $('plTv').textContent=tvText(s);
+  $('plPl').textContent=platesLine(s);
+  $('plLv').innerHTML=lvText(s);
+  /* set pills = progress + edit entry points */
+  var ph='';
+  for(var i=0;i<np;i++){
+    var lg=i<s.sets.length;
+    var c='sp '+(ed && ed.idx===i ? 'ed' : (lg ? 'dn' : (!ed && !fin && i===idx ? 'cu' : 'pe')));
+    ph+='<button class="'+c+'" data-act="pill" data-i="'+i+'"'+(lg?'':' disabled')+'>'
+      +(lg ? escHtml(setTxt(s.sets[i])) : (i+1))+'</button>';
+  }
+  $('plSets').innerHTML=ph;
+  /* entry area: weight row + rep strip, or (finished lift) a calm "done" panel of the same height */
+  $('plWrow').hidden=fin || !showW; $('plBwRow').hidden=fin || showW; $('plReps').hidden=fin;
+  $('plFin').hidden=!fin;
+  if(fin) $('plFin').innerHTML='<b>✓ '+s.sets.length+' of '+s.n+' sets</b><span>Tap a set above to fix it</span>';
+  var wv=weightFor(s,idx), w=wv.v, we=$('plW');
+  var txt = typing ? (S.typing.fresh ? (w==null?'—':fmtW(w)) : (S.typing.buf===''?'—':S.typing.buf))
+                   : (w==null ? '—' : fmtW(w));
+  we.textContent=txt;
+  we.className=(typing?'typing':'')+(typing && S.typing.fresh?' fresh':'')+(txt.length>4?' long':'');
+  var cap=$('plWc'); cap.textContent=(CAPS[wv.src]||'')+' · '+unitOf(s);
+  cap.className='wcap '+(wv.src==='plan'?'plan':(wv.src==='same'?'same':(wv.src==='edit'?'edit':'')));
+  $('pad').hidden=!typing; $('list').classList.toggle('padpad', typing);
+  /* LOG row: never shows a rep count that was invented */
+  var ri=repInfo(s,idx), r=ri.r, lb=$('logBtn'), need=(r==null) && !fin;
+  var side=logSide(s,ed); $('logSide').innerHTML=side;
+  $('logRow').className=(side.split('<button').length>2) ? 'nar' : '';
+  if(fin){
+    lb.className='xtra'; lb.dataset.act='extra'; lb.setAttribute('aria-disabled','false');
+    lb.querySelector('.l1').textContent='Add extra set'; $('logTx').textContent=''; $('logSub').textContent='';
+  } else {
+    lb.dataset.act='log';
+    lb.className=need ? 'dis' : (ed ? 'ed' : '');
+    lb.setAttribute('aria-disabled', need ? 'true' : 'false');
+    lb.querySelector('.l1').textContent=ed ? 'Save' : (extra ? 'Log extra' : 'Log');
+    $('logTx').textContent=(showW ? (w==null ? '—' : fmtW(w))+' × ' : '')+(r==null ? '?' : r);
+    $('logSub').textContent=logSubText(s,idx,w,r,showW);
+  }
+  if(!fin) centerReps(repCenter(s,idx,r), r, s.spec.lo!=null ? [s.spec.lo,s.spec.hi] : null);
+  $('plId').dataset.exercise=s.name;
+}
+function drawDone(){
+  var m=S.model||[], logged=m.filter(function(s){ return s.logged; }).length, sets=0;
+  m.forEach(function(s){ sets+=s.sets.length; });
+  var miss=m.length-logged, core=(S.day==='mon' || S.day==='wed');
+  $('plDone').innerHTML='<h2>'+(miss ? 'Nothing left to log' : 'Session complete')+'</h2><p class="num">'
+    +logged+' of '+m.length+' exercises · '+sets+' sets logged'+(miss ? ' · '+miss+' skipped' : '')+'.</p>'
+    +'<button class="bt pr1" data-act="review">Day review</button>'
+    +(core ? '<button class="bt" data-core-timer data-act="closeSheet">▶ Core timer</button>' : '')
+    +'<button class="bt" data-act="note">Session note</button>'
+    +'<button class="bt" data-act="add">＋ Add exercise</button>';
+}
+function render(){
+  curDay=S.day;
+  if(S.boot){
+    $('list').innerHTML='<div class="boot">Loading today\'s program…</div>';
+    $('prTx').textContent=''; return;
+  }
+  S.model=buildModel();
+  if(!S.model){ S.ctx={slot:null}; drawHeader(); drawList(); return; }
+  S.ctx=pick(S.model);
+  if(S.typing && (!S.ctx.slot || S.ctx.slot.key!==S.typing.key)) S.typing=null;
+  if(S.extraOn && (!S.ctx.slot || S.ctx.slot.key!==S.extraOn)) S.extraOn=null;
+  if(S.rmArm && !S.edit) S.rmArm=null;
+  persistNav();
+  autoPad();
+  drawHeader(); drawList(); drawPlayer(); ensureVisible(); liftPushState();   // again: the pad may just have opened
+}
+var navSig='';
+function persistNav(){                    // remember which lift he is on (H5): reload / iOS kill resumes there
+  var sig=S.day+'|'+S.sel+'|'+S.manual; if(sig===navSig) return; navSig=sig; saveDrafts();
+}
+function autoPad(){                       // a lift with no weight anywhere: open the number pad (once)
+  var s=S.ctx.slot; if(!s || S.typing || S.padOff===s.key || !showWeight(s)) return;
+  if(!S.edit && s.complete && S.extraOn!==s.key) return;       // a finished lift never auto-opens the pad
+  var idx=editOf(s) ? S.edit.idx : s.sets.length;
+  if(weightFor(s,idx).v==null) S.typing={key:s.key, buf:'', fresh:true};
+}
+function dayReviewData(){                 // also used by the verbatim core-timer "Workout Complete" screen
+  var m=S.model || buildModel() || [], logged=[], missing=[];
+  m.forEach(function(s){ (s.logged ? logged : missing).push(s.name); });
+  return {logged:logged, missing:missing, total:m.length};
+}
+
+/* ═══ 13. logging + undo ═══════════════════════════════════════════════════
+   A coach target becomes data ONLY on a LOG tap or a rep-chip tap (CONTRACTS §3).
+   Entries are never deleted. The single exception is Undo of a log that CREATED
+   its entry seconds ago (see doUndo) — flagged for Travis in the report. */
+function haptic(){ try{ navigator.vibrate && navigator.vibrate(12); }catch(e){} }
+function afterSave(){ liftSyncLogs(); }
+function moveNote(){                       // a note typed before the session's first set follows that session's date (M1)
+  var nt=loadNotes(), w=reviewWindow(), t=todayStr(), best=null, all=loadLogs(), other=false;
+  Object.keys(all).forEach(function(n){      // a lift of this day already logged on ANOTHER date => today is a 2nd session: leave notes alone
+    var h=all[n]; if(!Array.isArray(h)) return;
+    h.forEach(function(e){ if(e && e.day===S.day && inWeek(e,w) && e.date!==t) other=true; });
+  });
+  if(other) return;
+  Object.keys(nt).forEach(function(k){
+    var p=k.split('|');
+    if(p[1]===S.day && p[0]>=w[0] && p[0]<=w[1] && p[0]!==t){ if(!best || p[0]>best.d) best={k:k,d:p[0]}; }
+  });
+  if(!best || nt[t+'|'+S.day]!=null) return;  // today already has its own note: never overwrite or drop one
+  nt[t+'|'+S.day]=nt[best.k]; delete nt[best.k];   // only an ORPHAN note (its date has no entry) is re-keyed
+  saveNotesObj(nt);
+}
+function appendSet(s, w, r){               // returns the undo token for exactly this write
+  var all=loadLogs(), listNew=!has(all,s.name);
+  if(!Array.isArray(all[s.name])) all[s.name]=[];
+  var h=all[s.name];
+  var e=weekEntry(s.name,S.day,s.variant), created=false, prev=null;
+  if(e){ prev=e.sets.slice(); }
+  else {
+    e={date:todayStr(), day:S.day, sets:[]};
+    if(s.variant) e.v=s.variant;
+    if(s.tag) e.scale_tag=s.tag;
+    if(s.added) e.added=1;
+    if(s.swapped) e.swapFor=s.orig;
+    h.push(e); created=true;
+  }
+  e.sets.push({w:w, r:r});
+  saveLogs(all); if(created) moveNote();
+  if(S.skipped[S.day+'|'+s.key]){ delete S.skipped[S.day+'|'+s.key]; saveDrafts(); }
+  return {kind:'log', key:s.key, name:s.name, entry:e, created:created, listNew:listNew, prev:prev};
+}
+function updateSet(s, idx, w, r){          // explicit SAVE in edit mode; same slot, original date kept
+  var e=s.entry; if(!e || !e.sets[idx]) return null;
+  var st=e.sets[idx];
+  var tok={kind:'edit', key:s.key, set:st, pw:st.w, pr:st.r, hadR:has(st,'r')};
+  st.w=w; st.r=r; saveLogs(loadLogs());
+  return tok;
+}
+function armUndo(tok){                     // ~10 s, or until the next write replaces it (H1)
+  S.undo=tok; clearTimeout(undoT);
+  undoT=setTimeout(function(){ S.undo=null; if(S.model && S.ctx){ drawList(); drawPlayer(); } }, 10000);
+}
+function clearUndo(){ clearTimeout(undoT); S.undo=null; }
+function doUndo(){
+  var u=S.undo; if(!u) return; clearUndo();
+  var all=loadLogs(), ok=true;
+  if(u.kind==='edit'){
+    u.set.w=u.pw; if(u.hadR) u.set.r=u.pr; else delete u.set.r;
+  } else if(u.kind==='rmset'){
+    if(u.only){                            // put the very same entry object back where it was
+      var h2=Array.isArray(all[u.name]) ? all[u.name] : (all[u.name]=[]);
+      h2.splice(Math.min(u.pos,h2.length),0,u.entry);
+    } else u.entry.sets.push(u.set);
+  } else if(u.created){
+    /* the entry was created by that very log: it is the last one pushed on its list.
+       Removed by identity (pop), never by searching day/variant/tag/week. */
+    var h=all[u.name];
+    if(h && h.length && h[h.length-1]===u.entry){ h.pop(); if(!h.length && u.listNew) delete all[u.name]; }
+    else ok=false;
+  } else {
+    u.entry.sets=u.prev;                  // restore the exact prior snapshot of THIS entry
+  }
+  if(!ok){ toast('Too late to undo — fix it from the set pill'); render(); return; }
+  saveLogs(all); afterSave();
+  S.sel=u.key; S.edit=null; S.manual=u.key;
+  render();
+}
+function shakeW(){ var w=$('plW'); w.classList.remove('bad'); void w.offsetWidth; w.classList.add('bad'); }
+var lastLogAt=0;
+function doLog(r){
+  var c=S.ctx; if(!c || !c.slot) return;
+  var now=Date.now(); if(now-lastLogAt<150) return;          // a double-tap on LOG must not write two sets (H6)
+  var s=c.slot, ed=editOf(s), idx=ed ? ed.idx : s.sets.length, showW=showWeight(s);
+  var wv=weightFor(s,idx), w=showW ? wv.v : null;
+  if(ed && !showW){ var cs=s.sets[ed.idx]; w=cs ? cs.w : null; }   // editor hidden: keep the saved weight, never null it (B1)
+  if(showW && (w==null || isNaN(w) || w<=0)){ shakeW(); openPad(); return; }
+  if(r==null){ r=repInfo(s,idx).r; if(r==null) return; }
+  var tok; lastLogAt=now;
+  if(ed){ tok=updateSet(s,ed.idx,w,r); S.edit=null; S.editW=null; if(!tok){ render(); return; } }
+  else { tok=appendSet(s,w,r); delete S.work[wkey(s)]; saveDrafts(); }
+  tok.txt=setTxt({w:w, r:r});
+  S.typing=null; S.manual=null; S.padOff=null; S.rmArm=null; haptic();
+  var slots=buildModel(), s2=null;
+  slots.forEach(function(k){ if(k.key===s.key) s2=k; });
+  if(!ed && s2 && s2.complete){                          // exercise just finished (or an extra set was added): move on (H5/H7)
+    var nx=nextSlot(slots,s2);
+    S.sel=nx ? nx.key : null; S.extraOn=null;
+  }
+  armUndo(tok); afterSave(); render();
+  var lb=$('logBtn'); if(lb.animate) lb.animate([{transform:'scale(.97)'},{transform:'scale(1)'}],{duration:140});
+}
+/* Remove the LAST set of an entry (edit mode, second tap confirms). If it is the only set the entry goes —
+   by reference (indexOf on the exact object), never by searching fields. Undo puts the same object back.
+   Together with Undo-of-a-create this is the only place the app removes log data (flagged for Travis). */
+var rmT=null;
+function removeLastSet(){
+  var s=cur(), ed=s && editOf(s); if(!s || !ed || !s.entry) return;
+  if(ed.idx!==s.sets.length-1) return;
+  if(!(S.rmArm && S.rmArm.key===s.key && S.rmArm.idx===ed.idx)){
+    S.rmArm={key:s.key, idx:ed.idx}; clearTimeout(rmT);
+    rmT=setTimeout(function(){ S.rmArm=null; if(S.model && S.ctx) drawPlayer(); }, 4000);
+    drawPlayer(); return;
+  }
+  clearTimeout(rmT); S.rmArm=null;
+  var all=loadLogs(), h=all[s.name], e=s.entry, set=e.sets[ed.idx], tok;
+  if(!Array.isArray(h) || !set) return;
+  if(e.sets.length>1){ e.sets.pop(); tok={kind:'rmset', key:s.key, entry:e, set:set, only:false}; }
+  else {
+    var pos=h.indexOf(e); if(pos<0) return;
+    h.splice(pos,1); if(!h.length) delete all[s.name];
+    tok={kind:'rmset', key:s.key, name:s.name, entry:e, set:set, only:true, pos:pos};
+  }
+  tok.txt='removed set '+(ed.idx+1);
+  saveLogs(all); S.edit=null; S.editW=null; S.sel=s.key; S.manual=s.key;
+  armUndo(tok); afterSave(); render();
+}
+function skipCurrent(){
+  var c=S.ctx; if(!c || !c.slot) return;
+  S.skipped[S.day+'|'+c.slot.key]=true; saveDrafts(); S.sel=null; S.edit=null; S.typing=null;
+  toast('Skipped '+c.slot.name+' — tap it in the list to bring it back');
+  render();
+}
+var toastT=null;
+function toast(t, o){                      // o = {act:'reload', ms:20000} makes it a tappable banner
+  var e=$('toast'); e.textContent=t; e.hidden=false;
+  if(o && o.act) e.setAttribute('data-act', o.act); else e.removeAttribute('data-act');
+  clearTimeout(toastT); toastT=setTimeout(function(){ e.hidden=true; e.removeAttribute('data-act'); }, (o && o.ms) || 3200);
+}
+/* weight: -10/-5/+5/+10 steppers and the in-app number pad (the system keyboard never shows for numbers) */
+function setDraftW(s, v){
+  if(editOf(s)) S.editW=v; else { S.work[wkey(s)]=v; saveDrafts(); }
+}
+function adjW(d){
+  var c=S.ctx; if(!c || !c.slot) return; var s=c.slot, idx=editOf(s) ? S.edit.idx : s.sets.length;
+  var cur=weightFor(s,idx).v;
+  setDraftW(s, Math.max(0, Math.round(((cur==null ? 0 : cur)+d)*100)/100));   // floor 0; LOG refuses 0
+  S.typing=null; drawPlayer();
+}
+function openPad(){
+  var s=cur(); if(!s || !showWeight(s)) return;
+  S.typing={key:s.key, buf:'', fresh:true};
+  drawPlayer(); ensureVisible();
+}
+function closePad(){ var s=cur(); S.padOff=s ? s.key : null; S.typing=null; drawPlayer(); }
+function padKey(k){
+  var t=S.typing, s=cur(); if(!t || !s) return;
+  var b=t.fresh ? '' : t.buf;              // the first key replaces the whole number
+  if(k==='bs'){ b=b.slice(0,-1); }
+  else if(k==='.'){ if(b.indexOf('.')<0) b=(b==='' ? '0' : b)+'.'; }
+  else { if(b.replace('.','').length>=5) return; b=(b==='0') ? k : b+k; }
+  t.buf=b; t.fresh=false;
+  var v=(b==='' || b==='.') ? null : parseFloat(b); if(isNaN(v)) v=null;
+  setDraftW(s, v);                         // draft only — never a saved set
+  drawPlayer();
+}
+
+/* ═══ 14. sheets ═══════════════════════════════════════════════════════════ */
+function openSheet(html, focusSel){
+  var sh=$('sheet'); sh.innerHTML=html; sh.hidden=false; $('scrim').hidden=false;
+  if(focusSel){ var f=sh.querySelector(focusSel); if(f) f.focus(); }
+}
+function closeSheetQuiet(){ $('sheet').hidden=true; $('scrim').hidden=true; S.sheetMode=null; endKbs(); }
+function closeSheet(){
+  var wasNote=(S.sheetMode==='note');
+  closeSheetQuiet();
+  try{ document.activeElement && document.activeElement.blur && document.activeElement.blur(); }catch(e){}
+  if(wasNote) liftSyncSoon();
+  render();
+}
+function shHead(t){
+  return '<div class="sh-h"><div class="sh-t">'+escHtml(t)+'</div>'
+    +'<button class="x" data-act="closeSheet" aria-label="Close">✕</button></div>';
+}
+function cur(){ return S.ctx && S.ctx.slot; }
+function ctxLine(){                        // keeps current/target/last visible above the system keyboard
+  var s=cur(); if(!s) return '';
+  var ed=editOf(s), idx=ed ? ed.idx : s.sets.length, le=lastEntry(s);
+  return '<div class="ctx"><div data-probe="current"><b>'+escHtml(s.name)+'</b> · set '+(idx+1)+' of '+s.n+'</div>'
+    +'<div class="c2"><span data-probe="target">Target '+escHtml(tvText(s))+'</span>'
+    +'<span data-probe="last">Last '+escHtml(le ? fmtDate(le.date)+' '+fmtSets(le.sets) : 'first time')+'</span></div></div>';
+}
+function openCoach(){
+  var s=cur(); if(!s){ openDayNote(); return; }
+  var pl=platesFor(s.orig), un=null;
+  if(s.ss){ var ex=((PROGRAM[S.day].A[s.bi])||{}).e||[]; un=unevenNote(ex); }
+  var n=s.added ? addedSessionCount(s.name) : 0;
+  var h=shHead(s.name)+'<div class="sh-b">'
+    +(s.label ? '<div class="sh-k">'+escHtml(s.ss ? 'Superset' : 'Block')+' · '+escHtml(s.label)+'</div>' : '')
+    +(s.tags.length ? '<div class="chips">'+s.tags.map(function(t){
+        return '<span class="bdg" style="font-size:12px;padding:3px 8px">'+escHtml(tagText(t,TAG_LABEL))+'</span>';
+      }).join('')+'</div>' : '')
+    +'<div class="sh-k">Coach note</div><div class="sh-p">'+escHtml(s.note || 'No note for this exercise.')+'</div>'
+    +(pl ? '<div class="sh-k">Loading (display only)</div><div class="sh-p"><b>'+escHtml(pl)+'</b></div>' : '')
+    +(un ? '<div class="sh-k">Heads up</div><div class="sh-p">'+escHtml(un.charAt(0).toUpperCase()+un.slice(1))+'.</div>' : '')
+    +(s.swapped ? '<div class="sh-k">Swapped</div><div class="sh-p">Replaces <b>'+escHtml(s.orig)
+        +'</b>. Logs under the new name; the slot counts as done all week.</div>' : '')
+    +(n>=3 ? '<div class="sh-k">★ Added '+n+'×</div><div class="sh-p">Ask the coach to bake it into the program.</div>' : '')
+    +'</div>';
+  S.sheetMode='coach'; openSheet(h);
+}
+function openDayNote(){
+  var d=PROGRAM[S.day]||{}, p=d.prog||{c:'#38bdf8',t:''};
+  S.sheetMode='day';
+  openSheet(shHead((d.title||'')+' · day notes')+'<div class="sh-b"><div class="sh-k">Warm-up</div><div class="sh-p">'
+    +escHtml(d.warm||'')+'</div>'
+    +'<div class="sh-k">From the coach</div><div class="daynote" style="--pc:'+escA(p.c)+'">'
+    +p.t+'</div>'                       /* prog.t is the ONLY rich-text field by contract */
+    +(d.fin ? '<div class="sh-k">Finish</div><div class="sh-p">'+escHtml(d.fin.core||'')+'\n'
+        +escHtml(d.fin.cardio||'')+'</div>' : '')+'</div>');
+}
+function openHistory(){
+  var s=cur(); if(!s) return;
+  var h=logsFor(s.name), opts=scaleOptions(), rows='';
+  for(var i=h.length-1;i>=0;i--){
+    var e=h[i]; if(!e) continue;
+    var meta=[e.v, e.swapFor && 'swap'].filter(Boolean).join(' · ');
+    var tagBtn=(s.needsTag && opts.length)
+      ? '<button class="htag" data-act="retag" data-i="'+i+'" aria-label="Change station">'
+        +escHtml(scaleLabel(e.scale_tag||homeTag(s.name)||'—'))+'</button>' : '';
+    rows+='<div class="hr"><b>'+fmtDate(e.date)+'</b><span>'+escHtml(fmtSets(e.sets)||'done')+'</span><i>'
+      +escHtml(meta)+'</i>'+tagBtn+'</div>';
+  }
+  S.sheetMode='history';
+  openSheet(shHead('History · '+s.name)+'<div class="sh-b">'
+    +(rows || '<div class="sh-p">Nothing logged yet.</div>')+'</div>');
+}
+function retagEntry(name, i){              // fix a mistag: mutate in place, original date kept
+  var h=logsFor(name), e=h[i], o=scaleOptions(); if(!e || !o.length) return;
+  var ti=o.map(function(x){ return x.tag; }).indexOf(e.scale_tag||homeTag(name));
+  e.scale_tag=o[(ti+1)%o.length].tag;
+  saveLogs(loadLogs()); liftSyncLogs(); openHistory();
+}
+function openNote(){
+  S.sheetMode='note';
+  openSheet(shHead('Session note · '+(PROGRAM[S.day] ? PROGRAM[S.day].title : ''))+ctxLine()
+    +'<textarea class="note-ta" id="shNote" placeholder="How did today go? Soreness, energy, anything you changed…"></textarea>'
+    +'<div class="sh-sub">Saved as you type.</div>','#shNote');
+  $('shNote').value=currentNote();
+}
+function noteKey(){ return (dayLoggedDate(S.day)||todayStr())+'|'+S.day; }
+function currentNote(){
+  var nt=loadNotes(), k=noteKey(); if(nt[k]!=null) return nt[k];
+  var w=reviewWindow();
+  var c=Object.keys(nt).filter(function(x){ var p=x.split('|'); return p[1]===S.day && p[0]>=w[0] && p[0]<=w[1]; }).sort();
+  return c.length ? nt[c[c.length-1]] : '';
+}
+function openMenu(){
+  var core=(S.day==='mon' || S.day==='wed'), r=dayReviewData();
+  var h=shHead('LIFT')+'<div class="sh-b">'
+   +'<button class="li" data-act="add"><span>＋ Add exercise</span><small>from library</small></button>'
+   +'<button class="li" data-act="review"><span>Day review</span><small>'+r.logged.length+'/'+r.total+' logged</small></button>'
+   +'<button class="li" data-act="daynote"><span>Warm-up &amp; coach day note</span></button>'
+   +(core ? '<button class="li" data-core-timer data-act="closeSheet"><span>▶ Core timer</span><small>interval circuit</small></button>' : '')
+   +'<button class="li" data-act="history"><span>History · current exercise</span></button>'
+   +'<button class="li" data-act="refreshprog"><span>Refresh program</span></button>'
+   +(IS_BETA
+      ? '<div class="sh-k">Beta</div><button class="li off"><span>Update program</span><small>disabled in beta</small></button>'
+        +'<button class="li" data-act="demo"><span>Load demo history</span><small>replaces beta data</small></button>'
+      : '<button class="li" data-act="admin"><span>⚙ Update program</span><small>publish</small></button>')
+   +'</div>';
+  S.sheetMode='menu'; openSheet(h);
+}
+function openReview(){
+  var r=dayReviewData(), m=S.model||[];
+  var miss=m.filter(function(s){ return !s.logged; });
+  var some=r.logged.length>0 && miss.length>0;       // "Not logged" chips only when 0 < done < total
+  S.sheetMode='review';
+  openSheet(shHead('Day review')+'<div class="sh-b"><div class="sh-p"><b class="num">'+r.logged.length
+    +' of '+r.total+'</b> exercises logged.</div>'
+    +(some ? '<div class="sh-k">Not logged — tap to go back</div><div class="chips">'+miss.map(function(s){
+        return '<button class="chp" data-act="goto" data-key="'+escA(s.key)+'">'+escHtml(s.name)+'</button>';
+      }).join('')+'</div>' : (miss.length ? '' : '<div class="sh-p">All logged ✓</div>'))
+    +'<div class="sh-k">Logged</div>'+m.filter(function(s){ return s.logged; }).map(function(s){
+        return '<button class="li" data-act="goto" data-key="'+escA(s.key)+'"><span>'+escHtml(s.name)
+          +'</span><small class="num">'+escHtml(fmtSets(s.sets))+'</small></button>';
+      }).join('')+'</div>');
+}
+function openSsView(){                     // dashed = planned, solid = done, interleaved in play order
+  var s=cur(); if(!s || !s.ss) return;
+  var mem=S.model.filter(function(k){ return k.bi===s.bi; });
+  var maxN=Math.max.apply(null, mem.map(function(k){ return Math.max(k.n,k.sets.length); }));
+  var un=unevenNote(((PROGRAM[S.day].A[s.bi])||{}).e||[]), rows='';
+  for(var i=0;i<maxN;i++){
+    mem.forEach(function(k){
+      if(i>=Math.max(k.n,k.sets.length)) return;
+      var d=i<k.sets.length;
+      rows+='<div class="g '+(d?'dn':'pe')+'"><em>'+(i+1)+'</em><span>'+escHtml(shortName(k.name))+' · '
+        +(d ? escHtml(setTxt(k.sets[i])) : escHtml(tvText(k)))+'</span></div>';
+    });
+  }
+  S.sheetMode='ssview';
+  openSheet(shHead('Superset · all sets')+'<div class="sh-b"><div class="ssv">'+rows+'</div>'
+    +(un ? '<div class="sh-p">'+escHtml(un.charAt(0).toUpperCase()+un.slice(1))+'.</div>' : '')+'</div>');
+}
+function openActions(){
+  var s=cur(); if(!s) return; S.sheetMode='actions';
+  openSheet(shHead(s.name)+'<div class="sh-b">'
+    +(s.added ? '' : '<button class="li" data-act="swap"><span>⇄ Swap — machine taken</span></button>')
+    +'<button class="li" data-act="skip"><span>Skip this exercise</span><small>or swipe the name left</small></button>'
+    +'<button class="li" data-act="history"><span>History</span></button>'
+    +'<button class="li" data-act="coach"><span>Coach note</span></button>'
+    +(s.added && !s.logged ? '<button class="li" data-act="remove"><span>✕ Remove this added lift</span></button>' : '')
+    +'</div>');
+}
+function openPicker(mode){
+  var s=cur();
+  if(mode==='swap'){
+    if(!s) return;
+    if(s.added){ openActions(); return; }
+    if(s.logged){ toast('Already logged — can’t swap now. Use ＋ Add exercise for the new lift.'); return; }
+    S.sheetFor=s;
+  }
+  S.sheetMode=mode;
+  openSheet(shHead(mode==='swap' ? 'Swap · '+s.orig : 'Add an exercise')+ctxLine()
+    +'<input class="sh-in" id="shQ" type="text" autocomplete="off" autocapitalize="off" autocorrect="off"'
+    +' enterkeyhint="done" placeholder="Search, or type any exercise name"><div class="sh-b" id="shBody"></div>','#shQ');
+  pickerList('');
+}
+function pickerList(q){
+  /* order: [restore original] · coach alternates · library (prefix matches first when typing) · custom row LAST,
+     and the custom row only when nothing matches the text exactly or by prefix. Enter = first match, else custom. */
+  var ql=String(q||'').trim().toLowerCase(), s=S.sheetFor, h='', typed=String(q||'').trim();
+  var row=function(n, small){ return '<button class="li" data-act="pickname" data-name="'+escA(n)+'"><span>'+escHtml(n)
+    +'</span>'+(small ? '<small>'+escHtml(small)+'</small>' : '')+'</button>'; };
+  var cands=[], seen={}, exact=false, prefix=false;
+  if(S.sheetMode==='swap' && s){
+    if(s.swapped && !s.logged) h+='<button class="li" data-act="pickname" data-name="'+escA(s.orig)
+      +'"><span>↩ Restore original</span><small>'+escHtml(s.orig)+'</small></button>';
+    altsFor(s.orig).forEach(function(a){ if(!seen[a] && a.toLowerCase().indexOf(ql)>=0){ seen[a]=1; cands.push({n:a, g:'Coach alternate'}); } });
+  }
+  pickerGroups().forEach(function(g){
+    (g.names||[]).forEach(function(n){ if(!seen[n] && String(n).toLowerCase().indexOf(ql)>=0){ seen[n]=1; cands.push({n:n, g:g.label}); } });
+  });
+  cands.forEach(function(c){ var ln=String(c.n).toLowerCase(); if(ln===ql) exact=true; if(ql && ln.indexOf(ql)===0) prefix=true; });
+  if(ql){                                   // typing: one flat list, best (prefix) matches on top
+    var pre=cands.filter(function(c){ return String(c.n).toLowerCase().indexOf(ql)===0; });
+    var rest=cands.filter(function(c){ return pre.indexOf(c)<0; });
+    pre.concat(rest).forEach(function(c){ h+=row(c.n, c.g); });
+    S.pickFirst=cands.length ? pre.concat(rest)[0].n : null;
+  } else {
+    var lastG=null;
+    cands.forEach(function(c){ if(c.g!==lastG){ h+='<div class="sh-k">'+escHtml(c.g)+'</div>'; lastG=c.g; } h+=row(c.n); });
+    S.pickFirst=null;
+  }
+  if(typed && !exact && !prefix) h+='<button class="li cu" data-act="pickname" data-name="'+escA(typed)+'"><span>Use “'
+    +escHtml(typed)+'” (custom)</span><small>↵</small></button>';
+  $('shBody').innerHTML=h;
+}
+function openStation(){                    // 3-way chooser instead of blind cycling (M3)
+  var c=cur(), o=scaleOptions(); if(!c || !c.needsTag || !o.length) return;
+  S.sheetMode='station';
+  openSheet(shHead('Station · '+shortName(c.name))+'<div class="sh-b">'+o.map(function(x){
+    return '<button class="li'+(x.tag===c.tag ? ' cu' : '')+'" data-act="settag" data-tag="'+escA(x.tag)+'"><span>'+escHtml(x.label)
+      +'</span><small>'+(x.tag===homeTag(c.name) ? 'home' : '')+'</small></button>';
+  }).join('')+'</div>');
+}
+function setStation(tag){                  // station switch = retag the existing entry in place, date kept
+  var c=cur(); if(!c || !c.needsTag) return;
+  S.tag[c.name]=tag;
+  if(c.entry){ c.entry.scale_tag=tag; saveLogs(loadLogs()); liftSyncLogs(); }
+  S.edit=null; closeSheet();
+}
+function pickName(name){
+  name=String(name); if(!name.trim()) return;
+  var ov=loadOv(), mode=S.sheetMode;
+  if(mode==='swap'){
+    var s=S.sheetFor; if(!s || s.logged) return;               // swap-after-logging guard
+    var dup=null; (S.model||[]).forEach(function(k){ if(k!==s && k.name===name) dup=k; });
+    if(dup){                                                   // already a row on today's list: go there, never merge two slots (M2)
+      S.sel=dup.key; S.edit=null; S.manual=null; closeSheetQuiet(); render();
+      toast(name+' is already on today’s list'); return;
+    }
+    var sw=ov.swaps[S.day] || (ov.swaps[S.day]={});
+    if(name===s.orig) delete sw[s.orig]; else sw[s.orig]=name;
+    saveOv(); S.sel=s.key;
+  } else {
+    var inProg=false;
+    ((PROGRAM[S.day]||{}).A||[]).forEach(function(b){
+      (b.e||[]).forEach(function(e){
+        if(e && (e[0]===name || effName(S.day,e[0])===name)){ inProg=true; S.sel=e[0]; }
+      });
+    });
+    if(!inProg){
+      var arr=ov.added[S.day] || (ov.added[S.day]=[]);
+      if(arr.indexOf(name)<0) arr.push(name);
+      saveOv(); S.sel=name;
+    }
+  }
+  S.edit=null; S.manual=null; closeSheetQuiet(); render();
+  var s2=cur();
+  if(s2 && showWeight(s2) && weightFor(s2,s2.sets.length).v==null) openPad();   // new lift: type the weight once
+}
+function removeAdded(){
+  var s=cur(); if(!s || !s.added || s.logged) return;
+  var arr=loadOv().added[S.day]||[], i=arr.indexOf(s.name);
+  if(i>=0){ arr.splice(i,1); saveOv(); }                       // an UNLOGGED add: a setting, not a log entry
+  S.sel=null; closeSheet();
+}
+function demoLoad(btn){
+  if(!btn.dataset.sure){
+    btn.dataset.sure='1'; btn.querySelector('span').textContent='Tap again — replaces ALL beta logs & notes'; return;
+  }
+  Promise.all([
+    fetch('demo-logs.json').then(function(r){ return r.json(); }),
+    fetch('demo-notes.json').then(function(r){ return r.json(); })
+  ]).then(function(a){
+    saveLogs(cleanLogs(a[0])); saveNotesObj(a[1]); S.sel=null; S.edit=null; clearUndo(); closeSheet(); toast('Demo history loaded');
+  }).catch(function(){ toast('Could not load demo history'); });
+}
+
+/* ═══ 15. events ═══════════════════════════════════════════════════════════ */
+var repBlock=0;
+document.addEventListener('click', function(ev){
+  var tg=ev.target, t=tg.closest ? tg.closest('[data-act]') : null;
+  var rv=tg.closest && tg.closest('.rv-ex');
+  if(rv && rv.dataset.rv){                 // backfill chip on the core timer's finish screen
+    var nm=dec(rv.dataset.rv); if(typeof Ab!=='undefined') Ab.close();
+    (S.model||[]).forEach(function(s){ if(s.name===nm || s.orig===nm) S.sel=s.key; });
+    render(); return;
+  }
+  if(!t) return;
+  var a=t.dataset.act, c;
+  if(a==='tab'){
+    S.day=t.dataset.d; S.pinned=true; S.sel=null; S.edit=null; S.typing=null; S.manual=null; clearUndo();
+    if(S.sheetMode) closeSheetQuiet(); render();
+  }
+  else if(a==='row'){ S.sel=t.dataset.row; S.manual=null; S.edit=null; S.typing=null; S.padOff=null; render(); }
+  else if(a==='pill'){
+    c=cur(); if(!c) return; var i=+t.dataset.i; S.typing=null; S.rmArm=null;
+    if(S.edit && S.edit.idx===i && S.edit.key===c.key){ S.edit=null; S.editW=null; }
+    else { S.edit={key:c.key, idx:i}; S.editW=c.sets[i] ? c.sets[i].w : null; }
+    render();
+  }
+  else if(a==='cancel'){ S.edit=null; S.editW=null; S.typing=null; S.rmArm=null; render(); }
+  else if(a==='undo'){ doUndo(); }
+  else if(a==='rmset'){ removeLastSet(); }
+  else if(a==='extra'){ c=cur(); if(c){ S.extraOn=c.key; S.typing=null; render(); } }
+  else if(a==='reload'){ location.reload(); }
+  else if(a==='rep'){ if(Date.now()<repBlock) return; doLog(+t.dataset.r); }
+  else if(a==='log'){ if($('logBtn').getAttribute('aria-disabled')==='true') return; doLog(null); }
+  else if(a==='wstep'){ adjW(+t.dataset.d); }
+  else if(a==='wtype'){ if(S.typing) closePad(); else openPad(); }
+  else if(a==='key'){ padKey(t.dataset.k); }
+  else if(a==='bwadd'){ c=cur(); if(c){ S.bw[c.key]=true; saveDrafts(); render(); openPad(); } }
+  else if(a==='ssm'){ S.sel=t.dataset.key; S.manual=t.dataset.key; S.edit=null; S.typing=null; render(); }
+  else if(a==='ssview'){ openSsView(); }
+  else if(a==='coach'){ closeSheetQuiet(); openCoach(); }
+  else if(a==='swap'){ closeSheetQuiet(); openPicker('swap'); }
+  else if(a==='add'){ closeSheetQuiet(); openPicker('add'); }
+  else if(a==='history'){ closeSheetQuiet(); openHistory(); }
+  else if(a==='retag'){ c=cur(); if(c) retagEntry(c.name, +t.dataset.i); }
+  else if(a==='note'){ closeSheetQuiet(); openNote(); }
+  else if(a==='menu'){ openMenu(); }
+  else if(a==='review'){ closeSheetQuiet(); openReview(); }
+  else if(a==='daynote'){ closeSheetQuiet(); openDayNote(); }
+  else if(a==='goto'){ S.sel=t.dataset.key; S.edit=null; S.typing=null; S.manual=null; closeSheet(); }
+  else if(a==='close' || a==='closeSheet'){ closeSheet(); }
+  else if(a==='pickname'){ pickName(t.dataset.name); }
+  else if(a==='remove'){ removeAdded(); }
+  else if(a==='skip'){ closeSheetQuiet(); skipCurrent(); }
+  else if(a==='refreshprog'){ closeSheet(); loadProgram(true); toast('Checking for a new program…'); }
+  else if(a==='admin'){ closeSheet(); if(!IS_BETA) Admin.open(); }
+  else if(a==='demo'){ demoLoad(t); }
+  else if(a==='variant'){
+    c=cur();
+    if(c && c.vs){ var vi=c.vs.indexOf(c.variant); S.variant[c.name]=c.vs[(vi+1)%c.vs.length]; S.edit=null; render(); }
+  }
+  else if(a==='tag'){ openStation(); }
+  else if(a==='settag'){ setStation(t.dataset.tag); }
+});
+/* edit mode ends by itself after ~8 s without a tap (so a later rep tap can never overwrite an old set by accident) */
+var editIdleT=null;
+document.addEventListener('click', function(){
+  clearTimeout(editIdleT);
+  if(!S.edit) return;
+  editIdleT=setTimeout(function(){
+    if(S.edit && !S.typing && $('sheet').hidden){ S.edit=null; S.editW=null; S.rmArm=null; render(); }
+  }, 8000);
+});
+/* rep strip: a tap that follows a scroll drag of more than 8pt is ignored (sweaty-thumb guard) */
+(function(){
+  var el=$('plReps'), x0=0, moved=false;
+  el.addEventListener('touchstart', function(e){ x0=e.touches[0].clientX; moved=false; repBlock=0; }, {passive:true});
+  el.addEventListener('touchmove', function(e){ if(Math.abs(e.touches[0].clientX-x0)>8) moved=true; }, {passive:true});
+  el.addEventListener('touchend', function(){ if(moved) repBlock=Date.now()+350; }, {passive:true});
+})();
+/* typing (system keyboard is only for text: notes + exercise search) */
+document.addEventListener('input', function(ev){
+  var t=ev.target;
+  if(t.id==='shNote'){
+    var o=loadNotes(), k=noteKey(), val=t.value;
+    if(val.trim()==='') delete o[k]; else o[k]=val;
+    saveNotesObj(o); liftSyncSoon();
+  }
+  else if(t.id==='shQ'){ pickerList(t.value); }
+});
+document.addEventListener('keydown', function(ev){
+  if(ev.key==='Enter' && ev.target && ev.target.id==='shQ'){
+    ev.preventDefault(); var v=ev.target.value.trim(); if(v) pickName(S.pickFirst || v);   // first library match, else what he typed
+  }
+  if(ev.key==='Escape' && S.sheetMode) closeSheet();
+});
+/* system keyboard never resizes the layout viewport on iOS: shrink the SHEET so its list stays above it */
+function kbHeight(){
+  var h=336;
+  try{ var vv=window.visualViewport; if(vv){ var d=window.innerHeight-vv.height-vv.offsetTop; if(d>120) h=d; } }catch(e){}
+  return h;
+}
+function endKbs(){ document.body.classList.remove('kbs'); }
+document.addEventListener('focusin', function(ev){
+  var id=ev.target.id;
+  if(id==='shNote' || id==='shQ'){
+    document.documentElement.style.setProperty('--kb', kbHeight()+'px');
+    document.body.classList.add('kbs');
+  }
+});
+document.addEventListener('focusout', function(ev){
+  var id=ev.target.id;
+  if(id==='shNote' || id==='shQ'){
+    setTimeout(function(){
+      var a=document.activeElement; if(!a || (a.id!=='shNote' && a.id!=='shQ')) endKbs();
+    }, 120);
+  }
+});
+try{
+  window.visualViewport && window.visualViewport.addEventListener('resize', function(){
+    if(document.body.classList.contains('kbs')) document.documentElement.style.setProperty('--kb', kbHeight()+'px');
+  });
+}catch(e){}
+/* player head: swipe left = skip this exercise · long-press = actions */
+(function(){
+  var el=$('plHead'), x0=0, y0=0, lp=null, moved=false;
+  el.addEventListener('touchstart', function(e){
+    var t=e.touches[0]; x0=t.clientX; y0=t.clientY; moved=false; clearTimeout(lp);
+    if(e.target.closest('button')) return;
+    lp=setTimeout(function(){ if(!moved) openActions(); }, 600);
+  }, {passive:true});
+  el.addEventListener('touchmove', function(e){
+    var t=e.touches[0]; if(Math.abs(t.clientX-x0)>8 || Math.abs(t.clientY-y0)>8){ moved=true; clearTimeout(lp); }
+  }, {passive:true});
+  el.addEventListener('touchend', function(e){
+    clearTimeout(lp); var t=e.changedTouches[0];
+    if(!e.target.closest('button') && t.clientX-x0<-70 && Math.abs(t.clientY-y0)<40){
+      var cs=cur();
+      if(cs && cs.sets.length) toast('Sets already logged here — use the list to move on');   // never skip a lift with data (M9)
+      else skipCurrent();
+    }
+  }, {passive:true});
+  el.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+})();
+/* resume / background */
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState!=='visible'){ liftSyncLogs(); liftWake(false); return; }
+  liftSyncLogs(); loadProgram(false);
+  var wk=reviewWindow()[0];
+  if(S.wk!==wk){                           // a new Mon-Sun week began while the app was asleep: drop last week's drafts (H10)
+    S.wk=wk; S.work={}; S.skipped={}; S.bw={}; S.sel=null; S.manual=null; S.edit=null; S.editW=null;
+    S.typing=null; S.extraOn=null; S.rmArm=null; clearUndo(); saveDrafts();
+  }
+  var ae=document.activeElement, typing=ae && (ae.tagName==='TEXTAREA' || ae.tagName==='INPUT');
+  checkBuild();
+  if(!typing){
+    if(!S.pinned){ var nd=defaultDayKey(); if(nd!==S.day){ S.day=nd; S.sel=null; S.edit=null; S.typing=null; } }
+    render();                              // open pad / edit mode / sheets are state, so they survive this
+  }
+});
+window.addEventListener('pagehide', function(){ liftWake(false); liftSyncLogs(); });
+/* new-version nudge: at most hourly, only when idle, never auto-reloads (H10) */
+var lastBuildChk=Date.now();
+function checkBuild(){
+  if(Date.now()-lastBuildChk<3600000) return;
+  if(S.edit || S.typing || S.sheetMode) return;
+  lastBuildChk=Date.now();
+  try{
+    fetch('index.html?b='+Date.now(), {cache:'no-store'})
+      .then(function(r){ return r.ok ? r.text() : ''; })
+      .then(function(t){
+        var m=/name="lift-build" content="([^"]*)"/.exec(t), me=document.querySelector('meta[name="lift-build"]');
+        if(m && me && m[1]!==me.getAttribute('content')) toast('New version ready — tap here to reload', {act:'reload', ms:20000});
+      }).catch(function(){});
+  }catch(e){}
+}
+window.addEventListener('resize', function(){
+  var s=cur(); if(!s) return; var idx=editOf(s) ? S.edit.idx : s.sets.length, r=repInfo(s,idx).r;
+  centerReps(repCenter(s,idx,r), r, s.spec.lo!=null ? [s.spec.lo,s.spec.hi] : null);
+});
+
+/* ═══ 16. core interval timer (VERBATIM — circuits must stay identical) ═════ */
+/* ───────── Core / ab interval timer — pool + weekly shuffle (BUILD-QUEUE T03) ─────────
+   Monday = weighted-leaning (CORE_TARGET-2 weighted + 2 bodyweight); any other day = all bodyweight.
+   Each week the pools are seed-shuffled by ISO week → a fresh circuit every week.
+   CORE_TARGET work intervals + two 30s rests. Paired moves run as two sided intervals;
+   rests never split a pair. Pools are plain data — easy to edit (later: publishable). */
+var CORE_TARGET = 6; // work intervals per circuit — single tunable constant (was 8; trimmed, felt long).
+                     // Mon = CORE_TARGET-2 weighted + 2 bodyweight; rests fall at the thirds.
+var AB_LEADIN = 10;  // first-core-timer lead-in ONLY — longer so there's time to get set (Ticket 19). Transitions stay AB_TRANS (5).
+var AB_ROLL   = 0;   // Ticket 21: session-only re-roll counter. 0 = the week's default circuit; each
+                     // Randomize tap bumps it, shifting the shuffle seed. Resets next open (by design —
+                     // the circuit stays deterministic-by-week unless re-rolled in the moment).
+var AB_TRANS  = 5;   // TRANSITION_SECONDS — prep window between exercises (Ticket 10); bump for slower weight swaps
+var AB_POOLS = {
+  weightedPool: [
+    { ex:'Single-Arm Otis-Up', sec:50, pair:true },
+    { ex:'DB Oblique Wipers', sec:45, pair:true },
+    { ex:'Statue of Liberty → Thread-the-Needle', sec:50, pair:true },
+    { ex:'Plank Reach-Outs', sec:45, note:'alternate arms' },
+    { ex:'Dumbbell Sunrise-to-Sunset', sec:45 },
+    { ex:'Russian Press', sec:45 },
+    { ex:'Weighted Russian Twist', sec:45 },
+    { ex:'Twisting Toe Taps', sec:45, note:'alternate sides' },
+    { ex:'Recliner Presses', sec:45 },
+    { ex:'Handoffs', sec:45, note:'pass DB hand to hand under legs' }
+  ],
+  bodyweightPool: [
+    { ex:'Single-Single-Double V-Up', sec:45 },
+    { ex:'Starfish Crunch', sec:45 },
+    { ex:'X-Men Crunch', sec:45 },
+    { ex:'Russian Twist (bodyweight)', sec:45 },
+    { ex:'Penguins', sec:40, note:'side to side' },
+    { ex:'Seated Ab Circles', sec:50, pair:true, pairLabels:['CW','CCW'] },
+    { ex:'Plank Tuck-to-Kickback', sec:45, note:'alternate legs' },
+    { ex:'Frog Crunches', sec:45 },
+    { ex:'McDonald\'s', sec:45, note:'trace the M' },
+    { ex:'Rainbows', sec:45, note:'arc side to side' },
+    { ex:'Dragon Thrusts', sec:45 },
+    { ex:'90-90 Crunches', sec:45 },
+    { ex:'Canoe Crunch', sec:45 },
+    { ex:'Hands Back Raises', sec:45 },
+    { ex:'Recliner Elbow-to-Knee Tucks', sec:45, note:'alternate' },
+    { ex:'"21" Crunch', sec:45 },
+    { ex:'Figure 8\'s', sec:45 },
+    { ex:'Tuck Planks (Same Side)', sec:45 },
+    { ex:'Walk the Plank', sec:45, note:'alternate' },
+    { ex:'Sprinter Tuck Planks', sec:45, note:'alternate' },
+    { ex:'Heels to the Heavens', sec:45 },
+    { ex:'Marching Planks', sec:45, note:'alternate' },
+    { ex:'Scissor "V" Ups', sec:45 },
+    { ex:'One Down Two Ups', sec:45 },
+    { ex:'Twisting Pistons', sec:45, note:'alternate' },
+    { ex:'Cross Hop Planks', sec:45 },
+    { ex:'Prayer Crunch', sec:45 },
+    { ex:'Scissors', sec:45 },
+    { ex:'Side Crunches', sec:50, pair:true },
+    { ex:'Russian "V" Tuck Twists', sec:45 }
+  ]
+};
+function ab_mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function ab_shuffle(arr,seed){var r=ab_mulberry32(seed);var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+// Pick moves from `pool` (already shuffled) until they fill exactly `target` work INTERVALS —
+// counting a paired move as 2 intervals — so a pair can't overshoot the budget and starve the
+// other pool. Returns the selected moves (still expanded to L/R by the caller).
+function ab_fillIntervals(pool,target){
+  var out=[], count=0;
+  for(var i=0;i<pool.length && count<target;i++){
+    var w=pool[i].pair?2:1;
+    if(count+w<=target){ out.push(pool[i]); count+=w; }
+  }
+  return out;
+}
+function ab_isoWeek(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));var day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);var ys=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-ys)/86400000)+1)/7);}
+// Build this week's circuit (CORE_TARGET work intervals + two 30s rests) deterministically from the day + ISO week.
+function ab_buildCircuit(){
+  // pools are publishable: if the live program JSON carries a `corePools` key, use it; else the bundled pools.
+  var pools = (typeof PROGRAM==='object' && PROGRAM && PROGRAM.corePools
+               && Array.isArray((PROGRAM.corePools.weightedPool)) && Array.isArray((PROGRAM.corePools.bodyweightPool)))
+             ? PROGRAM.corePools : AB_POOLS;
+  var now=new Date();
+  var seed=ab_isoWeek(now)+AB_ROLL*7919;   // re-roll bump ×prime → a fully different shuffle per tap (T21)
+  // Circuit follows the DAY BEING VIEWED (timer only shows Mon/Wed):
+  // Monday = weighted-leaning pool, Wednesday = all bodyweight. Weekly seeded shuffle.
+  var isWeighted=(curDay==='mon');
+  var candidates;
+  if(isWeighted){
+    // Monday = (CORE_TARGET-2) weighted intervals + 2 bodyweight intervals. Select by INTERVAL
+    // count (pairs = 2) so the 2 bodyweight moves are always guaranteed, then shuffle the order.
+    var w=ab_shuffle(pools.weightedPool, seed);
+    var b=ab_shuffle(pools.bodyweightPool, seed+101);
+    var wsel=ab_fillIntervals(w, CORE_TARGET-2), bsel=ab_fillIntervals(b, 2);
+    candidates=ab_shuffle(wsel.concat(bsel), seed+777);
+  } else {
+    candidates=ab_shuffle(pools.bodyweightPool, seed);
+  }
+  var TARGET=CORE_TARGET, work=[], pairStart=[];
+  for(var k=0;k<candidates.length && work.length<TARGET;k++){
+    var ex=candidates[k];
+    if(ex.pair){
+      if(work.length<=TARGET-2){                       // only if both sides fit (never truncate a pair)
+        var lbl=ex.pairLabels||['L','R'];
+        pairStart.push(work.length);
+        work.push({ex:ex.ex+' — '+lbl[0], sec:ex.sec, note:ex.note});
+        work.push({ex:ex.ex+' — '+lbl[1], sec:ex.sec, note:ex.note});
+      }
+    } else {
+      work.push({ex:ex.ex, sec:ex.sec, note:ex.note});
+    }
+  }
+  function restSlot(i){ return pairStart.indexOf(i-1)>=0 ? i+1 : i; }   // don't split a pair
+  var restAt={}; [restSlot(Math.round(CORE_TARGET/3)),restSlot(Math.round(CORE_TARGET*2/3))].forEach(function(i){ if(i>0 && i<work.length) restAt[i]=1; });
+  var seq=[];
+  work.forEach(function(it,i){ if(restAt[i]) seq.push({rest:30}); seq.push(it); });
+  var dayName=(PROGRAM[curDay]&&PROGRAM[curDay].title)||({mon:'Monday',wed:'Wednesday'}[curDay])||'Core';
+  // Title carries NO week number (week-to-week model, T16/T18) — and never the raw seed,
+  // which is meaningless after a re-roll bump. A re-rolled draw is marked so it's visible.
+  return { seq:seq, work:work, title:dayName+' Core'+(AB_ROLL>0?' · re-rolled':'') };
+}
+
+var Ab = (function(){
+  var el = function(id){ return document.getElementById(id); };
+  var phases=[], pi=0, remaining=0, running=false, started=false, timer=null, endAt=0, lastSec=-1, wake=null, wakeWant=false, actx=null;
+  var voiceOn=true, curAnnounced=false;
+  var circuitWork=[], circuitTitle='';   // this week's generated exercises + label
+
+  // ---- spoken cues (Web Speech API) ----
+  function say(text){
+    if(!voiceOn || !text) return;
+    try{
+      if(!('speechSynthesis' in window)) return;
+      var u=new SpeechSynthesisUtterance(text);
+      u.rate=1.0; u.pitch=1.0; u.volume=1.0; u.lang='en-US';
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  function announcePhase(p){
+    if(!p) return;
+    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}   // drop any queued/stale line before the new one (rapid skips)
+    if(p.kind==='work') say(p.label);
+    else if(p.kind==='rest') say('Rest. Next up, '+(p.next||''));
+    else if(p.kind==='trans') say('Next up, '+(p.next||''));
+    else if(p.kind==='ready') say('Get ready. First up, '+(p.next||''));
+    else if(p.kind==='done') say('Workout complete. Great work.');
+  }
+  function callout(p,r){
+    if(!p) return;
+    if(p.kind==='work'){
+      if(r===20 && p.sec>=40) say('20 seconds');
+      else if(r===10) say('10 seconds left');
+      else if(r<=3 && r>0) beep(900,0.12,0.25);          // work ending: beeps
+    } else if((p.kind==='rest'||p.kind==='ready'||p.kind==='trans') && r<=3 && r>0){
+      say(String(r));                                     // spoken 3·2·1 before the exercise
+    }
+  }
+
+  function buildPhases(){
+    var gen=ab_buildCircuit();
+    circuitWork=gen.work; circuitTitle=gen.title;
+    var seq=gen.seq, firstEx='';
+    for(var f=0;f<seq.length;f++){ if(!seq[f].rest){ firstEx=seq[f].ex; break; } }
+    phases=[{kind:'ready',label:circuitTitle,sec:AB_LEADIN,next:firstEx}];
+    for(var i=0;i<seq.length;i++){
+      var it=seq[i];
+      if(it.rest){
+        var nx=''; for(var j=i+1;j<seq.length;j++){ if(!seq[j].rest){ nx=seq[j].ex; break; } }
+        phases.push({kind:'rest',label:'Rest',sec:it.rest,next:nx});
+      } else {
+        phases.push({kind:'work',label:it.ex,sec:it.sec,note:it.note});
+        // Ticket 10: a short transition window BEFORE the next exercise so there's time to reposition
+        // — but only when no 30s rest already separates them (the rest already announces + counts in).
+        var nxt=seq[i+1];
+        if(nxt && !nxt.rest){
+          phases.push({kind:'trans',label:nxt.ex,sec:AB_TRANS,next:nxt.ex});
+        }
+      }
+    }
+    phases.push({kind:'done',label:'Done 🔥',sec:0});
+  }
+  function beep(freq,dur,vol){
+    try{
+      if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+      var o=actx.createOscillator(), g=actx.createGain();
+      o.type='sine'; o.frequency.value=freq||880; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(0.0001,actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(vol||0.25,actx.currentTime+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+(dur||0.16));
+      o.start(); o.stop(actx.currentTime+(dur||0.16));
+    }catch(e){}
+  }
+  function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+  function fmt(s){ if(s>=60){var m=Math.floor(s/60);return m+':'+String(s%60).padStart(2,'0');} return String(s); }
+  function workIndex(idx){ // 1-based exercise number for a work phase, else null
+    var n=0; for(var i=0;i<=idx;i++){ if(phases[i].kind==='work') n++; } return n;
+  }
+  function draw(){
+    var p=phases[pi]; if(!p) return;
+    var rest = (p.kind==='rest'||p.kind==='ready'||p.kind==='trans');
+    el('abtimer').classList.toggle('rest', rest);
+    el('abtStage').textContent = p.kind==='work' ? ('Exercise '+workIndex(pi)+' / '+circuitWork.length)
+                              : p.kind==='done'  ? 'Complete'
+                              : p.kind==='ready' ? circuitTitle
+                              : p.kind==='trans' ? 'Get ready'
+                              : 'Rest';
+    el('abtName').innerHTML = (p.kind==='work' && p.note)
+      ? (escHtml(p.label)+'<span style="display:block;font-size:.46em;opacity:.7;font-weight:400;margin-top:4px">'+escHtml(p.note)+'</span>')
+      : escHtml(p.label);
+    el('abtTime').textContent = p.kind==='done' ? '✓' : fmt(remaining);
+    // During a transition the big name already shows the upcoming exercise, so don't repeat "Next:".
+    el('abtNext').innerHTML = (p.kind==='trans') ? 'Get ready…' : (p.next ? ('Next: '+escHtml(p.next)) : '&nbsp;');
+    // dots = one per exercise
+    el('abtDots').innerHTML = circuitWork.map(function(_,i){
+      var cur=workIndex(pi); var cls = (p.kind==='work'&&i===cur-1)?'cur':(i<cur-1||(p.kind==='done'))?'done':(((p.kind==='rest'||p.kind==='trans')&&i<cur)?'done':'');
+      return '<span class="abt-dot '+cls+'"></span>';
+    }).join('');
+    if(p.kind==='done'){
+      // T22-B: the Workout Complete moment doubles as the day review — logged count +
+      // any missed exercises, each tappable to backfill (closes the timer, opens its logger).
+      var rvw=dayReviewData();
+      el('abtList').innerHTML =
+        '<div class="abt-review"><b>'+rvw.logged.length+'/'+rvw.total+'</b> exercises logged'+
+        (rvw.missing.length
+          ? ' — not logged:</div><div class="abt-review-list">'+rvw.missing.map(function(nm){
+              return '<button class="rv-ex" data-rv="'+enc(nm)+'">'+escHtml(nm)+'</button>';
+            }).join('')+'</div>'
+          : ' — all logged ✓</div>');
+    } else {
+      el('abtList').innerHTML = circuitWork.map(function(it,i){
+        var cur=workIndex(pi); var cls=(p.kind==='work'&&i===cur-1)?'cur':((i<cur-1||((p.kind==='rest'||p.kind==='trans')&&i<cur))?'done':'');
+        return '<div class="abt-li '+cls+'"><span>'+(i+1)+'. '+escHtml(it.ex)+'</span><span>'+it.sec+'s</span></div>';
+      }).join('');
+    }
+    el('abtPlay').textContent = running ? 'Pause' : (p.kind==='done' ? 'Restart' : (started ? 'Resume' : 'Start'));
+    // Ticket 21: total-duration readout (visual only — never spoken). Pre-start: full circuit
+    // total (lead-in + work + rests + transitions). Running: remaining total. Randomize is
+    // pre-start only — hidden once the circuit has started.
+    el('abtDur').textContent = started
+      ? (p.kind==='done' ? '' : fmtMin(remainingTotal())+' left')
+      : fmtMin(totalSecs())+' total';
+    el('abtRoll').hidden = started;
+  }
+  // Sum of every countdown in the circuit (ready lead-in + work + rests + transitions; done=0).
+  function totalSecs(){ var s=0; for(var i=0;i<phases.length;i++) s+=phases[i].sec||0; return s; }
+  function remainingTotal(){ var s=remaining; for(var i=pi+1;i<phases.length;i++) s+=phases[i].sec||0; return s; }
+  function fmtMin(s){ var m=Math.round(s/30)/2; return '~'+(m%1?m.toFixed(1):m)+' min'; }   // nearest half-minute
+  function tick(){
+    var now=Date.now();
+    var r=Math.max(0, Math.round((endAt-now)/1000));
+    if(r!==lastSec){
+      lastSec=r;
+      remaining=r;
+      callout(phases[pi], r);
+      draw();
+    }
+    if(now>=endAt) next(true);
+  }
+  function startTick(){ clearInterval(timer); timer=setInterval(tick,150); }
+  function play(){
+    if(phases[pi] && phases[pi].kind==='done'){ openFresh(); }
+    running=true; started=true; endAt=Date.now()+remaining*1000; lastSec=-1;
+    reqWake();
+    // iOS only allows audio started from a user gesture — this tap is it.
+    // Create + resume the AudioContext here so the later timer-tick beeps are audible.
+    try{
+      if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+      if(actx.state==='suspended') actx.resume();
+    }catch(e){}
+    if(!curAnnounced){ announcePhase(phases[pi]); curAnnounced=true; }   // speak current phase on first start
+    startTick(); draw();
+  }
+  function pause(){ running=false; clearInterval(timer); relWake();
+    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){} draw(); }
+  function next(auto){
+    if(pi>=phases.length-1){ // finished
+      running=false; clearInterval(timer); relWake();
+      pi=phases.length-1; remaining=0; draw();
+      if(auto){ beep(660,0.5,0.3); buzz([120,60,120,60,240]); announcePhase(phases[pi]); }
+      return;
+    }
+    pi++; remaining=phases[pi].sec; lastSec=-1; curAnnounced=true;
+    if(phases[pi].kind==='work'){ beep(1046,0.18,0.3); buzz(180); }      // exercise start
+    else if(phases[pi].kind==='done'){ beep(660,0.5,0.3); buzz([120,60,120,60,240]); running=false; clearInterval(timer); relWake(); }   // terminal: stop the loop so the sec:0 done phase can't re-fire next() → completion fires exactly once (Ticket 19)
+    else { beep(523,0.16,0.22); buzz(80); }                              // rest
+    announcePhase(phases[pi]);
+    if(running){ endAt=Date.now()+remaining*1000; }
+    draw();
+  }
+  function prev(){ if(pi>0){ pi--; remaining=phases[pi].sec; lastSec=-1; curAnnounced=true;
+    if(running) endAt=Date.now()+remaining*1000; announcePhase(phases[pi]); draw(); } }
+  function reqWake(){ wakeWant=true; try{ if('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function(w){ if(!wakeWant){ try{w.release();}catch(e){} return; } wake=w; }).catch(function(){}); }catch(e){} }
+  function relWake(){ wakeWant=false; try{ wake&&wake.release&&wake.release(); }catch(e){} wake=null; }   // wakeWant guards the async race: a request that resolves AFTER a pause is released immediately
+  function openFresh(){ buildPhases(); pi=0; remaining=phases[0].sec; running=false; started=false; lastSec=-1; curAnnounced=false; }
+  function open(){ AB_ROLL=0; openFresh(); el('abtimer').hidden=false; liftWake(true); draw(); }   // fresh open → this day's default circuit (re-rolls don't leak to the next day)
+  function close(){ running=false; clearInterval(timer); relWake(); liftWake(false);
+    try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){}
+    el('abtimer').hidden=true; }
+
+  // wiring (overlay buttons are static)
+  document.addEventListener('click',function(ev){
+    var t=ev.target; if(t&&t.closest&&t.closest('[data-core-timer]')){ open(); }
+  });
+  // Ticket 21: pre-start re-roll — regenerate the circuit from the pools. Guarded against
+  // returning the identical list twice in a row; silent (no beep/announce), pre-start only.
+  function reroll(){
+    if(started) return;
+    var prev=circuitWork.map(function(w){return w.ex;}).join('|');
+    for(var t=0;t<10;t++){
+      AB_ROLL++;
+      buildPhases();
+      if(circuitWork.map(function(w){return w.ex;}).join('|')!==prev) break;
+    }
+    pi=0; remaining=phases[0].sec; lastSec=-1; curAnnounced=false;
+    draw();
+  }
+  el('abtRoll').addEventListener('click',reroll);
+  el('abtPlay').addEventListener('click',function(){ running?pause():play(); });
+  el('abtSkip').addEventListener('click',function(){ next(false); });
+  el('abtPrev').addEventListener('click',function(){ prev(); });
+  el('abtClose').addEventListener('click',function(){ close(); });
+  el('abtVoice').addEventListener('click',function(){
+    voiceOn=!voiceOn;
+    el('abtVoice').textContent = voiceOn ? '🔊' : '🔇';
+    el('abtVoice').classList.toggle('off', !voiceOn);
+    if(!voiceOn){ try{ window.speechSynthesis && window.speechSynthesis.cancel(); }catch(e){} }
+    else { say('Voice on'); }   // also primes speech within this tap
+  });
+  // re-acquire wake lock if the user tabs back while running
+  document.addEventListener('visibilitychange',function(){ if(running && document.visibilityState==='visible') reqWake(); });
+
+  return { open:open, close:close };
+})();
+/* ═══ 17. program key warnings (VERBATIM) ═════════════════════════════════ */
+// Publish-time sanity: which recs/alts/plateMode keys DON'T match a real exercise name
+// (the most common silent two-chat failure — a "·"/space/quote typo shows nothing).
+function programKeyWarnings(prog){
+  try{
+    var names={}, variants={};
+    ORDER.forEach(function(dk){ var d=prog[dk]; if(!d||!Array.isArray(d.A)) return;
+      d.A.forEach(function(b){ (b.e||[]).forEach(function(ex){ if(ex&&ex[0]){ names[ex[0]]=1;
+        var vs=variantsOf(ex[0]); if(vs) vs.forEach(function(v){ variants[v]=1; }); } }); }); });
+    function known(n){ return !!(names[n]||variants[n]); }
+    function q(s){ return '“'+s+'”'; }
+    var warns=[];
+    function warnBad(bad,label){ if(bad.length) warns.push(label+' for '+bad.slice(0,3).map(q).join(', ')+(bad.length>3?' +'+(bad.length-3):'')+' (no matching exercise — typo?)'); }
+    function checkMap(obj,label){ if(obj && typeof obj==='object' && !Array.isArray(obj)){
+      warnBad(Object.keys(obj).filter(function(k){ return !known(k); }), label); } }
+    // recs/plates are DAY-NESTED ({mon:{"Exercise":val}, …}) — the exercise names are the INNER keys.
+    // (The old flat check flagged mon/tue/wed/fri as unknown exercises on every valid publish.)
+    function checkDayNested(obj,label){ if(obj && typeof obj==='object' && !Array.isArray(obj)){
+      var bad=[]; ORDER.forEach(function(dk){ var day=obj[dk];
+        if(day && typeof day==='object' && !Array.isArray(day)) Object.keys(day).forEach(function(k){ if(!known(k)) bad.push(k); }); });
+      warnBad(bad, label); } }
+    checkDayNested(prog.recs,'recs'); checkDayNested(prog.plates,'plates'); checkMap(prog.alts,'alts');
+    if(Array.isArray(prog.plateMode)){ var bp=prog.plateMode.filter(function(k){ return !known(k); });
+      if(bp.length) warns.push('plateMode '+bp.slice(0,3).map(q).join(', ')+(bp.length>3?' +'+(bp.length-3):'')+' (no matching exercise)'); }
+    // Rich text is allowed ONLY in prog.t — everywhere else renders literally (escaped), so a
+    // <b>/<i>/<span> outside prog.t is a paste mistake. Matches markup-SHAPED strings only;
+    // plain "<45°" / "(<60s rest)" prose never warns.
+    var TAG=/<\/?[a-z][^>]*>/i, htmlHits=[];
+    function scanStr(s,where){ if(typeof s==='string' && TAG.test(s)) htmlHits.push(where); }
+    ORDER.forEach(function(dk){ var d=prog[dk]; if(!d||typeof d!=='object') return;
+      scanStr(d.title,dk+'.title'); scanStr(d.sub,dk+'.sub'); scanStr(d.warm,dk+'.warm');
+      if(d.fin){ scanStr(d.fin.core,dk+'.fin.core'); scanStr(d.fin.cardio,dk+'.fin.cardio'); }
+      (Array.isArray(d.A)?d.A:[]).forEach(function(b,bi){ if(!b) return; scanStr(b.w,dk+' block '+(bi+1)+' label');
+        (b.e||[]).forEach(function(ex){ if(!ex) return;
+          scanStr(ex[0],dk+' name '+q(String(ex[0]).slice(0,22)));
+          scanStr(ex[1],dk+' reps of '+q(String(ex[0]).slice(0,22)));
+          scanStr(ex[2],dk+' note of '+q(String(ex[0]).slice(0,22))); }); });
+      var dp=prog.plates&&prog.plates[dk]; if(dp&&typeof dp==='object') Object.keys(dp).forEach(function(k){ scanStr(dp[k],dk+' plates '+q(k)); });
+    });
+    if(htmlHits.length) warns.push('HTML outside prog.t (will show as literal text): '+htmlHits.slice(0,3).join(', ')+(htmlHits.length>3?' +'+(htmlHits.length-3):'')+' — <b> is allowed only in prog.t');
+    return warns;
+  }catch(e){ return []; }
+}
+/* ═══ 18. publish screen (VERBATIM; token key prefixed, disabled in beta) ═══ */
+/* ───────── Update Program (publish to Vercel; long-press the LIFT logo) ───────── */
+var Admin = (function(){
+  var g=function(id){ return document.getElementById(id); };
+  var TOKEN_KEY=PFX+'pub-token';   /* CONTRACTS §2: prefixed key (only edit to this block, with the beta guard below) */
+  function setStatus(msg,cls){ var s=g('admStatus'); s.textContent=msg||' '; s.className='adm-status'+(cls?' '+cls:''); }
+  // One-tap clipboard read (iOS shows a Paste permission prompt). Falls back to manual paste.
+  function pasteFromClipboard(){
+    if(navigator.clipboard && navigator.clipboard.readText){
+      navigator.clipboard.readText().then(function(text){
+        if(text && text.trim()){ g('admJson').value=text; validate(); }
+        else { setStatus('Clipboard looks empty - copy the routine from the chat first.',''); g('admJson').focus(); }
+      }).catch(function(){ setStatus('Could not read the clipboard - tap the box and paste manually.','err'); g('admJson').focus(); });
+    } else { setStatus('Tap the box below and paste (hold, then Paste).',''); g('admJson').focus(); }
+  }
+  function parseInput(){
+    var raw=g('admJson').value.trim();
+    if(!raw) return {ok:false,msg:'Paste the routine JSON first.'};
+    var data; try{ data=JSON.parse(raw); }catch(e){
+      var m=String(e.message||''), pos=(m.match(/position (\d+)/)||[])[1];
+      var near=pos!=null?(' — check near: …'+raw.slice(Math.max(0,pos-18), Number(pos)+12).replace(/\s+/g,' ')+'…'):'';
+      return {ok:false,msg:'That isn’t valid JSON (a bracket, quote, or comma is off)'+near}; }
+    var prog=normalizeProgram(data);
+    if(!prog) return {ok:false,msg:'Parsed, but that is not a program object.'};
+    var issue=programIssue(prog);                        // same strict check the app uses before adopting
+    if(issue) return {ok:false,msg:issue};
+    var days=Object.keys(prog).filter(function(k){return ORDER.indexOf(k)>=0;});
+    return {ok:true,prog:prog,days:days,good:days.length};
+  }
+  function validate(){
+    var v=parseInput();
+    if(!v.ok){ setStatus('✕ '+v.msg,'err'); return null; }
+    var warns=programKeyWarnings(v.prog);
+    if(warns.length){ setStatus('✓ '+v.good+' days valid — heads up: '+warns.join(' · '),'warn'); }
+    else { setStatus('✓ Looks good — '+v.good+' day(s): '+v.days.join(', '),'ok'); }
+    return v;   // warnings don't block publishing (keys may be intentional)
+  }
+  function publish(){
+    var v=validate(); if(!v) return;
+    var token=g('admToken').value.trim();
+    if(!token){ setStatus('✕ Enter your publish token.','err'); return; }
+    setStatus('Publishing…','');
+    fetch(PROGRAM_API,{method:'POST',headers:{'content-type':'application/json','x-program-secret':token},body:JSON.stringify(v.prog)})
+      .then(function(r){ return r.json().then(function(j){return {s:r.status,j:j};},function(){return {s:r.status,j:null};}); })
+      .then(function(o){
+        if(o.s===200){
+          try{ localStorage.setItem(TOKEN_KEY, token); }catch(e){}
+          setCachedProgram(v.prog); PROGRAM=v.prog; render();
+          g('admJson').value='';                 // auto-clear the paste box after a successful publish
+          setStatus('✓ Published — this week’s routine is now live on all your devices.','ok');
+        } else if(o.s===401){ setStatus('✕ Wrong publish token.','err'); }
+        else { setStatus('✕ '+((o.j&&o.j.error)||('error '+o.s)),'err'); }
+      })
+      .catch(function(){ setStatus('✕ Network error — try again.','err'); });
+  }
+  function open(){ if(IS_BETA) return;   /* publish is read-only in beta */ try{ g('admToken').value=localStorage.getItem(TOKEN_KEY)||''; }catch(e){} setStatus(' '); g('admin').hidden=false; }
+  function close(){ g('admin').hidden=true; }
+
+  g('admClose').addEventListener('click',close);
+  g('admPaste').addEventListener('click',pasteFromClipboard);
+  g('admClear').addEventListener('click',function(){ g('admJson').value=''; setStatus(' '); g('admJson').focus(); });
+  g('admValidate').addEventListener('click',validate);
+  g('admPublish').addEventListener('click',publish);
+
+  // Primary, reliable entry: the gear in the nav (a normal tap).
+  var gear=g('navGear'); if(gear) gear.addEventListener('click',function(e){ e.stopPropagation(); open(); });
+
+  // Secondary: long-press the LIFT logo. Don't cancel on pointercancel — iOS
+  // WKWebView fires it spuriously when it starts its own long-press gesture,
+  // which used to kill the timer before it opened.
+  var brand=document.querySelector('.brand'), lp=null;
+  function lpStart(){ lp=setTimeout(open,600); }
+  function lpEnd(){ if(lp){ clearTimeout(lp); lp=null; } }
+  if(brand){
+    brand.style.userSelect='none'; brand.style.webkitUserSelect='none';
+    brand.addEventListener('pointerdown',lpStart);
+    brand.addEventListener('pointerup',lpEnd);
+    brand.addEventListener('pointerleave',lpEnd);
+    brand.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+  }
+  return { open:open, close:close };
+})();
+
+/* ═══ 19. boot ═════════════════════════════════════════════════════════════ */
+(function(){
+  loadDrafts();
+  var c=cachedProgram();
+  if(c && !programIssue(c)){ PROGRAM=c; GOOD=c; S.boot=false; }     // 1) render the valid cache at once
+  render();
+  loadProgram(true);                                         // 2) then ask the API
+  setTimeout(function(){ if(S.boot) loadBundled(); }, 1200);   // no cache + weak signal: fetch the bundled program (async, never blocks)
+  if(IS_BETA) document.title='LIFT β';
+  liftSyncLogs();
+})();
+
+</script>
+<script>
+  /* PWA: registers only when hosted over https/localhost; silently skipped otherwise */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('service-worker.js').catch(function () {});
+    });
+  }
+</script>
+</body>
+</html>
