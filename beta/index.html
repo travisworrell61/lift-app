@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07090d">
-<meta name="lift-build" content="r4">
+<meta name="lift-build" content="r6">
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -70,7 +70,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
   border:1px solid color-mix(in srgb,var(--warn) 50%,transparent);border-radius:6px;padding:1px 6px}
 
 /* ── CSS 3. checklist ── */
-#list{position:relative;flex:1;min-height:0;overflow-y:auto;padding:2px 10px 6px;
+#list{position:relative;flex:1;min-height:0;overflow-y:auto;padding:2px 10px 24px;
   overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 #list::-webkit-scrollbar{display:none}
 #list.padpad{padding-bottom:124px}   /* room to scroll the last rows above the floating number pad */
@@ -127,6 +127,8 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .pb{min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;
   border-radius:12px;color:var(--steel);font-size:12px;font-weight:700;padding:0 4px}
 .pb:active{background:var(--s3)}
+.pb.has{position:relative}
+.pb.has::after{content:'';position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:var(--accent)}   /* R6 F18 */
 .pb.pill{border:1px solid var(--line);background:var(--s2);padding:0 9px;max-width:104px;margin-right:4px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;line-height:42px;border-radius:12px}
 .pl-setrow{display:flex;align-items:center;gap:8px;height:44px}
@@ -157,6 +159,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .pl-tl #plTv,.pl-tl #plLv{display:block;font-size:18px;font-weight:650;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;line-height:1.2;color:var(--ink)}
 .pl-tl #plLv{color:var(--steel);font-weight:500;font-size:15px;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.15}
+.lvh{color:var(--accent);font-weight:700}
 .pl-tl small #plPl{display:inline;margin-left:6px;font-size:13px;font-weight:500;letter-spacing:0;
   text-transform:none;color:var(--muted)}
 .pl-tl small #plLd{margin-left:6px;font-weight:600;letter-spacing:0;color:var(--steel)}
@@ -169,22 +172,23 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .ub{flex:none;width:62px;margin-left:8px;height:44px;border-radius:12px;font-size:13px;font-weight:800;letter-spacing:.02em;overflow:hidden;padding:0 3px;
   border:1px solid color-mix(in srgb,var(--accent) 55%,var(--line));background:var(--s2);color:var(--ink);
   display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
-.ub small{font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:0;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;line-height:1.08}
+.ub small{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:0;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;line-height:1.08}
 .ub small+small{color:var(--steel);font-weight:700}
-.ub:disabled{opacity:.32;border-color:var(--line);color:var(--muted);pointer-events:none}
+.ub:disabled{visibility:hidden;pointer-events:none}   /* R6 F13: no dead placeholder; the slot keeps its width so pills never shift */
+.ed-on .ub{display:none}   /* editing: the pills get the room (pill 4 whole) */
 .ub:active{background:var(--s3)}
 .sp{flex:1 0 44px;max-width:64px;height:44px;border-radius:12px;background:var(--s2);padding:0;
   border:1px solid var(--line);font-size:16px;letter-spacing:-.02em;font-weight:700;color:var(--steel);display:flex;
   flex-direction:column;align-items:center;justify-content:center;white-space:nowrap;font-variant-numeric:tabular-nums}
 .sp b{font-size:18px;line-height:1.05;font-weight:700}   /* reps big, weight small: a 3-digit weight never clips (H2) */
-.sp i{font-style:normal;font-size:11px;line-height:1.1;font-weight:600;color:var(--muted)}
+.sp i{font-style:normal;font-size:13px;line-height:1.1;font-weight:600;color:var(--muted)}
 .sp.dn i{color:var(--steel)}
 .sp.dn{background:color-mix(in srgb,var(--ok) 14%,var(--s2));
   border-color:color-mix(in srgb,var(--ok) 38%,var(--line));color:var(--ink)}
 .sp.cu{border:2px solid var(--accent);color:var(--accent);background:transparent}
 .sp.ed{border:2px solid var(--warn);color:var(--warn);background:transparent}
 .sp.pe{color:var(--muted);border-style:dashed}
-#plNext{height:15px;font-size:13px;line-height:15px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px;margin-top:-2px}
+#plNext{height:18px;font-size:15px;line-height:18px;font-weight:600;color:var(--steel);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px;margin-top:-2px}
 #plNext b{color:var(--steel);font-weight:700}
 #plEntry{display:flex;flex-direction:column;gap:12px}   /* >= 12pt between weight row, rep strip and LOG */
 .pl-w{display:flex;align-items:flex-end;gap:2px;height:56px}
@@ -195,7 +199,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 .wbox{flex:1;min-width:0;height:56px;position:relative;display:flex;align-items:center;
   justify-content:center;border-radius:12px}
 #plW{width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:0;
-  font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1;color:var(--ink);
+  font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:.92;color:var(--ink);   /* R6 F20: digit box starts 5 px below the caption */
   font-variant-numeric:tabular-nums;border-radius:12px}
 #plW{padding:0 6px}
 #plW.long{font-size:36px;letter-spacing:-.05em}
@@ -206,7 +210,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 #plReps.shake{animation:shake .3s}
 #plReps.flash{box-shadow:0 0 0 2px var(--warn);border-radius:12px}
 @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-.wcap{position:absolute;top:4px;left:-30px;right:-30px;text-align:center;pointer-events:none;font-size:14px;
+.wcap{position:absolute;top:0;left:-30px;right:-30px;text-align:center;pointer-events:none;font-size:14px;
   font-weight:800;letter-spacing:.07em;white-space:nowrap;text-transform:uppercase;line-height:1;color:var(--muted)}
 .wcap.plan{color:var(--accent)}
 .wcap.same{color:var(--ink)}
@@ -246,7 +250,7 @@ svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;
 #logBtn .lrow{display:flex;align-items:baseline;gap:12px}
 #logBtn .l1{font-size:15px;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
 #logBtn .l2{font-size:30px;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1}
-#logBtn .l3{font-size:14px;letter-spacing:.06em;text-transform:uppercase;opacity:.85;line-height:1.1}
+#logBtn .l3{font-size:15px;letter-spacing:.06em;text-transform:uppercase;opacity:1;line-height:1.1}
 #logBtn:active{filter:brightness(.88);transform:scale(.995)}
 #logBtn.ed{background:var(--warn)}
 #logBtn.dis{background:var(--s3);color:var(--muted);box-shadow:none}
@@ -304,6 +308,7 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
 .li:active{background:var(--s3)}
 .li small{color:var(--muted);font-size:12.5px}
 .li.cu{color:var(--accent);font-weight:700}
+.li.en{box-shadow:inset 3px 0 0 var(--accent)}   /* R6 F3: the row Enter will take */
 .li.off{opacity:.45;pointer-events:none}
 .chips{display:flex;flex-wrap:wrap;gap:8px;padding:2px 10px 6px}
 .chp{min-height:44px;padding:0 14px;border-radius:12px;background:var(--s2);border:1px solid var(--line);
@@ -338,11 +343,12 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
 .toast[data-act]{min-height:44px;display:flex;align-items:center;cursor:pointer}
 .toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 60px);
   z-index:120;background:#e9edf5;color:#0b0f16;border-radius:12px;padding:10px 16px;font-weight:600;
-  font-size:14px;max-width:calc(100% - 32px);text-align:center}
+  font-size:14px;max-width:calc(100% - 32px);text-align:center;pointer-events:none}   /* R6 F5: a plain toast never eats a tap */
+.toast[data-act]{pointer-events:auto}
 
   .abt{position:fixed;inset:0;z-index:200;background:rgba(8,10,14,.975);
     -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-    display:flex;align-items:safe center;justify-content:center;overflow-y:auto;
+    display:flex;align-items:center;align-items:safe center;justify-content:center;overflow-y:auto;
     padding:max(20px,env(safe-area-inset-top)) 22px max(24px,env(safe-area-inset-bottom));}
   .abt[hidden]{display:none;}
   .abt.rest{background:rgba(10,9,7,.975);}
@@ -451,7 +457,7 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
       <span class="tx num" id="prTx"></span>
       <span class="bar"><b id="prBar"></b></span>
       <span class="beta" id="betaTag" hidden>BETA · demo data</span>
-      <button class="lk" data-act="daynote" id="lkDay">Coach notes</button>
+      <button class="lk" data-act="daynote" id="lkDay">Day notes</button>
       <button class="lk" data-core-timer data-act="closeSheet" id="lkCore" hidden>▶ Core</button>
     </div>
   </header>
@@ -480,7 +486,7 @@ body.kbs #sheet{max-height:calc(100% - var(--kb) - 16px - env(safe-area-inset-to
           <div class="pl-btns">
             <button class="pb pill" id="plVar" data-act="variant" hidden></button>
             <button class="pb pill" id="plTag" data-act="tag" hidden></button>
-            <button class="pb" data-act="coach" aria-label="Coach note"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".6"/></svg></button>
+            <button class="pb" id="plCoach" data-act="coach" aria-label="Coach note"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".6"/></svg></button>
             <button class="pb" data-act="swap" aria-label="Swap exercise"><svg class="ic" viewBox="0 0 24 24"><path d="M4 8h14l-3-3"/><path d="M20 16H6l3 3"/></svg></button>
           </div>
         </div>
@@ -748,7 +754,14 @@ function loadDrafts(){
   }catch(e){}
   S.wk=reviewWindow()[0];
 }
+function rollWeek(){                      // R6 F16/F6: a new Mon-Sun week began while the page stayed open: drop last week's drafts + backfill state
+  var wk=reviewWindow()[0]; if(S.wk===wk) return false;
+  S.wk=wk; S.work={}; S.skipped={}; S.bw={}; S.nov={}; S.sel=null; S.manual=null; S.edit=null; S.editW=null;
+  S.typing=null; S.extraOn=null; S.rmArm=null; S.offOk=null; S.offDate=null; S.pinned=false; clearUndo();
+  return true;
+}
 function saveDrafts(){
+  rollWeek();
   try{ localStorage.setItem(K.draft,
     JSON.stringify({wk:reviewWindow()[0], work:S.work, skipped:S.skipped, bw:S.bw, nov:S.nov, tag:S.tag, variant:S.variant,
       sel:S.sel, manual:S.manual, selDay:S.day})); }catch(e){}
@@ -1337,9 +1350,20 @@ function tvText(s){
   var rt=recText(s), rl=s.spec.label;
   return (rt ? rt+(rl ? ' × ' : '') : '') + (rl||'') || (s.reps || (s.added ? 'added · no target' : '—'));
 }
+/* R6 F1: last time as runs ("230×12,12 · 210×12,10"); spaces let it wrap to 2 lines, the set he is on is accent */
+function fmtSetsRuns(sets, hi){
+  if(!sets || !sets.length) return '';
+  if(sets.some(function(x){ return x.r==null; })) return escHtml(fmtSets(sets));
+  var groups=[], g=null;
+  sets.forEach(function(x,i){
+    if(!g || g.w!==x.w){ g={w:x.w, rs:[]}; groups.push(g); }
+    g.rs.push(i===hi ? '<span class="lvh">'+x.r+'</span>' : String(x.r));
+  });
+  return groups.map(function(q){ return (q.w!=null ? escHtml(fmtW(q.w))+'×' : '')+q.rs.join(','); }).join(' · ');
+}
 function lvText(s){
   var le=lastEntry(s);
-  return le ? escHtml(fmtSets(le.sets)) : 'first time';
+  return le ? fmtSetsRuns(le.sets, s.sets.length) : 'first time';   // R6 F1
 }
 function lvDate(s){ var le=lastEntry(s); return le ? fmtDate(le.date) : ''; }
 /* weight shown for the NEXT set, and where it came from (drives the PLAN / SAME caption) */
@@ -1352,7 +1376,13 @@ function weightFor(s, idx){
     prev=null;
     for(var q=Math.min(idx,s.flat.length)-1;q>=0;q--){ var fe=s.flat[q].e; if((fe.scale_tag||homeTag(s.name))===s.tag){ prev=s.flat[q].st; break; } }
   }
-  if(prev && prev.w!=null) return {v:prev.w, src:'same'};
+  if(prev && prev.w!=null){
+    if(isDrop(s) && idx>0 && prev.w>0){        // R6 F8: a drop set's one-tap value IS the drop: -10%, to the nearest 2.5
+      var dv=Math.round(prev.w*0.9/2.5)*2.5;
+      if(dv<prev.w) return {v:dv, src:'drop', was:prev.w};
+    }
+    return {v:prev.w, src:'same'};
+  }
   if(planOk(s)){ var rc=recNum(s.orig); if(rc!=null) return {v:rc, src:'plan'}; }
   var le=lastEntry(s);
   if(le){ var x=le.sets[idx] || le.sets[le.sets.length-1]; if(x && x.w!=null) return {v:x.w, src:'last'}; }
@@ -1383,6 +1413,11 @@ function repInfo(s, idx){
   return {r:s.spec.hi, src:'plan'};                                           // top of the range (Travis's choice) — the label says so
 }
 function repCenter(s, idx, base){         // where the strip is scrolled (not a value)
+  if(base!=null){                           // R6 F7: window starts 3 chips below the selected / prefilled rep (7 chips show); a short range keeps its low end too
+    var lf=base-3;
+    if(!editOf(s) && s.spec.lo!=null && s.spec.lo<lf && base-s.spec.lo<=6) lf=s.spec.lo;
+    return Math.max(4,lf+3);
+  }
   if(!editOf(s) && s.spec.lo!=null){        // a planned lift: centre on the MIDDLE of the range so its low AND high end show (H7)
     var c=Math.round((s.spec.lo+s.spec.hi)/2);
     if(base!=null){ if(base>c+3) c=base-3; else if(base<c-3) c=base+3; }
@@ -1410,11 +1445,18 @@ function logSubText(s, idx, w, r, showW, hint, src){
   if(r==null) return 'pick your reps below';          // the message lives ON the button (H3)
   if(showW && w==null) return 'set the weight first';
   if(idx>=s.n) return 'extra set';
-  if(isDrop(s) && idx>0) return 'same weight · drop it';   // R5 F5: a drop set repeats the weight only as a reminder to take it down
+  if(isDrop(s) && idx>0) return (s.sets[idx-1] && w!=null && s.sets[idx-1].w!=null && w<s.sets[idx-1].w) ? 'drop set' : 'same weight · drop it';   // R5 F5: a drop set repeats the weight only as a reminder to take it down
   if(s.spec.hi!=null && hasPlan(s)){
     if(!matchesPlan(s,w,r)) return 'adjusted';
     if(src==='prev') return 'same as last set';              // reps carried from the set before are not "the plan" (R5 F5)
-    return (src==='plan' && s.spec.lo!==s.spec.hi) ? 'top of '+s.spec.lo+'–'+s.spec.hi : (src==='last' ? 'same as last time' : 'as planned');   // a range is not a single plan (M-1)
+    if(src==='last'){                                          // R6 F2: "same as last time" only when weight AND reps match that set
+      var lle=lastEntry(s), lx=lle && lle.sets[idx];
+      if(lx && lx.w===w && lx.r===r) return 'same as last time';
+      if(lx && lx.w!=null && w!=null && w>lx.w) return 'up from last time';
+      if(lx && lx.r===r) return 'reps as last time';
+      return 'as planned';
+    }
+    return (src==='plan' && s.spec.lo!==s.spec.hi) ? 'top of '+s.spec.lo+'–'+s.spec.hi : 'as planned';   // a range is not a single plan (M-1)
   }
   var prev=idx>0 ? s.sets[idx-1] : null;
   if(prev) return (prev.w===w && prev.r===r) ? 'same as last set' : 'adjusted';
@@ -1435,7 +1477,7 @@ function drawHeader(){
       +'" data-act="tab" data-d="'+k+'" style="--dc:'+DAY_ACCENT[k]+'"><b>'+escHtml(P[k].title.slice(0,3))
       +'</b><i>'+mmdd(dateForWeekday(DOW[k]))+'</i></button>';
   }).join('');
-  var m=S.model||[], dn=m.filter(function(s){ return s.logged; }).length, plan=0, did=0;
+  var m=(S.model||[]).filter(function(s){ return !s.swapOf; }), dn=m.filter(function(s){ return s.logged; }).length, plan=0, did=0;   // R6 F4: a late swap's substitute is not a 2nd row
   m.forEach(function(s){ plan+=s.n; did+=Math.min(s.sets.length,s.n); });
   $('prTx').textContent=m.length ? (dn+'/'+m.length+' logged') : '';
   $('prBar').style.width=(plan ? Math.round(100*did/plan) : 0)+'%';
@@ -1508,7 +1550,7 @@ function centerReps(center, base, rng, hint){
   var c=kids[Math.min(Math.max(center,1),60)-1];
   if(c) st.scrollLeft=c.offsetLeft-(st.clientWidth-c.offsetWidth)/2;
 }
-var CAPS = {plan:'PLAN', same:'SAME', last:'LAST TIME', typed:'CHANGED', none:'SET WEIGHT', edit:'EDIT', check:'CHECK'};
+var CAPS = {plan:'PLAN', same:'SAME', drop:'DROP', last:'LAST TIME', typed:'CHANGED', none:'SET WEIGHT', edit:'EDIT', check:'CHECK'};
 function canRemove(e){ return !!e && e.date===todayStr(); }   // an older session's entry is history: it can be fixed, never deleted from here (M7)
 function logSide(s, ed){                   // buttons LEFT of LOG, edit mode only: Cancel + Remove. Undo lives in the player head (H-1), so LOG never moves
   if(ed){
@@ -1547,7 +1589,7 @@ function drawPlayer(){
   if(pnb.scrollHeight>pnb.clientHeight+1 || $('plName').scrollHeight>pnb.clientHeight+1) pnb.classList.add('lg');
   var sl, se=$('plSet');
   var of=function(n){ return n>=5 ? '/'+n : 'of '+n; };     // 5+ sets: "3/5" keeps room for every set pill (H2)
-  if(ed) sl='<small>Edit</small><b>'+(ed.idx+1)+'</b><small>'+of(np)+'</small>';
+  if(ed) sl='<small>Edit</small><b>'+(ed.idx+1)+'</b>';       // R6 F13: no "of m" so pill 4 is never clipped
   else if(fin) sl='<small>Done</small><b>'+s.sets.length+'</b><small>'+of(s.n)+'</small>';
   else if(extra) sl='<small>Extra set</small><b>'+(idx+1)+'</b>';
   else sl='<small>Set</small><b>'+(idx+1)+'</b><small>'+of(s.n)+'</small>';
@@ -1556,6 +1598,7 @@ function drawPlayer(){
   if(s.swapped || s.swapOf) bd.push('<span class="bdg">SWAPPED</span>');
   if(s.added && !s.swapOf) bd.push('<span class="bdg">ADDED</span>');
   $('plBdg').innerHTML=bd.join('');
+  $('plCoach').classList.toggle('has', !!s.note);        // R6 F18: a dot when this lift has a coach heads-up
   var vb=$('plVar'), tb=$('plTag');
   vb.hidden=!s.vs; if(s.vs) vb.textContent=s.variant;
   var opts=s.needsTag ? scaleOptions() : [];
@@ -1598,9 +1641,9 @@ function drawPlayer(){
   var txt = typing ? (S.typing.fresh ? (w==null?'—':fmtW(w)) : (S.typing.buf===''?'—':S.typing.buf))
                    : (w==null ? '—' : fmtW(w));
   we.textContent=txt;
-  we.className=(typing?'typing':'')+(typing && S.typing.fresh?' fresh':'')+(txt.length>4?' long':'')+(!typing && (wv.src==='plan'||wv.src==='same'||wv.src==='last'||wv.src==='check') ? ' pre' : '')+(!typing && wv.src==='plan' ? ' planw' : '');
-  var cap=$('plWc'); cap.textContent=(CAPS[wv.src]||'')+' · '+unitOf(s);
-  cap.className='wcap '+(wv.src==='plan'?'plan':(wv.src==='same'?'same':(wv.src==='edit'?'edit':(wv.src==='check'?'drop':''))))+((!ed && isDrop(s) && idx>0 && wv.src==='same') ? ' drop' : '');
+  we.className=(typing?'typing':'')+(typing && S.typing.fresh?' fresh':'')+(txt.length>4?' long':'')+(!typing && (wv.src==='plan'||wv.src==='same'||wv.src==='drop'||wv.src==='last'||wv.src==='check') ? ' pre' : '')+(!typing && (wv.src==='plan'||wv.src==='same'||wv.src==='drop') ? ' planw' : '');   // R6 F9: a prefilled-same weight reads white; steel = last time / check
+  var cap=$('plWc'); cap.textContent=wv.src==='drop' ? 'DROP · was '+fmtW(wv.was)+' · '+unitOf(s) : (CAPS[wv.src]||'')+' · '+unitOf(s);
+  cap.className='wcap '+(wv.src==='plan'?'plan':(wv.src==='same'?'same':(wv.src==='edit'?'edit':(wv.src==='check'?'drop':(wv.src==='drop'?'drop':'')))))+((!ed && isDrop(s) && idx>0 && wv.src==='same') ? ' drop' : '');
   $('pad').hidden=!typing; $('list').classList.toggle('padpad', typing);
   /* LOG row: never shows a rep count that was invented */
   var ri=repInfo(s,idx), r=ri.r, lb=$('logBtn'), need=(r==null) && !fin;
@@ -1627,12 +1670,13 @@ function drawPlayer(){
   ub.setAttribute('aria-label', uo ? 'Undo '+undoName(S.undo)+' '+(S.undo.txt||'') : 'Nothing to undo');
   ub.innerHTML= (uo && S.undo.txt && (S.undo.kind==='log' || S.undo.kind==='edit')) ? 'Undo<small>'+escHtml(undoTiny(undoName(S.undo)))+'</small><small>'+escHtml(S.undo.txt)+'</small>' : 'Undo';
   var nxs=(!fin && !ed) ? nextSlot(m, s) : null;        // one quiet line: what comes after this set's lift (R5 F16)
-  $('plNext').innerHTML=nxs ? 'Next · <b>'+escHtml(shortName(nxs.name))+'</b>' : '';
+  var wrapN=nxs && !(s.ss && nxs.bi===s.bi) && m.indexOf(nxs)<m.indexOf(s);       // R6 F15: nothing after this lift: say so (the earlier unfinished one is not "next")
+  $('plNext').innerHTML=nxs ? (wrapN ? 'Last lift' : 'Next · <b>'+escHtml(shortName(nxs.name))+'</b>') : ((!fin && !ed) ? 'Last lift' : '');
   $('plId').dataset.exercise=s.name;
 }
 function drawDone(){
-  var m=S.model||[], logged=m.filter(function(s){ return s.logged; }).length, sets=0;
-  m.forEach(function(s){ sets+=s.sets.length; });
+  var all=S.model||[], m=all.filter(function(s){ return !s.swapOf; }), logged=m.filter(function(s){ return s.logged; }).length, sets=0;   // R6 F4
+  all.forEach(function(s){ sets+=s.sets.length; });
   var miss=m.length-logged, core=(S.day==='mon' || S.day==='wed');
   $('plDone').innerHTML='<h2>'+(miss ? 'Nothing left to log' : 'Session complete')+'</h2><p class="num">'
     +logged+' of '+m.length+' exercises · '+sets+' sets logged'+(miss ? ' · '+miss+' skipped' : '')+'.</p>'
@@ -1643,6 +1687,7 @@ function drawDone(){
     +'<button class="bt" data-act="add">＋ Add exercise</button>';
 }
 function render(){
+  rollWeek();
   curDay=S.day;
   if(S.boot){
     $('list').innerHTML='<div class="boot">Loading today\'s program…</div>';
@@ -1670,8 +1715,8 @@ function autoPad(){                       // a lift with no weight anywhere: ope
 }
 function dayReviewData(){                 // also used by the verbatim core-timer "Workout Complete" screen
   var m=S.model || buildModel() || [], logged=[], missing=[];
-  m.forEach(function(s){ (s.logged ? logged : missing).push(s.name); });
-  return {logged:logged, missing:missing, total:m.length};
+  m.forEach(function(s){ if(s.swapOf) return; (s.logged ? logged : missing).push(s.name); });   // R6 F4
+  return {logged:logged, missing:missing, total:logged.length+missing.length};
 }
 
 /* ═══ 13. logging + undo ═══════════════════════════════════════════════════
@@ -1796,7 +1841,7 @@ function offDay(){ return S.day!==defaultDayKey(); }
 function backDate(){                       // the date of this tab's weekday this week, when it is in the past (a backfill), else null
   var d=ymd(dateForWeekday(DOW[S.day])); return d<todayStr() ? d : null;
 }
-function logDate(){ return (offDay() && S.offOk===S.day && S.offDate) ? S.offDate : todayStr(); }   // the date a new entry carries: today, or the tab's own date when backfilling (R5 F11)
+function logDate(){ return (offDay() && S.offOk===S.day && S.offDate && S.offDate>=reviewWindow()[0]) ? S.offDate : todayStr(); }   // the date a new entry carries: today, or the tab's own date when backfilling (R5 F11)
 function doLog(r){
   var c=S.ctx; if(!c || !c.slot) return;
   var now=Date.now();
@@ -1808,7 +1853,7 @@ function doLog(r){
   if(ed && !showW){ var cs=s.sets[ed.idx]; w=cs ? cs.w : null; }   // editor hidden: keep the saved weight, never null it (B1)
   if(showW && (w==null || isNaN(w) || w<=0)){ shakeW(); openPad(); return; }
   if(r==null){ r=repInfo(s,idx).r; if(r==null) return; }
-  if(!ed && offDay() && S.offOk!==S.day){ S.offOk=S.day; S.offDate=backDate(); lastLogAt=now; lastGk=gk; lastGkAt=now; render(); return; }   // not today: the first tap only arms (H1)
+  if(!ed && offDay() && S.offOk!==S.day){ S.offOk=S.day; S.offDate=backDate(); lastLogAt=now; render(); return; }   // R6 F11: the arm tap must not feed the double-tap guard (lastGk/lastGkAt)   // not today: the first tap only arms (H1)
   var tok; lastLogAt=now; lastGk=gk; lastGkAt=now;
   if(ed){ tok=updateSet(s,ed.idx,w,r); S.edit=null; S.editW=null; if(!tok){ render(); return; } }
   else {
@@ -2094,7 +2139,7 @@ function pickerList(q){
   /* order: [restore original] · coach alternates · library (prefix matches first when typing) · custom row LAST,
      and the custom row only when nothing matches the text exactly or by prefix. Enter = first match, else custom. */
   var ql=String(q||'').trim().toLowerCase(), s=S.sheetFor, h='', typed=String(q||'').trim();
-  var row=function(n, small){ return '<button class="li" data-act="pickname" data-name="'+escA(n)+'"><span>'+escHtml(n)
+  var row=function(n, small, en){ return '<button class="li'+(en ? ' en' : '')+'" data-act="pickname" data-name="'+escA(n)+'"><span>'+escHtml(n)
     +'</span>'+(small ? '<small>'+escHtml(small)+'</small>' : '')+'</button>'; };
   var cands=[], seen={}, exact=false, prefix=false;
   if(S.sheetMode==='swap' && s){
@@ -2109,16 +2154,18 @@ function pickerList(q){
   if(ql){                                   // typing: one flat list, best (prefix) matches on top
     var pre=cands.filter(function(c){ return String(c.n).toLowerCase().indexOf(ql)===0; });
     var rest=cands.filter(function(c){ return pre.indexOf(c)<0; });
-    pre.concat(rest).forEach(function(c){ h+=row(c.n, c.g); });
-    var ex1=cands.filter(function(c){ return String(c.n).toLowerCase()===ql; })[0];
-    S.pickFirst=ex1 ? ex1.n : null;          // Enter: the EXACT name if it exists, else exactly what he typed (R5 F9: a custom name may start like a library name)
+    var ord=pre.concat(rest), ex1=cands.filter(function(c){ return String(c.n).toLowerCase()===ql; })[0];
+    var take=ex1 || (pre.length ? pre[0] : null);   // R6 F3: Enter takes the exact match, else the first PREFIX match; a substring-only match is a different lift, so Enter never takes it
+    S.pickHold=!take && ord.length>0;        // matches exist but none start with the text: Enter does nothing (tap a row or "Use custom")
+    ord.forEach(function(c){ h+=row(c.n, c.g, c===take); });
+    S.pickFirst=take ? take.n : null;          // Enter: the EXACT name if it exists, else exactly what he typed (R5 F9: a custom name may start like a library name)
   } else {
     var lastG=null;
     cands.forEach(function(c){ if(c.g!==lastG){ h+='<div class="sh-k">'+escHtml(c.g)+'</div>'; lastG=c.g; } h+=row(c.n); });
-    S.pickFirst=null;
+    S.pickFirst=null; S.pickHold=false;
   }
   if(typed && !exact) h+='<button class="li cu" data-act="pickname" data-name="'+escA(typed)+'"><span>Use “'
-    +escHtml(typed)+'” (custom)</span><small>↵</small></button>';
+    +escHtml(typed)+'” (custom)</span><small>'+((S.pickFirst || S.pickHold) ? '' : '↵')+'</small></button>';   // ↵ only when Enter would take it (R6 F3)
   $('shBody').innerHTML=h;
 }
 function openStation(){                    // 3-way chooser instead of blind cycling (M3)
@@ -2280,7 +2327,7 @@ document.addEventListener('input', function(ev){
 });
 document.addEventListener('keydown', function(ev){
   if(ev.key==='Enter' && ev.target && ev.target.id==='shQ'){
-    ev.preventDefault(); var v=ev.target.value.trim(); if(v) pickName(S.pickFirst || v);   // first library match, else what he typed
+    ev.preventDefault(); var v=ev.target.value.trim(); if(v){ if(!S.pickFirst && S.pickHold){ toast('Tap a lift, or tap Use custom'); } else pickName(S.pickFirst || v); }   // first library match, else what he typed
   }
   if(ev.key==='Escape' && S.sheetMode) closeSheet();
 });
@@ -2340,12 +2387,8 @@ document.addEventListener('visibilitychange', function(){
   if(document.visibilityState!=='visible'){ liftSyncLogs(); return; }     // keep-awake is NOT released on hide (B-1)
   liftSyncLogs(); loadProgram(false);
   if(!$('abtimer').hidden) liftWake(true);                              // timer still open: re-assert after the app returns
-  try{ if(LIFT_ACTX && LIFT_ACTX.state!=='running') LIFT_ACTX.resume(); }catch(e){}   // beeps after an interruption (M-8)
-  var wk=reviewWindow()[0];
-  if(S.wk!==wk){                           // a new Mon-Sun week began while the app was asleep: drop last week's drafts (H10)
-    S.wk=wk; S.work={}; S.skipped={}; S.bw={}; S.nov={}; S.sel=null; S.manual=null; S.edit=null; S.editW=null;
-    S.typing=null; S.extraOn=null; S.rmArm=null; clearUndo(); saveDrafts();
-  }
+  try{ if(LIFT_ACTX && LIFT_ACTX.state!=='running') LIFT_ACTX.resume().catch(function(){}); }catch(e){}   // beeps after an interruption (M-8)
+  if(rollWeek()) saveDrafts();
   var ae=document.activeElement, typing=ae && (ae.tagName==='TEXTAREA' || ae.tagName==='INPUT');
   checkBuild();
   if(!typing){
