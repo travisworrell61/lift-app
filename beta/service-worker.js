@@ -12,7 +12,7 @@
 
 const SCOPE = new URL(self.registration.scope).pathname;     // '/lift-app/' (live) or '/lift-app/beta/' (beta)
 const SUFFIX = '@' + SCOPE;
-const CACHE = 'lift-r6b' + SUFFIX;   // R6b                             // build marker in index.html must match this suffix (R6 F10)
+const CACHE = 'lift-r7' + SUFFIX;   // R7                             // build marker in index.html must match this suffix (R6 F10)
 const NET_MS = 3000;
 const CORE = [
   './',
