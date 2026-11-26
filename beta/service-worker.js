@@ -1,4 +1,4 @@
-/* LIFT service worker (r2)
+/* LIFT service worker (r4)
    Strategy: network-first with cache fallback, fetched with {cache:'reload'}.
    - Online: revalidates with the server so pushed changes show on the next open
      ({cache:'reload'} beats GitHub Pages' max-age=600).
@@ -12,7 +12,7 @@
 
 const SCOPE = new URL(self.registration.scope).pathname;     // '/lift-app/' (live) or '/lift-app/beta/' (beta)
 const SUFFIX = '@' + SCOPE;
-const CACHE = 'lift-r3' + SUFFIX;                             // bump r3 -> r4 to purge this scope's old cache
+const CACHE = 'lift-r4' + SUFFIX;                             // bump r4 -> r5 to purge this scope's old cache
 const NET_MS = 3000;
 const CORE = [
   './',
@@ -58,6 +58,7 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   if (url.origin !== self.location.origin) return;   // cross-origin (Vercel API) -> let the network handle it
+  if (url.searchParams.has('b')) return;             // the new-version probe (?b=) must see the REAL network, never a cached copy (M2)
   // Cache key ignores the query string, so ?t= cache-busters map to ONE stable entry.
   const cacheKey = new Request(url.origin + url.pathname);
   e.respondWith(new Promise((resolve) => {
