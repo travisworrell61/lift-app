@@ -22,6 +22,16 @@ struct LiftProvider: TimelineProvider {
 
 private let liftAccentFallback = Color(red: 0.49, green: 0.83, blue: 0.99)   // sky
 
+// App theme tokens (index.html :root) — graphite surfaces, one lime accent.
+enum Theme {
+    static let bg    = Color(red: 0x07/255, green: 0x08/255, blue: 0x0a/255)   // #07080a
+    static let s1    = Color(red: 0x11/255, green: 0x13/255, blue: 0x17/255)   // #111317
+    static let ink   = Color(red: 0xf5/255, green: 0xf6/255, blue: 0xf8/255)   // #f5f6f8
+    static let steel = Color(red: 0xc3/255, green: 0xc8/255, blue: 0xd2/255)   // #c3c8d2
+    static let muted = Color(red: 0x8c/255, green: 0x93/255, blue: 0xa1/255)   // #8c93a1
+    static let lime  = Color(red: 0xc8/255, green: 0xf1/255, blue: 0x35/255)   // #c8f135
+}
+
 extension Color {
     init?(hex: String?) {
         guard var h = hex else { return nil }
@@ -55,12 +65,31 @@ struct LIFTWidgetEntryView: View {
         return "\(s.day): done ✓"
     }
 
+    @Environment(\.colorScheme) private var scheme
+    private var isLock: Bool { family == .accessoryInline || family == .accessoryRectangular || family == .accessoryCircular }
+
     var body: some View {
+        content
+          // Home Screen sizes always draw on graphite, so keep text in dark-mode colors even in Light Mode.
+          .environment(\.colorScheme, isLock ? scheme : .dark)
+          .containerBackground(for: .widget) {
+            switch family {
+            case .accessoryInline, .accessoryRectangular, .accessoryCircular:
+                Color.clear    // Lock Screen: the system draws its own material
+            default:
+                LinearGradient(colors: [Theme.s1, Theme.bg], startPoint: .top, endPoint: .bottom)
+            }
+        }
+    }
+
+    @ViewBuilder private var content: some View {
         switch family {
         case .accessoryInline:
             Text(inlineText)
         case .accessoryRectangular:
             rectangular
+        case .accessoryCircular:
+            circular
         case .systemMedium:
             listView(max: 4, compact: true)
         case .systemLarge:
@@ -88,24 +117,84 @@ struct LIFTWidgetEntryView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    // Small round Lock Screen widget: a ring that fills as you log, with today's count in the middle.
+    @ViewBuilder private var circular: some View {
+        if let s = entry.snapshot, s.total > 0 {
+            let done = Swift.min(s.doneCount, s.total)
+            Gauge(value: Double(done), in: 0...Double(s.total)) {
+                Image(systemName: "dumbbell.fill")
+            } currentValueLabel: {
+                if done >= s.total {
+                    Image(systemName: "checkmark").font(.system(size: 18, weight: .bold))
+                } else {
+                    VStack(spacing: -2) {
+                        Text("\(done)").font(.system(size: 17, weight: .bold, design: .rounded)).monospacedDigit()
+                        Text(s.day.uppercased()).font(.system(size: 8, weight: .semibold)).tracking(0.5)
+                    }
+                }
+            }
+            .gaugeStyle(.accessoryCircularCapacity)
+            .widgetAccentable()
+        } else {
+            ZStack {
+                AccessoryWidgetBackground()
+                Image(systemName: "dumbbell.fill").font(.system(size: 20, weight: .semibold))
+            }
+        }
+    }
+
     // MARK: - Home Screen small
 
+    // Graphite + lime, matching the app's theme. Tapping anywhere opens LIFT (widget default).
     @ViewBuilder private var small: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(header).font(.caption2).foregroundStyle(.secondary)
-            Spacer(minLength: 0)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("LIFT").font(.system(size: 13, weight: .heavy)).tracking(2.2)
+                    .foregroundStyle(Theme.lime).widgetAccentable()
+                Spacer(minLength: 4)
+                if let s = entry.snapshot {
+                    Text(s.day.uppercased()).font(.system(size: 11, weight: .semibold)).tracking(1.2)
+                        .foregroundStyle(Theme.muted)
+                }
+            }
+            Spacer(minLength: 6)
             if let s = entry.snapshot, let c = current {
-                Text(c.name).font(.system(.headline, design: .rounded)).bold().lineLimit(3)
-                Text(c.reps).font(.subheadline).foregroundStyle(.secondary)
-                Spacer(minLength: 0)
-                Text("\(s.currentIndex + 1) / \(s.total)").font(.caption2).foregroundStyle(.secondary)
-            } else if entry.snapshot != nil {
-                Text("Done ✓").font(.title3).bold()
+                Text("UP NEXT").font(.system(size: 9, weight: .bold)).tracking(1.4).foregroundStyle(Theme.muted)
+                Text(c.name).font(.system(size: 17, weight: .bold)).foregroundStyle(Theme.ink)
+                    .lineLimit(3).minimumScaleFactor(0.8).padding(.top, 2)
+                Text(c.reps).font(.system(size: 12, weight: .medium)).foregroundStyle(Theme.steel)
+                    .lineLimit(1).padding(.top, 2)
+                Spacer(minLength: 6)
+                progress(done: s.doneCount, total: s.total)
+            } else if let s = entry.snapshot {
+                Image(systemName: "checkmark.circle.fill").font(.system(size: 30, weight: .semibold))
+                    .foregroundStyle(Theme.lime).widgetAccentable()
+                Text("Workout done").font(.system(size: 16, weight: .bold)).foregroundStyle(Theme.ink).padding(.top, 4)
+                Spacer(minLength: 6)
+                progress(done: s.doneCount, total: s.total)
             } else {
-                Text("Pick a day in LIFT").font(.subheadline)
+                Text("Tap to start").font(.system(size: 17, weight: .bold)).foregroundStyle(Theme.ink)
+                Text("Pick today's workout").font(.system(size: 12)).foregroundStyle(Theme.steel).padding(.top, 2)
+                Spacer(minLength: 0)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder private func progress(done: Int, total: Int) -> some View {
+        let f = total > 0 ? Swift.min(1, Double(done) / Double(total)) : 0
+        HStack(spacing: 8) {
+            GeometryReader { g in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.12))
+                    Capsule().fill(Theme.lime).frame(width: Swift.max(f > 0 ? 5 : 0, g.size.width * f))
+                        .widgetAccentable()
+                }
+            }
+            .frame(height: 5)
+            Text("\(done)/\(total)").font(.system(size: 11, weight: .bold).monospacedDigit())
+                .foregroundStyle(Theme.steel)
+        }
     }
 
     // MARK: - Home Screen medium / large (the "see what's coming" list)
@@ -200,11 +289,10 @@ struct LIFTWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: LiftProvider()) { entry in
             LIFTWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("LIFT — Today")
         .description("Your workout, advancing as you log. Use a large size to see what's coming.")
-        .supportedFamilies([.accessoryInline, .accessoryRectangular,
+        .supportedFamilies([.accessoryInline, .accessoryRectangular, .accessoryCircular,
                             .systemSmall, .systemMedium, .systemLarge])
     }
 }
