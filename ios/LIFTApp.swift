@@ -1,6 +1,7 @@
 import SwiftUI
 import WebKit
 import WidgetKit
+import AVFoundation
 
 // ─────────────────────────────────────────────────────────────
 // 🔗 Hosted link (GitHub Pages). Keep the quotes + trailing slash.
@@ -34,6 +35,7 @@ struct WebView: UIViewRepresentable {
         controller.add(context.coordinator, name: "lift")       // JS → native: widget state
         controller.add(context.coordinator, name: "liftSync")   // JS → native: full log blob → cloud
         controller.add(context.coordinator, name: "liftWake")   // JS → native: keep screen awake during the core timer
+        controller.add(context.coordinator, name: "liftSpeak")  // JS → native: core-timer voice cues (AVSpeechSynthesizer)
         config.userContentController = controller
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.scrollView.contentInsetAdjustmentBehavior = .never
@@ -66,6 +68,16 @@ struct WebView: UIViewRepresentable {
                 // timer asks native to hold the screen awake ("1" on open, "0" on close).
                 let on = (json == "1")
                 DispatchQueue.main.async { UIApplication.shared.isIdleTimerDisabled = on }
+            case "liftSpeak":
+                // {"say": "...", "rate": 1} or {"cancel": true}. Web speech inside WKWebView only gets
+                // the compact (robotic) voices; the native engine can use downloaded Enhanced/Premium ones.
+                guard let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
+                DispatchQueue.main.async {
+                    if obj["cancel"] as? Bool == true { Speaker.shared.cancel() }
+                    if let text = obj["say"] as? String, !text.isEmpty {
+                        Speaker.shared.say(text, rate: (obj["rate"] as? Double) ?? 1)
+                    }
+                }
             default:
                 break
             }
@@ -94,5 +106,48 @@ struct WebView: UIViewRepresentable {
                 }
             }.resume()
         }
+    }
+}
+
+// Core-timer voice. Picks the most natural English voice installed on the phone:
+// Premium > Enhanced > the system default. (Siri voices are not available to apps — Apple restriction.)
+final class Speaker: NSObject {
+    static let shared = Speaker()
+    private let synth = AVSpeechSynthesizer()
+    private var voice: AVSpeechSynthesisVoice?
+    private var picked = false
+
+    override init() {
+        super.init()
+        // Let the system manage the speech audio session: plays over AirPods/music without
+        // touching the web view's own session (the timer beeps).
+        synth.usesApplicationAudioSession = false
+    }
+
+    private static func bestVoice() -> AVSpeechSynthesisVoice? {
+        let lang = AVSpeechSynthesisVoice.currentLanguageCode()
+        let candidates = AVSpeechSynthesisVoice.speechVoices().filter {
+            $0.language.hasPrefix("en") && !$0.voiceTraits.contains(.isNoveltyVoice)
+        }
+        let best = candidates.max { a, b in
+            if a.quality != b.quality { return a.quality.rawValue < b.quality.rawValue }
+            return (a.language == lang ? 1 : 0) < (b.language == lang ? 1 : 0)
+        }
+        if let b = best, b.quality != .default { return b }
+        return nil   // nothing better downloaded → system default voice
+    }
+
+    func say(_ text: String, rate: Double) {
+        if !picked { voice = Speaker.bestVoice(); picked = true }
+        let u = AVSpeechUtterance(string: text)
+        if let v = voice { u.voice = v }
+        // Web rate 1.0 = normal speech; AVSpeech's normal is AVSpeechUtteranceDefaultSpeechRate.
+        u.rate = min(AVSpeechUtteranceMaximumSpeechRate,
+                     max(AVSpeechUtteranceMinimumSpeechRate, Float(rate) * AVSpeechUtteranceDefaultSpeechRate))
+        synth.speak(u)
+    }
+
+    func cancel() {
+        if synth.isSpeaking { synth.stopSpeaking(at: .immediate) }
     }
 }

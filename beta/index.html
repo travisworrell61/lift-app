@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07090d">
-<meta name="lift-build" content="r10">
+<meta name="lift-build" content="r11">
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -1301,6 +1301,16 @@ var LIFT_ACTX=null;                       // the core timer's AudioContext, capt
   try{
     var AC=window.AudioContext||window.webkitAudioContext;
     if(AC){ window.AudioContext=function(o){ var c=new AC(o); LIFT_ACTX=c; return c; }; window.AudioContext.prototype=AC.prototype; }
+  }catch(e){}
+})();
+/* R11: inside the native app, the core-timer voice is spoken by iOS itself (liftSpeak → AVSpeechSynthesizer),
+   because web speech in WKWebView only gets the compact robotic voices. Patched from OUTSIDE the verbatim timer
+   block: Ab's say()/cancel() calls land here unchanged. Safari / PWA / harness (no bridge) keep web speech. */
+(function(){
+  try{
+    var ss=window.speechSynthesis, b=bridge('liftSpeak'); if(!ss || !b) return;
+    ss.speak=function(u){ try{ b.postMessage(JSON.stringify({say:String((u&&u.text)||''), rate:(u&&u.rate)||1})); }catch(e){} };
+    ss.cancel=function(){ try{ b.postMessage(JSON.stringify({cancel:true})); }catch(e){} };
   }catch(e){}
 })();
 function liftWake(on){ try{ var b=bridge('liftWake'); if(b) b.postMessage(on?'1':'0'); }catch(e){} }
