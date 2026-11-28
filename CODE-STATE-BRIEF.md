@@ -92,13 +92,18 @@ Each line: `scale_tag`, `type`, `convention`, `default_equipment`, `ratio`. Cabl
 4. **Bodyweight is triggered by the REPS field, not the name.** Use `AMRAP`, `… × burnout`, or `to failure` in reps to make a move bodyweight (no weight box, "Mark done"). Putting "burnout" in the *name* does **not** trigger it (so "Standing DB Lateral · burnout" correctly stays weighted).
 5. **Logged state is week-scoped, not "today".** A day counts as logged if there's an entry for (this Mon–Sun week, that day, variant). This makes completed days rehydrate and lets a session slide a day (Tuesday's legs done Wednesday) without losing state. **Weekend note:** on Sat/Sun the tabs now show the week just trained (for review/backfill), not a preview of next week.
 6. **A notes-only sync can no longer wipe the log history** (server now merges). Your reads of the blob are safe.
+7. **Redesigned logger (live 2026-11-27) — log entries now carry REPS and SWAPS.** Read these new fields in the synced blob:
+   - `sets[].r` = **reps actually performed** for that set (number, or `null` if not entered). Entries from before 11-27 have no `r` — treat them as "reps not recorded", not zero.
+   - `swapFor: "<program exercise name>"` = this lift **replaced** that program exercise (machine taken / swap). It counts as the program slot being logged for the week. So for one week you may see **both** an entry under the original name and a `swapFor` entry pointing at it; the `swapFor` one is the substitute actually done.
+   - **Drop sets:** every set prefills the TOP working weight; "drop set" is a reminder only. A drop-set entry's `w` values are what he started each set at, not the dropped weights.
+   - Logging is one set at a time (tap reps → LOG), so set counts reflect sets actually done, not the planned count.
 
 ---
 
 ## 5. Division of labor (don't try to change these via data — send a ticket)
 - **You (coaching chat) own:** program content, `recs`/`plates`/`alts`/`exLib`/`plateMode`/`corePools`, and the two `*.json` data files. Program swaps happen only when Travis pastes.
 - **Code owns:** rendering, the weight logger, week-slot logging + rehydration, the day review, the picker, machine-aware logging, the scale-tag store, the core timer, sync, and the native shell. You cannot change these through the program JSON — if you want a behavior change, write a ticket (same as 06–22).
-- `w:null` = done/no-load; `p` = per-side plate breakdown on a log entry; `v` = chosen variant; `scale_tag` = cable station; `added:1` = a bonus (non-program) lift — it drives the promote-after-3 flag, read it as "athlete chose this on his own".
+- `w:null` = done/no-load; `r` = reps performed (new 11-27); `swapFor` = program lift this one replaced (new 11-27); `p` = per-side plate breakdown on a log entry; `v` = chosen variant; `scale_tag` = cable station; `added:1` = a bonus (non-program) lift — it drives the promote-after-3 flag, read it as "athlete chose this on his own".
 
 ---
 
