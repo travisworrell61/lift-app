@@ -124,17 +124,24 @@ final class Speaker: NSObject {
         synth.usesApplicationAudioSession = false
     }
 
+    // Ranking: Premium > Enhanced > ex-Siri compact voices (Nicky, Aaron, …) > anything else; en-US first.
+    // Novelty and "eloquence" (Eddy, Flo, Grandma…) voices are never picked. Siri's own voices are not
+    // offered to apps by iOS, so the ex-Siri compact bundle is the most natural fallback.
+    static let preferredSiri = ["Nicky", "Aaron"]
+    private static func score(_ v: AVSpeechSynthesisVoice, lang: String) -> Int {
+        var s = v.quality.rawValue * 100                      // default 1, enhanced 2, premium 3
+        if v.identifier.contains("ttsbundle.siri_") { s += 50 }
+        if let i = preferredSiri.firstIndex(of: v.name) { s += 10 - i }
+        if v.language == lang { s += 5 } else if v.language == "en-US" { s += 3 }
+        return s
+    }
     private static func bestVoice() -> AVSpeechSynthesisVoice? {
         let lang = AVSpeechSynthesisVoice.currentLanguageCode()
         let candidates = AVSpeechSynthesisVoice.speechVoices().filter {
             $0.language.hasPrefix("en") && !$0.voiceTraits.contains(.isNoveltyVoice)
+                && !$0.identifier.contains(".eloquence.") && !$0.identifier.contains("speech.synthesis.voice.")
         }
-        let best = candidates.max { a, b in
-            if a.quality != b.quality { return a.quality.rawValue < b.quality.rawValue }
-            return (a.language == lang ? 1 : 0) < (b.language == lang ? 1 : 0)
-        }
-        if let b = best, b.quality != .default { return b }
-        return nil   // nothing better downloaded → system default voice
+        return candidates.max { score($0, lang: lang) < score($1, lang: lang) }
     }
 
     func say(_ text: String, rate: Double) {
@@ -145,6 +152,22 @@ final class Speaker: NSObject {
         u.rate = min(AVSpeechUtteranceMaximumSpeechRate,
                      max(AVSpeechUtteranceMinimumSpeechRate, Float(rate) * AVSpeechUtteranceDefaultSpeechRate))
         synth.speak(u)
+        writeDiag(lastText: text)
+    }
+
+    // Diagnostics: Documents/voice-diag.txt in the app container (no personal data — voice names only).
+    private var count = 0
+    private func writeDiag(lastText: String) {
+        count += 1
+        let all = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix("en") }
+        var lines = ["say calls: \(count)", "last text: \(lastText)",
+                     "chosen: \(voice.map { "\($0.name) [\($0.identifier)] q=\($0.quality.rawValue)" } ?? "nil (system default)")",
+                     "default for \(AVSpeechSynthesisVoice.currentLanguageCode()): \(AVSpeechSynthesisVoice(language: AVSpeechSynthesisVoice.currentLanguageCode()).map { "\($0.name) [\($0.identifier)] q=\($0.quality.rawValue)" } ?? "none")",
+                     "en voices (\(all.count)):"]
+        lines += all.map { "  \($0.name) | \($0.language) | q=\($0.quality.rawValue) | \($0.identifier)" }
+        if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            try? lines.joined(separator: "\n").write(to: dir.appendingPathComponent("voice-diag.txt"), atomically: true, encoding: .utf8)
+        }
     }
 
     func cancel() {
